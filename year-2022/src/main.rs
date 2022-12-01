@@ -51,9 +51,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let file_name = if test {
-        format!("./src/inputs/day{day_num}-test.txt")
+        format!("./inputs/day{day_num}-test.txt")
     } else {
-        format!("./src/inputs/day{day_num}.txt")
+        format!("./inputs/day{day_num}.txt")
     };
     let input = read_to_string(file_name).unwrap();
     let result = part_fn(&input);
