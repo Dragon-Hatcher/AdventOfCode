@@ -23,20 +23,20 @@ fn usage() -> ! {
     exit(1)
 }
 
+fn is_test(args: &[String]) -> bool {
+    args.iter().any(|a| *a == "--text" || *a == "-t")
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
-    if args.len() < 2 {
-        usage()
-    }
-
-    let Ok(day_num) = args[0].parse::<usize>() else { usage() };
-    let Ok(part_num) = args[1].parse::<usize>() else { usage() };
-    let test = if let Some(str) = args.get(2) {
-        str == "--text" || str == "-t"
-    } else {
-        false
-    };
+    let day_num = args
+        .get(0)
+        .unwrap_or(&"".to_owned())
+        .parse::<usize>()
+        .unwrap_or(DAY_FNS.len());
+    let part_num = args.get(1).unwrap_or(&"".to_owned()).parse::<usize>().ok();
+    let test = is_test(&args);
 
     if day_num > DAY_FNS.len() {
         usage()
@@ -44,24 +44,38 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let (part1, part2) = DAY_FNS[day_num - 1];
 
-    let part_fn = match part_num {
-        1 => part1,
-        2 => part2,
-        _ => usage(),
-    };
-
     let file_name = if test {
         format!("./inputs/day{day_num}-test.txt")
     } else {
         format!("./inputs/day{day_num}.txt")
     };
     let input = read_to_string(file_name).unwrap();
-    let result = part_fn(&input);
 
-    if test {
-        println!("Day {day_num} Part {part_num} (test) = {result}");
+    if let Some(part_num) = part_num {
+        let part_fn = match part_num {
+            1 => part1,
+            2 => part2,
+            _ => usage(),
+        };
+
+        let result = part_fn(&input);
+
+        if test {
+            println!("Day {day_num} Part {part_num} (test) = {result}");
+        } else {
+            println!("Day {day_num} Part {part_num} = {result}");
+        }
     } else {
-        println!("Day {day_num} Part {part_num} = {result}");
+        let result1 = part1(&input);
+        let result2 = part2(&input);
+
+        if test {
+            println!("Day {day_num} Part 1 (test) = {result1}");
+            println!("Day {day_num} Part 2 (test) = {result2}");
+        } else {
+            println!("Day {day_num} Part 1 = {result1}");
+            println!("Day {day_num} Part 2 = {result2}");
+        }
     }
 
     Ok(())
