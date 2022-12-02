@@ -3,14 +3,5 @@
 version = 3
 
 [[package]]
-name = "seq-macro"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0772c5c30e1a0d91f6834f8e545c69281c099dfa9a3ac58d96a9fd629c8d4898"
-
-[[package]]
 name = "year-2022"
 version = "0.1.0"
-dependencies = [
- "seq-macro",
-]

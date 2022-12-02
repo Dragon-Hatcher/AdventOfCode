@@ -1,19 +1,10 @@
-use seq_macro::seq;
 use std::{error::Error, fs::read_to_string, process::exit};
 
 mod standard_parsers;
 
-seq!(N in 1..=1 {
-    mod day~N;
-});
+mod day1;
 
-seq!(N in 1..=1 {
-    static DAY_FNS: &[(DayFunc, DayFunc)] = &[
-        #(
-            (day~N::part1, day~N::part2),
-        )*
-    ];
-});
+static DAY_FNS: &[(DayFunc, DayFunc)] = &[(day1::part1, day1::part2)];
 
 type DayFunc = fn(&str) -> i64;
 
