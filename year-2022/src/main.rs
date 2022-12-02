@@ -1,5 +1,5 @@
-use std::{error::Error, fs::read_to_string, process::exit};
-
+use std::{fs::read_to_string, process::exit};
+mod get_data;
 mod standard_parsers;
 
 mod day1;
@@ -18,8 +18,22 @@ fn is_test(args: &[String]) -> bool {
     args.iter().any(|a| *a == "--text" || *a == "-t")
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn get_get_data(args: &[String]) -> Option<usize> {
+    if args.len() == 2 && (args[0] == "--get-date" || args[0] == "-d") {
+        args[1].parse().ok()
+    } else {
+        None
+    }
+}
+
+fn main() -> Result<(), anyhow::Error> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+
+    if let Some(day) = get_get_data(&args) {
+        get_data::get_data(day)?;
+        println!("Successfully added new day.");
+        return Ok(());
+    }
 
     let day_num = args
         .get(0)
@@ -56,17 +70,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             println!("Day {day_num} Part {part_num} = {result}");
         }
+    } else if test {
+        let result1 = part1(&input);
+        println!("Day {day_num} Part 1 (test) = {result1}");
+        let result2 = part2(&input);
+        println!("Day {day_num} Part 2 (test) = {result2}");
     } else {
         let result1 = part1(&input);
+        println!("Day {day_num} Part 1 = {result1}");
         let result2 = part2(&input);
-
-        if test {
-            println!("Day {day_num} Part 1 (test) = {result1}");
-            println!("Day {day_num} Part 2 (test) = {result2}");
-        } else {
-            println!("Day {day_num} Part 1 = {result1}");
-            println!("Day {day_num} Part 2 = {result2}");
-        }
+        println!("Day {day_num} Part 2 = {result2}");
     }
 
     Ok(())
