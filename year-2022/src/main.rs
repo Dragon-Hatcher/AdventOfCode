@@ -2,9 +2,15 @@ use std::{fs::read_to_string, process::exit};
 mod get_data;
 mod standard_parsers;
 
+// SOLUTION MODULES
 mod day1;
+mod day2;
 
-static DAY_FNS: &[(DayFunc, DayFunc)] = &[(day1::part1, day1::part2)];
+static DAY_FNS: &[(DayFunc, DayFunc)] = &[
+    // SOLUTION FUNCTIONS
+    (day1::part1, day1::part2),
+    (day2::part1, day2::part2),
+];
 
 type DayFunc = fn(&str) -> i64;
 
