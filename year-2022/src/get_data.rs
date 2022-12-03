@@ -27,6 +27,11 @@ pub fn get_data(day: usize) -> Result<(), anyhow::Error> {
     let new_file = create_empty_file(std::fs::read_to_string(&code_file).ok(), &article);
     std::fs::write(&code_file, new_file)?;
 
+    let main_file = "./src/main.rs";
+    let main_text = std::fs::read_to_string(main_file)?;
+    let new_main_text = update_main(&main_text, day);
+    std::fs::write(main_file, new_main_text)?;
+
     Ok(())
 }
 
@@ -150,4 +155,35 @@ pub fn part2(input: &str) -> i64 {
     }
 
     current_file
+}
+
+fn update_main(current_main: &str, day: usize) -> String {
+    lazy_static! {
+        static ref MOD_RE: Regex = Regex::new("mod day(\\d+);").unwrap();
+        static ref FN_RE: Regex = Regex::new("\\(day(\\d+)::part1, day\\d+::part2\\),").unwrap();
+    }
+
+    let mut current_main = current_main.to_owned();
+
+    let mut mod_found = false;
+    for capture in MOD_RE.captures_iter(&current_main) {
+        mod_found = mod_found || capture[1].parse::<usize>().unwrap() == day;
+    }
+    if !mod_found {
+        let last_mod = MOD_RE.find_iter(&current_main).last().unwrap();
+        let mod_text = format!("\nmod day{day};");
+        current_main.insert_str(last_mod.end(), &mod_text);
+    }
+
+    let mut fn_found = false;
+    for capture in FN_RE.captures_iter(&current_main) {
+        fn_found = fn_found || capture[1].parse::<usize>().unwrap() == day;
+    }
+    if !fn_found {
+        let last_fn = FN_RE.find_iter(&current_main).last().unwrap();
+        let fn_text = format!("\n    (day{day}::part1, day{day}::part2),");
+        current_main.insert_str(last_fn.end(), &fn_text);
+    }
+
+    current_main
 }
