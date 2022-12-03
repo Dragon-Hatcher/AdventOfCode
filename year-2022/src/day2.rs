@@ -1,4 +1,4 @@
-use crate::standard_parsers::lines;
+use crate::standard_parsers::AocParsed;
 
 #[derive(Clone, Copy)]
 enum Move {
@@ -115,9 +115,8 @@ fn outcome(me: Move, opp: Move) -> Outcome {
 /// strategy guide?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let lines = lines(input);
-
-    lines
+    input
+        .non_empty()
         .map(|l| {
             let opp = move_from_char(l.chars().next().unwrap());
             let me = move_from_char(l.chars().nth(2).unwrap());
@@ -177,9 +176,8 @@ fn move_for_outcome(opp: Move, outcome: Outcome) -> Move {
 /// score be if everything goes exactly according to your strategy guide?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let lines = lines(input);
-
-    lines
+    input
+        .non_empty()
         .map(|l| {
             let opp = move_from_char(l.chars().next().unwrap());
             let outcome = outcome_from_char(l.chars().nth(2).unwrap());

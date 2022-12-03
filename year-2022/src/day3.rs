@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::standard_parsers::lines;
+use crate::standard_parsers::AocParsed;
 
 fn calculate_priority(char: char) -> i64 {
     match char {
@@ -69,9 +69,8 @@ fn calculate_priority(char: char) -> i64 {
 /// is the sum of the priorities of those item types?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let lines = lines(input);
-
-    lines
+    input
+        .non_empty()
         .map(|l| {
             let first_half = &l[..l.len() / 2];
             let second_half = &l[l.len() / 2..];
@@ -140,9 +139,8 @@ pub fn part1(input: &str) -> i64 {
 /// is the sum of the priorities of those item types?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let lines = lines(input);
-
-    lines
+    input
+        .non_empty()
         .tuples()
         .into_iter()
         .map(|(s1, s2, s3)| {
