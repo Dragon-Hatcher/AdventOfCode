@@ -38,7 +38,8 @@ fn move_from_char(char: char) -> Move {
     match char {
         'A' | 'X' => Move::Rock,
         'B' | 'Y' => Move::Paper,
-        'C' | 'Z' | _ => Move::Scissors,
+        'C' | 'Z' => Move::Scissors,
+        _ => panic!("bad letter"),
     }
 }
 
@@ -118,7 +119,7 @@ pub fn part1(input: &str) -> i64 {
 
     lines
         .map(|l| {
-            let opp = move_from_char(l.chars().nth(0).unwrap());
+            let opp = move_from_char(l.chars().next().unwrap());
             let me = move_from_char(l.chars().nth(2).unwrap());
             let outcome = outcome(me, opp);
 
@@ -180,7 +181,7 @@ pub fn part2(input: &str) -> i64 {
 
     lines
         .map(|l| {
-            let opp = move_from_char(l.chars().nth(0).unwrap());
+            let opp = move_from_char(l.chars().next().unwrap());
             let outcome = outcome_from_char(l.chars().nth(2).unwrap());
             let me = move_for_outcome(opp, outcome);
 

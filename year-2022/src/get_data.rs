@@ -47,7 +47,7 @@ fn create_client(day: usize) -> Result<Client, reqwest::Error> {
 fn get_user_data(client: &Client, day: usize) -> Result<String, reqwest::Error> {
     let url = format!("http://adventofcode.com/2022/day/{day}/input");
     let response = client.get(url).send()?;
-    Ok(response.text()?)
+    response.text()
 }
 
 fn get_article(client: &Client, day: usize) -> Result<String, reqwest::Error> {
@@ -65,7 +65,7 @@ fn get_example_data(article_text: &str) -> Result<String, reqwest::Error> {
         .captures_iter(article_text)
         .max_by_key(|c| c[1].len())
         .map(|c| c[1].to_owned())
-        .unwrap_or("".to_owned());
+        .unwrap_or_else(|| "".to_owned());
 
     Ok(example)
 }
