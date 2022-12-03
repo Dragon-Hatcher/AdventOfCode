@@ -24,7 +24,7 @@ pub fn get_data(day: usize) -> Result<(), anyhow::Error> {
     }
 
     let code_file = format!("./src/day{day}.rs");
-    let new_file = create_empty_file(std::fs::read_to_string(&code_file).ok(), &article);
+    let new_file = create_empty_file(std::fs::read_to_string(&code_file).ok(), day, &article);
     std::fs::write(&code_file, new_file)?;
 
     let main_file = "./src/main.rs";
@@ -118,28 +118,99 @@ fn to_doc_comment(text: &str) -> String {
     out
 }
 
-fn create_empty_file(current_file: Option<String>, article_text: &str) -> String {
-    const EMPTY_FILE: &str = "
-pub fn part1(input: &str) -> i64 {
-    todo!()
+fn get_answers(article_text: &str, section_text: &str, part: usize) -> (Option<i64>, Option<i64>) {
+    lazy_static! {
+        static ref PUZ_ANS_RE: Regex =
+            Regex::new("Your puzzle answer was <code>(\\d+)</code>").unwrap();
+        static ref EX_ANS_RE: Regex =
+            Regex::new("(<code><em>|<em><code>)(\\d+)(</code></em>|</em></code>)").unwrap();
+    }
+
+    let ex_answer = EX_ANS_RE
+        .captures_iter(section_text)
+        .last()
+        .and_then(|a| a[2].parse().ok());
+
+    let answer = PUZ_ANS_RE
+        .captures_iter(article_text)
+        .nth(part - 1)
+        .and_then(|a| a[1].parse().ok());
+
+    (ex_answer, answer)
 }
 
-pub fn part2(input: &str) -> i64 {
+fn create_empty_file(current_file: Option<String>, day: usize, article_text: &str) -> String {
+    let empty_file = format!(
+        r#"
+pub fn part1(input: &str) -> i64 {{
     todo!()
-}
+}}
 
-";
+pub fn part2(input: &str) -> i64 {{
+    todo!()
+}}
+
+#[cfg(test)]
+mod test {{
+    use super::*;
+
+    const PART1_EX_ANSWER: i64 = 0;
+    const PART1_ANSWER: i64 = 0;
+    const PART2_EX_ANSWER: i64 = 0;
+    const PART2_ANSWER: i64 = 0;
+
+    #[test]
+    fn test_part1_ex() {{
+        let ex_input = std::fs::read_to_string("./inputs/day{day}-test.txt").unwrap();
+        assert_eq!(part1(&ex_input), PART1_EX_ANSWER);
+    }}
+
+    #[test]
+    fn test_part1() {{
+        let input = std::fs::read_to_string("./inputs/day{day}.txt").unwrap();
+        assert_eq!(part1(&input), PART1_ANSWER);
+    }}
+
+    #[test]
+    fn test_part2_ex() {{
+        let ex_input = std::fs::read_to_string("./inputs/day{day}-test.txt").unwrap();
+        assert_eq!(part2(&ex_input), PART2_EX_ANSWER);
+    }}
+
+    #[test]
+    fn test_part2() {{
+        let input = std::fs::read_to_string("./inputs/day{day}.txt").unwrap();
+        assert_eq!(part2(&input), PART2_ANSWER);
+    }}
+}}
+
+"#
+    );
 
     lazy_static! {
         static ref RE: Regex =
             Regex::new("(?s)<article class=\"day-desc\">(.*?)</article>").unwrap();
     }
 
-    let mut current_file = current_file.unwrap_or_else(|| EMPTY_FILE.to_owned());
+    let mut current_file = current_file.unwrap_or_else(|| empty_file.to_owned());
 
     for (part, capture) in RE.captures_iter(article_text).enumerate() {
         let part = part + 1;
 
+        // Replace answers
+        let (ex_answer, answer) = get_answers(article_text,&capture[1], part);
+        if let Some(ex_answer) = ex_answer {
+            let to_replace = format!("const PART{part}_EX_ANSWER: i64 = 0;");
+            let with = format!("const PART{part}_EX_ANSWER: i64 = {ex_answer};");
+            current_file = current_file.replace(&to_replace, &with);
+        }
+        if let Some(answer) = answer {
+            let to_replace = format!("const PART{part}_ANSWER: i64 = 0;");
+            let with = format!("const PART{part}_ANSWER: i64 = {answer};");
+            current_file = current_file.replace(&to_replace, &with);
+        }
+
+        // Replace doc comments
         let mut file_lines: Vec<_> = current_file.lines().collect();
         let search_str = &format!("pub fn part{part}");
         let Some(line_index) = file_lines.iter().position(|l| l.contains(search_str)) else { continue; };

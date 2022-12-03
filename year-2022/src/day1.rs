@@ -106,3 +106,37 @@ pub fn part2(input: &str) -> i64 {
         .take(3)
         .sum()
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const PART1_EX_ANSWER: i64 = 24000;
+    const PART1_ANSWER: i64 = 67016;
+    const PART2_EX_ANSWER: i64 = 45000;
+    const PART2_ANSWER: i64 = 200116;
+
+    #[test]
+    fn test_part1_ex() {
+        let ex_input = std::fs::read_to_string("./inputs/day1-test.txt").unwrap();
+        assert_eq!(part1(&ex_input), PART1_EX_ANSWER);
+    }
+
+    #[test]
+    fn test_part1() {
+        let input = std::fs::read_to_string("./inputs/day1.txt").unwrap();
+        assert_eq!(part1(&input), PART1_ANSWER);
+    }
+
+    #[test]
+    fn test_part2_ex() {
+        let ex_input = std::fs::read_to_string("./inputs/day1-test.txt").unwrap();
+        assert_eq!(part2(&ex_input), PART2_EX_ANSWER);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = std::fs::read_to_string("./inputs/day1.txt").unwrap();
+        assert_eq!(part2(&input), PART2_ANSWER);
+    }
+}
