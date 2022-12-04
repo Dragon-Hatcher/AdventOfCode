@@ -24,7 +24,7 @@ pub fn get_data(day: usize) -> Result<(), anyhow::Error> {
     }
 
     let code_file = format!("./src/day{day}.rs");
-    let new_file = create_empty_file(std::fs::read_to_string(&code_file).ok(), day, &article);
+    let new_file = create_empty_file(std::fs::read_to_string(&code_file).ok(), &article);
     std::fs::write(&code_file, new_file)?;
 
     let main_file = "./src/main.rs";
@@ -139,66 +139,37 @@ fn get_answers(article_text: &str, section_text: &str, part: usize) -> (Option<i
     (ex_answer, answer)
 }
 
-fn create_empty_file(current_file: Option<String>, day: usize, article_text: &str) -> String {
-    let empty_file = format!(
-        r#"
-pub fn part1(input: &str) -> i64 {{
-    todo!()
-}}
+fn create_empty_file(current_file: Option<String>, article_text: &str) -> String {
+    const EMPTY_FILE: &str = r#"
+pub fn part1(input: &str) -> i64 {
+    0
+}
 
-pub fn part2(input: &str) -> i64 {{
-    todo!()
-}}
+pub fn part2(input: &str) -> i64 {
+    0
+}
 
-#[cfg(test)]
-mod test {{
-    use super::*;
+const PART1_EX_ANSWER: i64 = 0;
+const PART1_ANSWER: i64 = 0;
+const PART2_EX_ANSWER: i64 = 0;
+const PART2_ANSWER: i64 = 0;
+pub const ANSWERS: (i64, i64, i64, i64) = 
+    (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
 
-    const PART1_EX_ANSWER: i64 = 0;
-    const PART1_ANSWER: i64 = 0;
-    const PART2_EX_ANSWER: i64 = 0;
-    const PART2_ANSWER: i64 = 0;
-
-    #[test]
-    fn test_part1_ex() {{
-        let ex_input = std::fs::read_to_string("./inputs/day{day}-test.txt").unwrap();
-        assert_eq!(part1(&ex_input), PART1_EX_ANSWER);
-    }}
-
-    #[test]
-    fn test_part1() {{
-        let input = std::fs::read_to_string("./inputs/day{day}.txt").unwrap();
-        assert_eq!(part1(&input), PART1_ANSWER);
-    }}
-
-    #[test]
-    fn test_part2_ex() {{
-        let ex_input = std::fs::read_to_string("./inputs/day{day}-test.txt").unwrap();
-        assert_eq!(part2(&ex_input), PART2_EX_ANSWER);
-    }}
-
-    #[test]
-    fn test_part2() {{
-        let input = std::fs::read_to_string("./inputs/day{day}.txt").unwrap();
-        assert_eq!(part2(&input), PART2_ANSWER);
-    }}
-}}
-
-"#
-    );
+"#;
 
     lazy_static! {
         static ref RE: Regex =
             Regex::new("(?s)<article class=\"day-desc\">(.*?)</article>").unwrap();
     }
 
-    let mut current_file = current_file.unwrap_or_else(|| empty_file.to_owned());
+    let mut current_file = current_file.unwrap_or_else(|| EMPTY_FILE.to_owned());
 
     for (part, capture) in RE.captures_iter(article_text).enumerate() {
         let part = part + 1;
 
         // Replace answers
-        let (ex_answer, answer) = get_answers(article_text,&capture[1], part);
+        let (ex_answer, answer) = get_answers(article_text, &capture[1], part);
         if let Some(ex_answer) = ex_answer {
             let to_replace = format!("const PART{part}_EX_ANSWER: i64 = 0;");
             let with = format!("const PART{part}_EX_ANSWER: i64 = {ex_answer};");
@@ -231,7 +202,8 @@ mod test {{
 fn update_main(current_main: &str, day: usize) -> String {
     lazy_static! {
         static ref MOD_RE: Regex = Regex::new("mod day(\\d+);").unwrap();
-        static ref FN_RE: Regex = Regex::new("\\(day(\\d+)::part1, day\\d+::part2\\),").unwrap();
+        static ref FN_RE: Regex =
+            Regex::new("\\(day(\\d+)::part1, day\\d+::part2, day\\d+::ANSWERS\\),").unwrap();
     }
 
     let mut current_main = current_main.to_owned();
@@ -252,7 +224,7 @@ fn update_main(current_main: &str, day: usize) -> String {
     }
     if !fn_found {
         let last_fn = FN_RE.find_iter(&current_main).last().unwrap();
-        let fn_text = format!("\n    (day{day}::part1, day{day}::part2),");
+        let fn_text = format!("\n    (day{day}::part1, day{day}::part2, day{day}::ANSWERS),");
         current_main.insert_str(last_fn.end(), &fn_text);
     }
 

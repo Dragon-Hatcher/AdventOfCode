@@ -1,5 +1,4 @@
-use std::{fs::read_to_string, process::exit};
-mod get_data;
+use std::{fs::read_to_string, io::stdin, process::exit};
 mod standard_parsers;
 
 // SOLUTION MODULES
@@ -7,88 +6,77 @@ mod day1;
 mod day2;
 mod day3;
 
-static DAY_FNS: &[(DayFunc, DayFunc)] = &[
+static DAY_FNS: &[(DayFunc, DayFunc, Answers)] = &[
     // SOLUTION FUNCTIONS
-    (day1::part1, day1::part2),
-    (day2::part1, day2::part2),
-    (day3::part1, day3::part2),
+    (day1::part1, day1::part2, day1::ANSWERS),
+    (day2::part1, day2::part2, day2::ANSWERS),
+    (day3::part1, day3::part2, day3::ANSWERS),
 ];
 
 type DayFunc = fn(&str) -> i64;
+type Answers = (i64, i64, i64, i64);
 
-fn usage() -> ! {
-    println!("USAGE: year-2022 [DAY_NUM] [PART_NUM]");
+fn main() {
+    let mut all_correct = true;
 
-    exit(1)
-}
+    for (day_num, (part1, part2, (part1_ex_answer, part1_answer, part2_ex_answer, part2_answer))) in
+        DAY_FNS.iter().enumerate().rev()
+    {
+        let day_num = day_num + 1;
 
-fn is_test(args: &[String]) -> bool {
-    args.iter().any(|a| *a == "--text" || *a == "-t")
-}
+        let input_file_name = format!("./inputs/day{day_num}.txt");
+        let test_input_file_name = format!("./inputs/day{day_num}-test.txt");
 
-fn get_get_data(args: &[String]) -> Option<usize> {
-    if args.len() == 2 && (args[0] == "--get-date" || args[0] == "-d") {
-        args[1].parse().ok()
-    } else {
-        None
-    }
-}
+        let input = read_to_string(input_file_name).unwrap();
+        let test_input = read_to_string(test_input_file_name).unwrap();
 
-fn main() -> Result<(), anyhow::Error> {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+        let part1_guess = part1(&input);
+        let part1_ex_guess = part1(&test_input);
+        let part2_guess = part2(&input);
+        let part2_ex_guess = part2(&test_input);
 
-    if let Some(day) = get_get_data(&args) {
-        get_data::get_data(day)?;
-        println!("Successfully added new day.");
-        return Ok(());
-    }
+        all_correct = all_correct
+            && part1_guess == *part1_answer
+            && part1_ex_guess == *part1_ex_answer
+            && part2_guess == *part2_answer
+            && part2_ex_guess == *part2_ex_answer;
 
-    let day_num = args
-        .get(0)
-        .unwrap_or(&"".to_owned())
-        .parse::<usize>()
-        .unwrap_or(DAY_FNS.len());
-    let part_num = args.get(1).unwrap_or(&"".to_owned()).parse::<usize>().ok();
-    let test = is_test(&args);
+        const RED: &str = "\x1b[31m";
+        const GREEN: &str = "\x1b[32m";
+        const RESET: &str = "\x1b[0m";
 
-    if day_num > DAY_FNS.len() {
-        usage()
-    }
-
-    let (part1, part2) = DAY_FNS[day_num - 1];
-
-    let file_name = if test {
-        format!("./inputs/day{day_num}-test.txt")
-    } else {
-        format!("./inputs/day{day_num}.txt")
-    };
-    let input = read_to_string(file_name).unwrap();
-
-    if let Some(part_num) = part_num {
-        let part_fn = match part_num {
-            1 => part1,
-            2 => part2,
-            _ => usage(),
-        };
-
-        let result = part_fn(&input);
-
-        if test {
-            println!("Day {day_num} Part {part_num} (test) = {result}");
-        } else {
-            println!("Day {day_num} Part {part_num} = {result}");
+        fn c(a: i64, b: i64) -> &'static str {
+            if a == b {
+                GREEN
+            } else {
+                RED
+            }
         }
-    } else if test {
-        let result1 = part1(&input);
-        println!("Day {day_num} Part 1 (test) = {result1}");
-        let result2 = part2(&input);
-        println!("Day {day_num} Part 2 (test) = {result2}");
-    } else {
-        let result1 = part1(&input);
-        println!("Day {day_num} Part 1 = {result1}");
-        let result2 = part2(&input);
-        println!("Day {day_num} Part 2 = {result2}");
+
+        println!("Day {day_num}:");
+        println!(
+            "    Part 1 Ex: {}{part1_guess:>6}{RESET} - {part1_answer:<6}",
+            c(part1_guess, *part1_answer)
+        );
+        println!(
+            "    Part 1:    {}{part1_ex_guess:>6}{RESET} - {part1_ex_answer:<6}",
+            c(part1_ex_guess, *part1_ex_answer)
+        );
+        println!(
+            "    Part 2 Ex: {}{part2_guess:>6}{RESET} - {part2_answer:<6}",
+            c(part2_guess, *part2_answer)
+        );
+        println!(
+            "    Part 2:    {}{part2_ex_guess:>6}{RESET} - {part2_ex_answer:<6}",
+            c(part2_ex_guess, *part2_ex_answer)
+        );
+
+        if day_num == DAY_FNS.len() {
+            _ = stdin().read_line(&mut String::new());
+        } else {
+            println!();
+        }
     }
 
-    Ok(())
+    exit(!all_correct as i32);
 }
