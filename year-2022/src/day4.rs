@@ -1,49 +1,44 @@
-use std::{any, collections::btree_map::Range, convert::Infallible, str::FromStr};
-
-use anyhow::Ok;
+use crate::standard_parsers::AocParsed;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::{ops::RangeInclusive, str::FromStr};
 
-use crate::standard_parsers::AocParsed;
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct Ranges {
-    first_low: i64,
-    first_high: i64,
-    second_low: i64,
-    second_high: i64,
+    first: RangeInclusive<i64>,
+    second: RangeInclusive<i64>,
 }
 
 impl FromStr for Ranges {
-    type Err = anyhow::Error;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         lazy_static! {
             static ref RE: Regex = Regex::new("(\\d+)\\-(\\d+),(\\d+)\\-(\\d+)").unwrap();
         }
 
-        let captures = RE.captures(s).unwrap();
+        let Some(captures) = RE.captures(s) else { return Err(()) };
 
         Ok(Ranges {
-            first_low: captures[1].parse::<i64>().unwrap(),
-            first_high: captures[2].parse::<i64>().unwrap(),
-            second_low: captures[3].parse::<i64>().unwrap(),
-            second_high: captures[4].parse::<i64>().unwrap(),
+            first: captures[1].parse::<i64>().unwrap()..=captures[2].parse::<i64>().unwrap(),
+            second: captures[3].parse::<i64>().unwrap()..=captures[4].parse::<i64>().unwrap(),
         })
     }
 }
 
+fn subsumes(outer: &RangeInclusive<i64>, inner: &RangeInclusive<i64>) -> bool {
+    inner.start() >= outer.start() && inner.end() <= outer.end()
+}
+
 impl Ranges {
-    fn subsummed(self) -> bool {
-        (self.first_low >= self.second_low && self.first_high <= self.second_high)
-            || (self.second_low >= self.first_low && self.second_high <= self.first_high)
+    fn subsumed(&self) -> bool {
+        subsumes(&self.first, &self.second) || subsumes(&self.second, &self.first)
     }
 
     fn overlap(self) -> bool {
-        (self.first_low <= self.second_high && self.first_low >= self.second_low) ||
-        (self.first_high <= self.second_high && self.first_low >= self.second_low) ||
-        (self.second_low <= self.first_high && self.second_low >= self.first_low) ||
-        (self.second_high <= self.first_high && self.second_low >= self.first_low)
+        self.subsumed()
+            || self.second.contains(self.first.start())
+            || self.second.contains(self.first.end())
     }
 }
 
@@ -118,27 +113,27 @@ impl Ranges {
 pub fn part1(input: &str) -> i64 {
     input
         .non_empty()
-        .map(|l| l.parse::<Ranges>().unwrap().subsummed() as i64)
+        .map(|l| l.parse::<Ranges>().unwrap().subsumed() as i64)
         .sum()
 }
 
-/// 
+///
 /// --- Part Two ---
-/// 
-/// It seems like there is still quite a bit of duplicate work planned. Instead, 
+///
+/// It seems like there is still quite a bit of duplicate work planned. Instead,
 /// the Elves would like to know the number of pairs that *overlap at all*.
-/// 
-/// In the above example, the first two pairs (`2-4,6-8` and `2-3,4-5`) don't overlap, 
-/// while the remaining four pairs (`5-7,7-9`, `2-8,3-7`, `6-6,4-6`, and `2-6,4-8`) 
+///
+/// In the above example, the first two pairs (`2-4,6-8` and `2-3,4-5`) don't overlap,
+/// while the remaining four pairs (`5-7,7-9`, `2-8,3-7`, `6-6,4-6`, and `2-6,4-8`)
 /// do overlap:
-/// 
+///
 /// * `5-7,7-9` overlaps in a single section, `7`.
 /// * `2-8,3-7` overlaps all of the sections `3` through `7`.
 /// * `6-6,4-6` overlaps in a single section, `6`.
 /// * `2-6,4-8` overlaps in sections `4`, `5`, and `6`.
-/// 
+///
 /// So, in this example, the number of overlapping assignment pairs is `*4*`.
-/// 
+///
 /// *In how many assignment pairs do the ranges overlap?*
 ///
 pub fn part2(input: &str) -> i64 {
