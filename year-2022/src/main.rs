@@ -57,20 +57,20 @@ fn main() {
 
         println!("Day {day_num}:");
         println!(
-            "    Part 1 Ex: {}{part1_guess:>6}{RESET} - {part1_answer:<6}",
-            c(part1_guess, *part1_answer)
-        );
-        println!(
-            "    Part 1:    {}{part1_ex_guess:>6}{RESET} - {part1_ex_answer:<6}",
+            "    Part 1 Ex: {}{part1_ex_guess:>6}{RESET} - {part1_ex_answer:<6}",
             c(part1_ex_guess, *part1_ex_answer)
         );
         println!(
-            "    Part 2 Ex: {}{part2_guess:>6}{RESET} - {part2_answer:<6}",
-            c(part2_guess, *part2_answer)
+            "    Part 1:    {}{part1_guess:>6}{RESET} - {part1_answer:<6}",
+            c(part1_guess, *part1_answer)
         );
         println!(
-            "    Part 2:    {}{part2_ex_guess:>6}{RESET} - {part2_ex_answer:<6}",
+            "    Part 2 Ex: {}{part2_ex_guess:>6}{RESET} - {part2_ex_answer:<6}",
             c(part2_ex_guess, *part2_ex_answer)
+        );
+        println!(
+            "    Part 2:    {}{part2_guess:>6}{RESET} - {part2_answer:<6}",
+            c(part2_guess, *part2_answer)
         );
 
         if day_num == DAY_FNS.len() {
