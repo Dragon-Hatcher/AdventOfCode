@@ -121,7 +121,7 @@ fn to_doc_comment(text: &str) -> String {
 fn get_answers(article_text: &str, section_text: &str, part: usize) -> (Option<i64>, Option<i64>) {
     lazy_static! {
         static ref PUZ_ANS_RE: Regex =
-            Regex::new("Your puzzle answer was <code>(\\d+)</code>").unwrap();
+            Regex::new("Your puzzle answer was <code>(.*?)</code>").unwrap();
         static ref EX_ANS_RE: Regex =
             Regex::new("(<code><em>|<em><code>)(\\d+)(</code></em>|</em></code>)").unwrap();
     }
@@ -149,11 +149,11 @@ pub fn part2(input: &str) -> i64 {
     0
 }
 
-const PART1_EX_ANSWER: i64 = 0;
-const PART1_ANSWER: i64 = 0;
-const PART2_EX_ANSWER: i64 = 0;
-const PART2_ANSWER: i64 = 0;
-pub const ANSWERS: (i64, i64, i64, i64) = 
+const PART1_EX_ANSWER: &str = "0";
+const PART1_ANSWER: &str = "0";
+const PART2_EX_ANSWER: &str = "0";
+const PART2_ANSWER: &str = "0";
+pub const ANSWERS: (&str, &str, &str, &str) = 
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
 
 "#;
@@ -171,13 +171,13 @@ pub const ANSWERS: (i64, i64, i64, i64) =
         // Replace answers
         let (ex_answer, answer) = get_answers(article_text, &capture[1], part);
         if let Some(ex_answer) = ex_answer {
-            let to_replace = format!("const PART{part}_EX_ANSWER: i64 = 0;");
-            let with = format!("const PART{part}_EX_ANSWER: i64 = {ex_answer};");
+            let to_replace = format!("const PART{part}_EX_ANSWER: &str = \"0\";");
+            let with = format!("const PART{part}_EX_ANSWER: &str = \"{ex_answer}\";");
             current_file = current_file.replace(&to_replace, &with);
         }
         if let Some(answer) = answer {
-            let to_replace = format!("const PART{part}_ANSWER: i64 = 0;");
-            let with = format!("const PART{part}_ANSWER: i64 = {answer};");
+            let to_replace = format!("const PART{part}_ANSWER: &str = \"0\";");
+            let with = format!("const PART{part}_ANSWER: &str = \"{answer}\";");
             current_file = current_file.replace(&to_replace, &with);
         }
 
@@ -203,7 +203,7 @@ fn update_main(current_main: &str, day: usize) -> String {
     lazy_static! {
         static ref MOD_RE: Regex = Regex::new("mod day(\\d+);").unwrap();
         static ref FN_RE: Regex =
-            Regex::new("\\(day(\\d+)::part1, day\\d+::part2, day\\d+::ANSWERS\\),").unwrap();
+            Regex::new("\\(day(\\d+)::part1.into(), day\\d+::part2.into(), day\\d+::ANSWERS\\),").unwrap();
     }
 
     let mut current_main = current_main.to_owned();
@@ -224,7 +224,7 @@ fn update_main(current_main: &str, day: usize) -> String {
     }
     if !fn_found {
         let last_fn = FN_RE.find_iter(&current_main).last().unwrap();
-        let fn_text = format!("\n    (day{day}::part1, day{day}::part2, day{day}::ANSWERS),");
+        let fn_text = format!("\n        (day{day}::part1.into(), day{day}::part2.into(), day{day}::ANSWERS),");
         current_main.insert_str(last_fn.end(), &fn_text);
     }
 
