@@ -143,9 +143,9 @@ pub fn part2(input: &str) -> i64 {
         .sum()
 }
 
-const PART1_EX_ANSWER: i64 = 2;
-const PART1_ANSWER: i64 = 651;
-const PART2_EX_ANSWER: i64 = 4;
-const PART2_ANSWER: i64 = 956;
-pub const ANSWERS: (i64, i64, i64, i64) =
+const PART1_EX_ANSWER: &str = "2";
+const PART1_ANSWER: &str = "651";
+const PART2_EX_ANSWER: &str = "4";
+const PART2_ANSWER: &str = "956";
+pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
