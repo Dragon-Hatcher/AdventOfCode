@@ -1,4 +1,20 @@
-use crate::standard_parsers::{AocParsed, IntoTup};
+use crate::standard_parsers::AocParsed;
+
+fn different(str: &str) -> bool {
+    str.chars().enumerate().all(|(i, c1)| {
+        str.chars().skip(i + 1).all(|c2| c1 != c2)
+    })
+}
+
+fn signal_pos(str: &str, size: usize) -> i64 {
+    let mut i = size;
+    loop {
+        if different(&str[i - size..i]) {
+            return i as i64;
+        }
+        i += 1;
+    }
+}
 
 ///
 /// --- Day 6: Tuning Trouble ---
@@ -59,72 +75,37 @@ use crate::standard_parsers::{AocParsed, IntoTup};
 /// is detected?*
 ///
 pub fn part1(input: &str) -> i64 {
-    fn different(str: &str) -> bool {
-        let (c1, c2, c3, c4) = str.chars().tup();
-        c1 != c2 && c1 != c3 && c1 != c4 && c2 != c3 && c2 != c4 && c3 != c4
-    }
-
-    input.non_empty().map(|l| {
-        let mut i = 4;
-        loop {
-            if different(&l[i-4..i]) {
-                return i as i64;
-            }
-            i += 1;
-        }
-
-        0
-    }).sum()
+    input.non_empty().map(|l| signal_pos(l, 4)).sum()
 }
 
-/// 
+///
 /// --- Part Two ---
-/// 
-/// Your device's communication system is correctly detecting packets, but still 
+///
+/// Your device's communication system is correctly detecting packets, but still
 /// isn't working. It looks like it also needs to look for *messages*.
-/// 
-/// A *start-of-message marker* is just like a start-of-packet marker, except it 
+///
+/// A *start-of-message marker* is just like a start-of-packet marker, except it
 /// consists of *14 distinct characters* rather than 4.
-/// 
-/// Here are the first positions of start-of-message markers for all of the above 
+///
+/// Here are the first positions of start-of-message markers for all of the above
 /// examples:
-/// 
+///
 /// * `mjqjpqmgbljsphdztnvjfqwrcgsmlb`: first marker after character `*19*`
 /// * `bvwbjplbgvbhsrlpgdmjqwftvncz`: first marker after character `*23*`
 /// * `nppdvjthqldpwncqszvftbrmjlhg`: first marker after character `*23*`
 /// * `nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg`: first marker after character `*29*`
 /// * `zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw`: first marker after character `*26*`
-/// 
-/// *How many characters need to be processed before the first start-of-message marker 
+///
+/// *How many characters need to be processed before the first start-of-message marker
 /// is detected?*
 ///
 pub fn part2(input: &str) -> i64 {
-    fn different(str: &str) -> bool {
-        for (i, c) in str.chars().enumerate() {
-            for c2 in str.chars().skip(i + 1) {
-                if c == c2 { return false }
-            }
-        }
-
-        true
-    }
-
-    input.non_empty().map(|l| {
-        let mut i = 14;
-        loop {
-            if different(&l[i-14..i]) {
-                return i as i64;
-            }
-            i += 1;
-        }
-
-        0
-    }).sum()
+    input.non_empty().map(|l| signal_pos(l, 14)).sum()
 }
 
-const PART1_EX_ANSWER: &str = "11";
+const PART1_EX_ANSWER: &str = "10";
 const PART1_ANSWER: &str = "1100";
-const PART2_EX_ANSWER: &str = "26";
+const PART2_EX_ANSWER: &str = "29";
 const PART2_ANSWER: &str = "2421";
 pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
