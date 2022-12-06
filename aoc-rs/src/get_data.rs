@@ -46,6 +46,7 @@ fn create_client(day: usize) -> Result<Client, reqwest::Error> {
 
     reqwest::blocking::ClientBuilder::new()
         .cookie_provider(Arc::new(jar))
+        .user_agent("github.com/Dragon-Hatcher/AdventOfCode/tree/main/aoc-rs by danieldragonhatcher@gmail.com")
         .build()
 }
 
