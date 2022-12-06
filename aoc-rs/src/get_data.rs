@@ -204,7 +204,7 @@ fn update_main(current_main: &str, day: usize) -> String {
     lazy_static! {
         static ref MOD_RE: Regex = Regex::new("mod day(\\d+);").unwrap();
         static ref FN_RE: Regex =
-            Regex::new("\\(day(\\d+)::part1.into(), day\\d+::part2.into(), day\\d+::ANSWERS\\),").unwrap();
+            Regex::new("\\(day(\\d+)::part1.into\\(\\), day\\d+::part2.into\\(\\), day\\d+::ANSWERS\\),").unwrap();
     }
 
     let mut current_main = current_main.to_owned();
