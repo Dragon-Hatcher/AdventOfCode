@@ -9,7 +9,7 @@ pub trait AocParsed<'a>: Into<&'a str> {
         NonEmptyIter(self.into().lines())
     }
 
-    fn blank_separated(self) -> Split<'a, &'static str> {
+    fn sections(self) -> Split<'a, &'static str> {
         self.into().split("\n\n")
     }
 }
@@ -52,5 +52,281 @@ impl<'a> Iterator for NonEmptyIter<'a> {
                 return Some(line);
             }
         }
+    }
+}
+
+pub trait IntoTup<T> {
+    fn tup(&mut self) -> T;
+    fn maybe_tup(&mut self) -> Option<T>;
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E)> for I {
+    fn tup(&mut self) -> (E, E) {
+        (self.next().unwrap(), self.next().unwrap())
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E)> {
+        Some((self.next()?, self.next()?))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E)> {
+        Some((self.next()?, self.next()?, self.next()?))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E)> {
+        Some((self.next()?, self.next()?, self.next()?, self.next()?))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
+    }
+}
+
+impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E, E, E)> for I {
+    fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E, E, E) {
+        (
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+            self.next().unwrap(),
+        )
+    }
+
+    fn maybe_tup(&mut self) -> Option<(E, E, E, E, E, E, E, E, E, E, E, E)> {
+        Some((
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+            self.next()?,
+        ))
     }
 }

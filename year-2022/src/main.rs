@@ -72,10 +72,10 @@ fn main() {
         let input = read_to_string(input_file_name).unwrap();
         let test_input = read_to_string(test_input_file_name).unwrap();
 
-        let part1_guess = part1.call(&input);
         let part1_ex_guess = part1.call(&test_input);
-        let part2_guess = part2.call(&input);
+        let part1_guess = part1.call(&input);
         let part2_ex_guess = part2.call(&test_input);
+        let part2_guess = part2.call(&input);
 
         all_correct = all_correct
             && part1_guess == *part1_answer

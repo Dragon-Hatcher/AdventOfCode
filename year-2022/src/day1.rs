@@ -73,7 +73,7 @@ use crate::standard_parsers::AocParsed;
 ///
 pub fn part1(input: &str) -> i64 {
     input
-        .blank_separated()
+        .sections()
         .map(|section| section.nums().sum())
         .max()
         .unwrap_or_default()
@@ -99,7 +99,7 @@ pub fn part1(input: &str) -> i64 {
 ///
 pub fn part2(input: &str) -> i64 {
     input
-        .blank_separated()
+        .sections()
         .map(|section| section.nums().sum::<i64>())
         .sorted()
         .rev()

@@ -1,6 +1,4 @@
-use crate::standard_parsers::AocParsed;
-use lazy_static::lazy_static;
-use regex::Regex;
+use crate::standard_parsers::{AocParsed, IntoTup};
 use std::{ops::RangeInclusive, str::FromStr};
 
 #[derive(Debug, Clone)]
@@ -13,15 +11,11 @@ impl FromStr for Ranges {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new("(\\d+)\\-(\\d+),(\\d+)\\-(\\d+)").unwrap();
-        }
-
-        let Some(captures) = RE.captures(s) else { return Err(()) };
+        let (first_start, first_end, second_start, second_end) = s.nums().tup();
 
         Ok(Ranges {
-            first: captures[1].parse::<i64>().unwrap()..=captures[2].parse::<i64>().unwrap(),
-            second: captures[3].parse::<i64>().unwrap()..=captures[4].parse::<i64>().unwrap(),
+            first: first_start..=first_end,
+            second: second_start..=second_end,
         })
     }
 }

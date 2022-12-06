@@ -1,7 +1,4 @@
-use lazy_static::lazy_static;
-use regex::Regex;
-
-use crate::standard_parsers::AocParsed;
+use crate::standard_parsers::{AocParsed, IntoTup};
 
 #[derive(Debug, Clone)]
 struct Position {
@@ -60,16 +57,12 @@ struct Move {
 }
 
 fn move_from_line(line: &str) -> Move {
-    lazy_static! {
-        static ref RE: Regex = Regex::new("move (\\d+) from (\\d+) to (\\d+)").unwrap();
-    }
-
-    let captures = RE.captures(line).unwrap();
+    let (amount, from, to) = line.nums().tup();
 
     Move {
-        from: captures[2].parse().unwrap(),
-        to: captures[3].parse().unwrap(),
-        amount: captures[1].parse().unwrap(),
+        from: from as usize,
+        to: to as usize,
+        amount: amount as usize,
     }
 }
 
@@ -167,7 +160,7 @@ fn move_from_line(line: &str) -> Move {
 /// stack?*
 ///
 pub fn part1(input: &str) -> String {
-    let mut sections = input.blank_separated();
+    let mut sections = input.sections();
     let stacks = sections.next().unwrap();
     let moves = sections.next().unwrap();
     let mut stacks = position_from_lines(stacks);
@@ -258,7 +251,7 @@ pub fn part1(input: &str) -> String {
 /// stack?*
 ///
 pub fn part2(input: &str) -> String {
-    let mut sections = input.blank_separated();
+    let mut sections = input.sections();
     let stacks = sections.next().unwrap();
     let moves = sections.next().unwrap();
     let mut stacks = position_from_lines(stacks);
