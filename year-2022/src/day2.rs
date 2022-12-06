@@ -1,4 +1,4 @@
-use crate::standard_parsers::AocParsed;
+use crate::standard_parsers::{AocParsed, IntoTup};
 
 #[derive(Clone, Copy)]
 enum Move {
@@ -118,8 +118,9 @@ pub fn part1(input: &str) -> i64 {
     input
         .non_empty()
         .map(|l| {
-            let opp = move_from_char(l.chars().next().unwrap());
-            let me = move_from_char(l.chars().nth(2).unwrap());
+            let (opp, _, me) = l.chars().tup();
+            let opp = move_from_char(opp);
+            let me = move_from_char(me);
             let outcome = outcome(me, opp);
 
             me.value() + outcome.value()
@@ -179,8 +180,9 @@ pub fn part2(input: &str) -> i64 {
     input
         .non_empty()
         .map(|l| {
-            let opp = move_from_char(l.chars().next().unwrap());
-            let outcome = outcome_from_char(l.chars().nth(2).unwrap());
+            let (opp, _, outcome) = l.chars().tup();
+            let opp = move_from_char(opp);
+            let outcome = outcome_from_char(outcome);
             let me = move_for_outcome(opp, outcome);
 
             me.value() + outcome.value()
