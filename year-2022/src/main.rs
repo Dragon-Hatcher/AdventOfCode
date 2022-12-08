@@ -1,11 +1,10 @@
+use lazy_static::lazy_static;
 use std::{
     fs::read_to_string,
     io::stdin,
     process::exit,
     time::{Duration, Instant},
 };
-
-use lazy_static::lazy_static;
 mod standard_parsers;
 
 // SOLUTION MODULES
@@ -71,12 +70,10 @@ type Answers = (&'static str, &'static str, &'static str, &'static str);
 
 fn test_day(
     day_num: usize,
-    part1: &DayFunc,
-    part2: &DayFunc,
-    part1_ex_answer: &str,
-    part1_answer: &str,
-    part2_ex_answer: &str,
-    part2_answer: &str,
+    (part1, part2): (&DayFunc, &DayFunc),
+    (part1_ex_answer, part1_answer, part2_ex_answer, part2_answer): (&str, &str, &str, &str),
+    do_examples: bool,
+    pause: bool,
     all_correct_out: &mut bool,
     total_dir_out: &mut Duration,
 ) {
@@ -117,14 +114,16 @@ fn test_day(
     println!("Day {day_num}:");
     let mut all_correct = true;
     let mut total_dir = Duration::from_secs(0);
-    check(
-        "Part 1 Ex",
-        part1,
-        &test_input,
-        part1_ex_answer,
-        &mut all_correct,
-        &mut total_dir,
-    );
+    if do_examples {
+        check(
+            "Part 1 Ex",
+            part1,
+            &test_input,
+            part1_ex_answer,
+            &mut all_correct,
+            &mut total_dir,
+        );
+    }
     check(
         "Part 1",
         part1,
@@ -133,14 +132,16 @@ fn test_day(
         &mut all_correct,
         &mut total_dir,
     );
-    check(
-        "Part 2 Ex",
-        part2,
-        &test_input,
-        part2_ex_answer,
-        &mut all_correct,
-        &mut total_dir,
-    );
+    if do_examples {
+        check(
+            "Part 2 Ex",
+            part2,
+            &test_input,
+            part2_ex_answer,
+            &mut all_correct,
+            &mut total_dir,
+        );
+    }
     check(
         "Part 2",
         part2,
@@ -153,7 +154,7 @@ fn test_day(
     *all_correct_out = *all_correct_out && all_correct;
     *total_dir_out += total_dir;
 
-    if day_num == DAY_FNS.len() {
+    if pause && day_num == DAY_FNS.len() {
         _ = stdin().read_line(&mut String::new());
     } else {
         println!();
@@ -161,26 +162,32 @@ fn test_day(
 }
 
 fn main() {
+    let run_examples = !std::env::args().skip(1).any(|a| {
+        a.trim() == "--skip-ex" || a.trim() == "-s" || a.trim() == "-sp" || a.trim() == "-ps"
+    });
+
+    let pause = !std::env::args().skip(1).any(|a| {
+        a.trim() == "--no-pause" || a.trim() == "-p" || a.trim() == "-sp" || a.trim() == "-ps"
+    });
+
     let mut all_correct = true;
     let mut total_dir = Duration::from_secs(0);
+    let start_time = Instant::now();
 
-    for (day_num, (part1, part2, (part1_ex_answer, part1_answer, part2_ex_answer, part2_answer))) in
-        DAY_FNS.iter().enumerate().rev()
-    {
+    for (day_num, (part1, part2, answers)) in DAY_FNS.iter().enumerate().rev() {
         test_day(
             day_num + 1,
-            part1,
-            part2,
-            part1_ex_answer,
-            part1_answer,
-            part2_ex_answer,
-            part2_answer,
+            (part1, part2),
+            *answers,
+            run_examples,
+            pause,
             &mut all_correct,
             &mut total_dir,
         );
     }
 
-    println!("Total time: {total_dir:.2?}");
+    let elapsed = start_time.elapsed();
+    println!("Total time: {total_dir:.2?} ({elapsed:.2?})");
 
     exit(!all_correct as i32);
 }
