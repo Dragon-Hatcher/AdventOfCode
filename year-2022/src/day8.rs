@@ -1,6 +1,16 @@
+use crate::standard_parsers::AocParsed;
 use itertools::Itertools;
 
-use crate::standard_parsers::AocParsed;
+fn parse(input: &str) -> Vec<Vec<i64>> {
+    input
+        .non_empty()
+        .map(|l| l.chars().map(|c| c.to_digit(10).unwrap() as i64).collect())
+        .collect()
+}
+
+fn in_bounds(x: i64, y: i64, digs: &Vec<Vec<i64>>) -> bool {
+    x >= 0 && y >= 0 && x < digs.len() as i64 && y < digs[0].len() as i64
+}
 
 ///
 /// --- Day 8: Treetop Tree House ---
@@ -54,63 +64,32 @@ use crate::standard_parsers::AocParsed;
 /// Consider your map; *how many trees are visible from outside the grid?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let digs: Vec<Vec<i64>> = input
-        .non_empty()
-        .map(|l| {
-            l.chars()
-                .map(|c| c.to_digit(10).unwrap() as i64)
-                .collect::<Vec<_>>()
+    let digs = parse(input);
+
+    fn is_visible(x: usize, y: usize, dx: i64, dy: i64, digs: &Vec<Vec<i64>>) -> bool {
+        let height = digs[x][y];
+        let mut x = x as i64 + dx;
+        let mut y = y as i64 + dy;
+        while in_bounds(x, y, digs) {
+            if digs[x as usize][y as usize] >= height {
+                return false;
+            }
+            x += dx;
+            y += dy;
+        }
+        true
+    }
+
+    (0..digs.len())
+        .cartesian_product(0..digs[0].len())
+        .map(|(x, y)| {
+            is_visible(x, y, 1, 0, &digs)
+                || is_visible(x, y, -1, 0, &digs)
+                || is_visible(x, y, 0, 1, &digs)
+                || is_visible(x, y, 0, -1, &digs)
         })
-        .collect();
-    let mut visible = vec![vec![false; digs[0].len()]; digs.len()];
-
-    for y in 0..digs.len() {
-        let row = &digs[y];
-        {
-            let mut max = -1;
-            for (i, t) in row.iter().enumerate() {
-                if *t > max {
-                    visible[y][i] = true;
-                    max = *t;
-                }
-            }
-        }
-        {
-            let mut max = -1;
-            for (i, t) in row.iter().enumerate().rev() {
-                if *t > max {
-                    visible[y][i] = true;
-                    max = *t;
-                }
-            }
-        }
-    }
-
-    for x in 0..digs.len() {
-        {
-            let mut max = -1;
-            for i in 0..digs[0].len() {
-                if digs[i][x] > max {
-                    visible[i][x] = true;
-                    max = digs[i][x];
-                }
-            }
-        }
-        {
-            let mut max = -1;
-            for i in (0..digs[0].len()).rev() {
-                if digs[i][x] > max {
-                    visible[i][x] = true;
-                    max = digs[i][x];
-                }
-            }
-        }
-    }
-
-    visible
-        .iter()
-        .map(|r| r.iter().map(|b| *b as i64).sum::<i64>())
-        .sum::<i64>() as i64
+        .filter(|b| *b)
+        .count() as i64
 }
 
 ///
@@ -177,25 +156,14 @@ pub fn part1(input: &str) -> i64 {
 /// any tree?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let digs: Vec<Vec<i64>> = input
-        .non_empty()
-        .map(|l| {
-            l.chars()
-                .map(|c| c.to_digit(10).unwrap() as i64)
-                .collect::<Vec<_>>()
-        })
-        .collect();
+    let digs = parse(input);
 
     fn calc_dist(x: usize, y: usize, dx: i64, dy: i64, digs: &Vec<Vec<i64>>) -> i64 {
         let height = digs[x][y];
         let mut x = x as i64 + dx;
         let mut y = y as i64 + dy;
         let mut dist = 0;
-        while x >= 0
-            && y >= 0
-            && x < digs.len() as i64
-            && y < digs[0].len() as i64
-        {
+        while in_bounds(x, y, digs) {
             dist += 1;
             if digs[x as usize][y as usize] >= height {
                 break;
