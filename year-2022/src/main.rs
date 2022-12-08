@@ -1,4 +1,9 @@
-use std::{fs::read_to_string, io::stdin, process::exit};
+use std::{
+    fs::read_to_string,
+    io::stdin,
+    process::exit,
+    time::{Duration, Instant},
+};
 
 use lazy_static::lazy_static;
 mod standard_parsers;
@@ -24,7 +29,7 @@ lazy_static! {
         (day6::part1.into(), day6::part2.into(), day6::ANSWERS),
         (day7::part1.into(), day7::part2.into(), day7::ANSWERS),
         (day8::part1.into(), day8::part2.into(), day8::ANSWERS),
-    ];    
+    ];
 }
 
 enum DayFunc {
@@ -78,33 +83,30 @@ fn main() {
         let input = read_to_string(input_file_name).unwrap();
         let test_input = read_to_string(test_input_file_name).unwrap();
 
-        let part1_ex_guess = part1.call(&test_input);
-        let part1_guess = part1.call(&input);
-        let part2_ex_guess = part2.call(&test_input);
-        let part2_guess = part2.call(&input);
+        fn check(name: &str, ans_fn: &DayFunc, input: &str, ans: &str) -> bool {
+            const MAX_TIME: Duration = Duration::from_millis(250);
 
-        all_correct = all_correct
-            && part1_guess == *part1_answer
-            && part1_ex_guess == *part1_ex_answer
-            && part2_guess == *part2_answer
-            && part2_ex_guess == *part2_ex_answer;
+            const RED: &str = "\x1b[31m";
+            const GREEN: &str = "\x1b[32m";
+            const RESET: &str = "\x1b[0m";
 
-        const RED: &str = "\x1b[31m";
-        const GREEN: &str = "\x1b[32m";
-        const RESET: &str = "\x1b[0m";
-
-        fn check(name: &str, guess: &str, ans: &str) {
+            let start = Instant::now();
+            let guess = ans_fn.call(input);
+            let elapsed = start.elapsed();
             println!(
-                "    {name}: {}{guess:>9}{RESET} - {ans:<9}",
-                if guess == ans { GREEN } else { RED }
+                "    {:<10} {}{guess:>9}{RESET} - {ans:<12} {}{elapsed:?}{RESET}",
+                format!("{name}:"),
+                if guess == ans { GREEN } else { RED },
+                if elapsed > MAX_TIME { RED } else { GREEN }
             );
+            guess == ans
         }
 
         println!("Day {day_num}:");
-        check("Part 1 Ex", &part1_ex_guess, part1_ex_answer);
-        check("Part 1   ", &part1_guess, part1_answer);
-        check("Part 2 Ex", &part2_ex_guess, part2_ex_answer);
-        check("Part 2   ", &part2_guess, part2_answer);
+        all_correct = check("Part 1 Ex", part1, &test_input, part1_ex_answer) && all_correct;
+        all_correct = check("Part 1", part1, &input, part1_answer) && all_correct;
+        all_correct = check("Part 2 Ex", part2, &test_input, part2_ex_answer) && all_correct;
+        all_correct = check("Part 2", part2, &input, part2_answer) && all_correct;
 
         if day_num == DAY_FNS.len() {
             _ = stdin().read_line(&mut String::new());
