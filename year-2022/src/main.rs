@@ -69,51 +69,118 @@ impl DayFunc {
 // type DayFunc = fn(&str) -> i64;
 type Answers = (&'static str, &'static str, &'static str, &'static str);
 
+fn test_day(
+    day_num: usize,
+    part1: &DayFunc,
+    part2: &DayFunc,
+    part1_ex_answer: &str,
+    part1_answer: &str,
+    part2_ex_answer: &str,
+    part2_answer: &str,
+    all_correct_out: &mut bool,
+    total_dir_out: &mut Duration,
+) {
+    let input_file_name = format!("./inputs/day{day_num}.txt");
+    let test_input_file_name = format!("./inputs/day{day_num}-test.txt");
+
+    let input = read_to_string(input_file_name).unwrap();
+    let test_input = read_to_string(test_input_file_name).unwrap();
+
+    fn check(
+        name: &str,
+        ans_fn: &DayFunc,
+        input: &str,
+        ans: &str,
+        all_correct: &mut bool,
+        total_dir: &mut Duration,
+    ) {
+        const MAX_TIME: Duration = Duration::from_millis(250);
+
+        const RED: &str = "\x1b[31m";
+        const GREEN: &str = "\x1b[32m";
+        const RESET: &str = "\x1b[0m";
+
+        let start = Instant::now();
+        let guess = ans_fn.call(input);
+        let elapsed = start.elapsed();
+        println!(
+            "    {:<10} {}{guess:>9}{RESET} - {ans:<12} {}{elapsed:.2?}{RESET}",
+            format!("{name}:"),
+            if guess == ans { GREEN } else { RED },
+            if elapsed > MAX_TIME { RED } else { GREEN }
+        );
+
+        *all_correct = *all_correct && guess == ans;
+        *total_dir += elapsed;
+    }
+
+    println!("Day {day_num}:");
+    let mut all_correct = true;
+    let mut total_dir = Duration::from_secs(0);
+    check(
+        "Part 1 Ex",
+        part1,
+        &test_input,
+        part1_ex_answer,
+        &mut all_correct,
+        &mut total_dir,
+    );
+    check(
+        "Part 1",
+        part1,
+        &input,
+        part1_answer,
+        &mut all_correct,
+        &mut total_dir,
+    );
+    check(
+        "Part 2 Ex",
+        part2,
+        &test_input,
+        part2_ex_answer,
+        &mut all_correct,
+        &mut total_dir,
+    );
+    check(
+        "Part 2",
+        part2,
+        &input,
+        part2_answer,
+        &mut all_correct,
+        &mut total_dir,
+    );
+
+    *all_correct_out = *all_correct_out && all_correct;
+    *total_dir_out += total_dir;
+
+    if day_num == DAY_FNS.len() {
+        _ = stdin().read_line(&mut String::new());
+    } else {
+        println!();
+    }
+}
+
 fn main() {
     let mut all_correct = true;
+    let mut total_dir = Duration::from_secs(0);
 
     for (day_num, (part1, part2, (part1_ex_answer, part1_answer, part2_ex_answer, part2_answer))) in
         DAY_FNS.iter().enumerate().rev()
     {
-        let day_num = day_num + 1;
-
-        let input_file_name = format!("./inputs/day{day_num}.txt");
-        let test_input_file_name = format!("./inputs/day{day_num}-test.txt");
-
-        let input = read_to_string(input_file_name).unwrap();
-        let test_input = read_to_string(test_input_file_name).unwrap();
-
-        fn check(name: &str, ans_fn: &DayFunc, input: &str, ans: &str) -> bool {
-            const MAX_TIME: Duration = Duration::from_millis(250);
-
-            const RED: &str = "\x1b[31m";
-            const GREEN: &str = "\x1b[32m";
-            const RESET: &str = "\x1b[0m";
-
-            let start = Instant::now();
-            let guess = ans_fn.call(input);
-            let elapsed = start.elapsed();
-            println!(
-                "    {:<10} {}{guess:>9}{RESET} - {ans:<12} {}{elapsed:?}{RESET}",
-                format!("{name}:"),
-                if guess == ans { GREEN } else { RED },
-                if elapsed > MAX_TIME { RED } else { GREEN }
-            );
-            guess == ans
-        }
-
-        println!("Day {day_num}:");
-        all_correct = check("Part 1 Ex", part1, &test_input, part1_ex_answer) && all_correct;
-        all_correct = check("Part 1", part1, &input, part1_answer) && all_correct;
-        all_correct = check("Part 2 Ex", part2, &test_input, part2_ex_answer) && all_correct;
-        all_correct = check("Part 2", part2, &input, part2_answer) && all_correct;
-
-        if day_num == DAY_FNS.len() {
-            _ = stdin().read_line(&mut String::new());
-        } else {
-            println!();
-        }
+        test_day(
+            day_num + 1,
+            part1,
+            part2,
+            part1_ex_answer,
+            part1_answer,
+            part2_ex_answer,
+            part2_answer,
+            &mut all_correct,
+            &mut total_dir,
+        );
     }
+
+    println!("Total time: {total_dir:.2?}");
 
     exit(!all_correct as i32);
 }
