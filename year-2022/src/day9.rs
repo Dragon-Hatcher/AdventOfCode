@@ -2,6 +2,46 @@ use std::collections::HashSet;
 
 use crate::standard_parsers::AocParsed;
 
+fn fix_tail(head: (i64, i64), tail: (i64, i64)) -> (i64, i64) {
+    let diff_x: i64 = head.0 - tail.0;
+    let diff_y: i64 = head.1 - tail.1;
+
+    match diff_x.abs().cmp(&diff_y.abs()) {
+        std::cmp::Ordering::Less => (head.0, head.1 - diff_y.signum()),
+        std::cmp::Ordering::Equal => (head.0 - diff_x.signum(), head.1 - diff_y.signum()),
+        std::cmp::Ordering::Greater => (head.0 - diff_x.signum(), head.1),
+    }
+}
+
+fn solve(input: &str, rope_length: usize) -> i64 {
+    let mut visited: HashSet<(i64, i64)> = HashSet::new();
+    let mut knots = vec![(0, 0); rope_length];
+
+    input.non_empty().for_each(|l| {
+        let (dx, dy) = match l.chars().next().unwrap() {
+            'R' => (1, 0),
+            'L' => (-1, 0),
+            'U' => (0, 1),
+            _ => (0, -1),
+        };
+        let steps = l.nums().next().unwrap();
+
+        for _ in 0..steps {
+            let last = knots.iter_mut().last().unwrap();
+            last.0 += dx;
+            last.1 += dy;
+
+            for i in (0..knots.len()).rev().skip(1) {
+                knots[i] = fix_tail(knots[i + 1], knots[i]);
+            }
+
+            visited.insert(knots[0]);
+        }
+    });
+
+    visited.len() as i64
+}
+
 ///
 /// --- Day 9: Rope Bridge ---
 ///
@@ -291,43 +331,7 @@ use crate::standard_parsers::AocParsed;
 /// the tail of the rope visit at least once?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let mut visited: HashSet<(i64, i64)> = HashSet::new();
-    let mut head = (0, 0);
-    let mut tail = (0, 0);
-
-    input.non_empty().for_each(|l| {
-        let (dx, dy) = match l.chars().next().unwrap() {
-            'R' => (1, 0),
-            'L' => (-1, 0),
-            'U' => (0, 1),
-            _ => (0, -1),
-        };
-        let steps = l.nums().next().unwrap();
-
-        for _ in 0..steps {
-            head.0 += dx;
-            head.1 += dy;
-
-            if tail.0 - head.0 > 1 {
-                tail.0 -= 1;
-                tail.1 = head.1;
-            } else if tail.0 - head.0 < -1 {
-                tail.0 += 1;
-                tail.1 = head.1;
-            }
-            if tail.1 - head.1 > 1 {
-                tail.0 = head.0;
-                tail.1 -= 1;
-            } else if tail.1 - head.1 < -1 {
-                tail.0 = head.0;
-                tail.1 += 1;
-            }
-
-            visited.insert(tail);
-        }
-    });
-
-    visited.len() as i64
+    solve(input, 2)
 }
 
 ///
@@ -791,53 +795,7 @@ pub fn part1(input: &str) -> i64 {
 /// many positions does the tail of the rope visit at least once?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let mut visited: HashSet<(i64, i64)> = HashSet::new();
-    let mut knots = vec![(0, 0); 10];
-
-    input.non_empty().for_each(|l| {
-        let (dx, dy) = match l.chars().next().unwrap() {
-            'R' => (1, 0),
-            'L' => (-1, 0),
-            'U' => (0, 1),
-            _ => (0, -1),
-        };
-        let steps = l.nums().next().unwrap();
-
-        for _ in 0..steps {
-            let last = &mut knots[9];
-            last.0 += dx;
-            last.1 += dy;
-
-            for i in (0..knots.len()).rev().skip(1) {
-                let mut diff_x: i64 = knots[i + 1].0 - knots[i].0;
-                let mut diff_y: i64 = knots[i + 1].1 - knots[i].1;
-
-                while diff_x.abs() > 1 || diff_y.abs() > 1 {
-                    let dxa: i64 = diff_x.abs();
-                    let dya: i64 = diff_y.abs();
-
-                    if diff_x > 1 || (dya > 1 && diff_x > 0) {
-                        knots[i].0 += 1;
-                    } else if diff_x < -1 || (dya > 1 && diff_x < 0) {
-                        knots[i].0 -= 1;
-                    }
-
-                    if diff_y > 1 || (dxa > 1 && diff_y > 0) {
-                        knots[i].1 += 1;
-                    } else if diff_y < -1 || (dxa > 1 && diff_y < 0) {
-                        knots[i].1 -= 1;
-                    }
-
-                    diff_x = knots[i + 1].0 - knots[i].0;
-                    diff_y = knots[i + 1].1 - knots[i].1;
-                }
-            }
-
-            visited.insert(knots[0]);
-        }
-    });
-
-    visited.len() as i64
+    solve(input, 10)
 }
 
 const PART1_EX_ANSWER: &str = "13";
