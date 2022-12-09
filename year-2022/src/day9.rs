@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{cmp::Ordering, collections::HashSet};
 
 use crate::standard_parsers::AocParsed;
 
@@ -7,9 +7,9 @@ fn fix_tail(head: (i64, i64), tail: (i64, i64)) -> (i64, i64) {
     let diff_y: i64 = head.1 - tail.1;
 
     match diff_x.abs().cmp(&diff_y.abs()) {
-        std::cmp::Ordering::Less => (head.0, head.1 - diff_y.signum()),
-        std::cmp::Ordering::Equal => (head.0 - diff_x.signum(), head.1 - diff_y.signum()),
-        std::cmp::Ordering::Greater => (head.0 - diff_x.signum(), head.1),
+        Ordering::Less => (head.0, head.1 - diff_y.signum()),
+        Ordering::Equal => (head.0 - diff_x.signum(), head.1 - diff_y.signum()),
+        Ordering::Greater => (head.0 - diff_x.signum(), head.1),
     }
 }
 
