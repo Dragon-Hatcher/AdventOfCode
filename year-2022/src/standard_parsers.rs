@@ -1,8 +1,12 @@
 use std::str::{Lines, Split};
 
 pub trait AocParsed<'a>: Into<&'a str> {
+    fn nums_pos(self) -> NumIter<'a> {
+        NumIter(self.into(), false)
+    }
+
     fn nums(self) -> NumIter<'a> {
-        NumIter(self.into())
+        NumIter(self.into(), true)
     }
 
     fn non_empty(self) -> NonEmptyIter<'a> {
@@ -16,7 +20,7 @@ pub trait AocParsed<'a>: Into<&'a str> {
 
 impl<'a, I: Into<&'a str>> AocParsed<'a> for I {}
 
-pub struct NumIter<'a>(&'a str);
+pub struct NumIter<'a>(&'a str, bool);
 
 impl<'a> Iterator for NumIter<'a> {
     type Item = i64;
@@ -25,7 +29,7 @@ impl<'a> Iterator for NumIter<'a> {
         let mut dig_length = 0;
         loop {
             let Some(next_char) = self.0.chars().nth(dig_length) else { break; };
-            if next_char.is_ascii_digit() {
+            if next_char.is_ascii_digit() || (self.1 && dig_length == 0 && next_char == '-') {
                 dig_length += 1;
             } else if dig_length == 0 {
                 dig_length = 0;

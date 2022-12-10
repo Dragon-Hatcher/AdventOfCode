@@ -11,7 +11,7 @@ impl FromStr for Ranges {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (first_start, first_end, second_start, second_end) = s.nums().tup();
+        let (first_start, first_end, second_start, second_end) = s.nums_pos().tup();
 
         Ok(Ranges {
             first: first_start..=first_end,
