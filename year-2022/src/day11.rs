@@ -1,6 +1,108 @@
 use itertools::Itertools;
 
-use crate::standard_parsers::{AocParsed, IntoTup};
+use crate::{
+    helpers::IterExtension,
+    standard_parsers::{AocParsed, IntoTup},
+};
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum Operation {
+    Add,
+    Multiply,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+struct Equation {
+    op: Operation,
+    by: Option<i64>,
+}
+
+impl Equation {
+    fn exec(self, on: i64) -> i64 {
+        match self.op {
+            Operation::Add => on + self.by.unwrap_or(on),
+            Operation::Multiply => on * self.by.unwrap_or(on),
+        }
+    }
+}
+
+struct Monkey {
+    items: Vec<i64>,
+    equation: Equation,
+    divisor: i64,
+    true_monkey: usize,
+    false_monkey: usize,
+    inspection_count: i64,
+}
+
+impl Monkey {
+    fn target_monkey(&self, worry_level: i64) -> usize {
+        if worry_level % self.divisor == 0 {
+            self.true_monkey
+        } else {
+            self.false_monkey
+        }
+    }
+}
+
+fn parse_monkey(input: &str) -> Monkey {
+    let (_, l_items, l_equation, l_divisor, l_true_monkey, l_false_monkey) =
+        input.non_empty().tup();
+    Monkey {
+        items: l_items.nums().collect(),
+        equation: Equation {
+            op: if l_equation.contains('+') {
+                Operation::Add
+            } else {
+                Operation::Multiply
+            },
+            by: l_equation.nums().next(),
+        },
+        divisor: l_divisor.nums().nu(),
+        true_monkey: l_true_monkey.nums().nu() as usize,
+        false_monkey: l_false_monkey.nums().nu() as usize,
+        inspection_count: 0,
+    }
+}
+
+struct MonkeyPen(Vec<Monkey>);
+
+impl MonkeyPen {
+    fn common_denominator(&self) -> i64 {
+        self.0.iter().map(|m| m.divisor).product()
+    }
+
+    fn run_round(&mut self, worry_decrease: bool) {
+        let cd = self.common_denominator();
+        let monkeys = &mut self.0;
+
+        for mi in 0..monkeys.len() {
+            while !monkeys[mi].items.is_empty() {
+                monkeys[mi].inspection_count += 1;
+
+                let mut worry_level = monkeys[mi].items.drain(0..1).nu();
+                worry_level = monkeys[mi].equation.exec(worry_level);
+                if worry_decrease {
+                    worry_level /= 3
+                };
+                worry_level %= cd; // Prevent worry levels from becoming too high
+
+                let target = monkeys[mi].target_monkey(worry_level);
+                monkeys[target].items.push(worry_level);
+            }
+        }
+    }
+
+    fn monkey_business(&self) -> i64 {
+        self.0
+            .iter()
+            .map(|m| m.inspection_count)
+            .sorted()
+            .rev()
+            .take(2)
+            .product()
+    }
+}
 
 ///
 /// --- Day 11: Monkey in the Middle ---
@@ -265,253 +367,124 @@ use crate::standard_parsers::{AocParsed, IntoTup};
 /// simian shenanigans?*
 ///
 pub fn part1(input: &str) -> i64 {
-    #[derive(PartialEq, Eq)]
-    enum Op {
-        Plus,
-        Mult,
-    }
-
-    struct Monkey {
-        items: Vec<i64>,
-        op: Op,
-        op_target: Option<i64>,
-        div_test: i64,
-        true_monkey: i64,
-        false_monkey: i64,
-        inspection_count: i64,
-    }
-
-    let mut monkeys = input
-        .sections()
-        .map(|s| {
-            let (_, l1, l2, l3, l4, l5) = s.non_empty().tup();
-            let items: Vec<_> = l1.nums().collect();
-            let op = if l2.contains('+') { Op::Plus } else { Op::Mult };
-            let op_target = l2.nums().next();
-            let div = l3.nums().next().unwrap();
-            let true_monkey = l4.nums().next().unwrap();
-            let false_monkey = l5.nums().next().unwrap();
-            Monkey {
-                items,
-                op,
-                op_target,
-                div_test: div,
-                true_monkey,
-                false_monkey,
-                inspection_count: 0,
-            }
-        })
-        .collect::<Vec<_>>();
+    let mut monkeys = MonkeyPen(input.sections().map(parse_monkey).collect_vec());
 
     for _ in 0..20 {
-        for mi in 0..monkeys.len() {
-            for ii in 0..monkeys[mi].items.len() {
-                let item = monkeys[mi].items[ii];
-                monkeys[mi].inspection_count += 1;
-
-                let mut worry_level = item;
-                if monkeys[mi].op == Op::Mult {
-                    worry_level *= monkeys[mi].op_target.unwrap_or(worry_level);
-                } else {
-                    worry_level += monkeys[mi].op_target.unwrap_or(worry_level);
-                }
-                worry_level /= 3;
-
-                if worry_level % monkeys[mi].div_test == 0 {
-                    let t = monkeys[mi].true_monkey as usize;
-                    monkeys[t].items.push(worry_level);
-                } else {
-                    let f = monkeys[mi].false_monkey as usize;
-                    monkeys[f].items.push(worry_level);
-                }
-            }
-            monkeys[mi].items = vec![];
-        }
+        monkeys.run_round(true);
     }
 
-    monkeys
-        .iter()
-        .map(|m| m.inspection_count)
-        .sorted()
-        .rev()
-        .take(2)
-        .product()
+    monkeys.monkey_business()
 }
 
-/// 
+///
 /// --- Part Two ---
-/// 
-/// You're worried you might not ever get your items back. So worried, in fact, that 
-/// your relief that a monkey's inspection didn't damage an item *no longer causes 
+///
+/// You're worried you might not ever get your items back. So worried, in fact, that
+/// your relief that a monkey's inspection didn't damage an item *no longer causes
 /// your worry level to be divided by three*.
-/// 
-/// Unfortunately, that relief was all that was keeping your worry levels from reaching 
-/// *ridiculous levels*. You'll need to *find another way to keep your worry levels 
+///
+/// Unfortunately, that relief was all that was keeping your worry levels from reaching
+/// *ridiculous levels*. You'll need to *find another way to keep your worry levels
 /// manageable*.
-/// 
-/// At this rate, you might be putting up with these monkeys for a *very long time* 
+///
+/// At this rate, you might be putting up with these monkeys for a *very long time*
 /// - possibly *`10000` rounds*!
-/// 
-/// With these new rules, you can still figure out the monkey business after 10000 
+///
+/// With these new rules, you can still figure out the monkey business after 10000
 /// rounds. Using the same example above:
-/// 
+///
 /// ```
 /// == After round 1 ==
 /// Monkey 0 inspected items 2 times.
 /// Monkey 1 inspected items 4 times.
 /// Monkey 2 inspected items 3 times.
 /// Monkey 3 inspected items 6 times.
-/// 
+///
 /// == After round 20 ==
 /// Monkey 0 inspected items 99 times.
 /// Monkey 1 inspected items 97 times.
 /// Monkey 2 inspected items 8 times.
 /// Monkey 3 inspected items 103 times.
-/// 
+///
 /// == After round 1000 ==
 /// Monkey 0 inspected items 5204 times.
 /// Monkey 1 inspected items 4792 times.
 /// Monkey 2 inspected items 199 times.
 /// Monkey 3 inspected items 5192 times.
-/// 
+///
 /// == After round 2000 ==
 /// Monkey 0 inspected items 10419 times.
 /// Monkey 1 inspected items 9577 times.
 /// Monkey 2 inspected items 392 times.
 /// Monkey 3 inspected items 10391 times.
-/// 
+///
 /// == After round 3000 ==
 /// Monkey 0 inspected items 15638 times.
 /// Monkey 1 inspected items 14358 times.
 /// Monkey 2 inspected items 587 times.
 /// Monkey 3 inspected items 15593 times.
-/// 
+///
 /// == After round 4000 ==
 /// Monkey 0 inspected items 20858 times.
 /// Monkey 1 inspected items 19138 times.
 /// Monkey 2 inspected items 780 times.
 /// Monkey 3 inspected items 20797 times.
-/// 
+///
 /// == After round 5000 ==
 /// Monkey 0 inspected items 26075 times.
 /// Monkey 1 inspected items 23921 times.
 /// Monkey 2 inspected items 974 times.
 /// Monkey 3 inspected items 26000 times.
-/// 
+///
 /// == After round 6000 ==
 /// Monkey 0 inspected items 31294 times.
 /// Monkey 1 inspected items 28702 times.
 /// Monkey 2 inspected items 1165 times.
 /// Monkey 3 inspected items 31204 times.
-/// 
+///
 /// == After round 7000 ==
 /// Monkey 0 inspected items 36508 times.
 /// Monkey 1 inspected items 33488 times.
 /// Monkey 2 inspected items 1360 times.
 /// Monkey 3 inspected items 36400 times.
-/// 
+///
 /// == After round 8000 ==
 /// Monkey 0 inspected items 41728 times.
 /// Monkey 1 inspected items 38268 times.
 /// Monkey 2 inspected items 1553 times.
 /// Monkey 3 inspected items 41606 times.
-/// 
+///
 /// == After round 9000 ==
 /// Monkey 0 inspected items 46945 times.
 /// Monkey 1 inspected items 43051 times.
 /// Monkey 2 inspected items 1746 times.
 /// Monkey 3 inspected items 46807 times.
-/// 
+///
 /// == After round 10000 ==
 /// Monkey 0 inspected items 52166 times.
 /// Monkey 1 inspected items 47830 times.
 /// Monkey 2 inspected items 1938 times.
 /// Monkey 3 inspected items 52013 times.
-/// 
+///
 /// ```
-/// 
-/// After 10000 rounds, the two most active monkeys inspected items 52166 and 52013 
-/// times. Multiplying these together, the level of *monkey business* in this situation 
+///
+/// After 10000 rounds, the two most active monkeys inspected items 52166 and 52013
+/// times. Multiplying these together, the level of *monkey business* in this situation
 /// is now `*2713310158*`.
-/// 
-/// Worry levels are no longer divided by three after each item is inspected; you'll 
-/// need to find another way to keep your worry levels manageable. Starting again 
-/// from the initial state in your puzzle input, *what is the level of monkey business 
+///
+/// Worry levels are no longer divided by three after each item is inspected; you'll
+/// need to find another way to keep your worry levels manageable. Starting again
+/// from the initial state in your puzzle input, *what is the level of monkey business
 /// after 10000 rounds?*
 ///
 pub fn part2(input: &str) -> i64 {
-    #[derive(PartialEq, Eq)]
-    enum Op {
-        Plus,
-        Mult,
-    }
-
-    struct Monkey {
-        items: Vec<i64>,
-        op: Op,
-        op_target: Option<i64>,
-        div_test: i64,
-        true_monkey: i64,
-        false_monkey: i64,
-        inspection_count: i64,
-    }
-
-    let mut monkeys = input
-        .sections()
-        .map(|s| {
-            let (_, l1, l2, l3, l4, l5) = s.non_empty().tup();
-            let items: Vec<_> = l1.nums().collect();
-            let op = if l2.contains('+') { Op::Plus } else { Op::Mult };
-            let op_target = l2.nums().next();
-            let div = l3.nums().next().unwrap();
-            let true_monkey = l4.nums().next().unwrap();
-            let false_monkey = l5.nums().next().unwrap();
-            Monkey {
-                items,
-                op,
-                op_target,
-                div_test: div,
-                true_monkey,
-                false_monkey,
-                inspection_count: 0,
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let safe_mod: i64 = monkeys.iter().map(|m| m.div_test).product();
+    let mut monkeys = MonkeyPen(input.sections().map(parse_monkey).collect_vec());
 
     for _ in 0..10000 {
-        for mi in 0..monkeys.len() {
-            for ii in 0..monkeys[mi].items.len() {
-                let item = monkeys[mi].items[ii];
-                monkeys[mi].inspection_count += 1;
-
-                let mut worry_level = item;
-                if monkeys[mi].op == Op::Mult {
-                    worry_level *= monkeys[mi].op_target.unwrap_or(worry_level);
-                } else {
-                    worry_level += monkeys[mi].op_target.unwrap_or(worry_level);
-                }
-
-                if worry_level % monkeys[mi].div_test == 0 {
-                    let t = monkeys[mi].true_monkey as usize;
-                    monkeys[t].items.push(worry_level % safe_mod);
-                } else {
-                    let f = monkeys[mi].false_monkey as usize;
-                    monkeys[f].items.push(worry_level % safe_mod);
-                }
-            }
-            monkeys[mi].items = vec![];
-        }
+        monkeys.run_round(false);
     }
 
-    monkeys
-        .iter()
-        .map(|m| m.inspection_count)
-        .sorted()
-        .rev()
-        .take(2)
-        .product()
+    monkeys.monkey_business()
 }
 
 const PART1_EX_ANSWER: &str = "10605";

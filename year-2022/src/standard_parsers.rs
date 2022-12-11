@@ -1,5 +1,7 @@
 use std::str::{Lines, Split};
 
+use crate::helpers::IterExtension;
+
 pub trait AocParsed<'a>: Into<&'a str> {
     fn nums_pos(self) -> NumIter<'a> {
         NumIter(self.into(), false)
@@ -66,7 +68,7 @@ pub trait IntoTup<T> {
 
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E)> for I {
     fn tup(&mut self) -> (E, E) {
-        (self.next().unwrap(), self.next().unwrap())
+        (self.nu(), self.nu())
     }
 
     fn maybe_tup(&mut self) -> Option<(E, E)> {
@@ -76,11 +78,7 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E)> for I {
 
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E) {
-        (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-        )
+        (self.nu(), self.nu(), self.nu())
     }
 
     fn maybe_tup(&mut self) -> Option<(E, E, E)> {
@@ -90,12 +88,7 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E)> for I {
 
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E) {
-        (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-        )
+        (self.nu(), self.nu(), self.nu(), self.nu())
     }
 
     fn maybe_tup(&mut self) -> Option<(E, E, E, E)> {
@@ -105,13 +98,7 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E)> for I {
 
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E) {
-        (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-        )
+        (self.nu(), self.nu(), self.nu(), self.nu(), self.nu())
     }
 
     fn maybe_tup(&mut self) -> Option<(E, E, E, E, E)> {
@@ -128,12 +115,12 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -152,13 +139,13 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -178,14 +165,14 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -206,15 +193,15 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -236,16 +223,16 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -268,17 +255,17 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E)> for I {
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 
@@ -302,18 +289,18 @@ impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E, E)> for I 
 impl<E, I: Iterator<Item = E>> IntoTup<(E, E, E, E, E, E, E, E, E, E, E, E)> for I {
     fn tup(&mut self) -> (E, E, E, E, E, E, E, E, E, E, E, E) {
         (
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
-            self.next().unwrap(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
+            self.nu(),
         )
     }
 

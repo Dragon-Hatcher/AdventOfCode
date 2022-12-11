@@ -21,3 +21,11 @@ impl BoolExtension for bool {
         }
     }
 }
+
+pub trait IterExtension: Iterator {
+    fn nu(&mut self) -> Self::Item {
+        self.next().unwrap()
+    }
+}
+
+impl<T: ?Sized> IterExtension for T where T: Iterator {}

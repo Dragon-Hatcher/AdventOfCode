@@ -1,4 +1,4 @@
-use crate::standard_parsers::AocParsed;
+use crate::{helpers::IterExtension, standard_parsers::AocParsed};
 
 #[derive(Debug, Clone)]
 enum File {
@@ -226,7 +226,7 @@ pub fn part1(input: &str) -> i64 {
         } else if l.starts_with("dir ") {
             cur_files.push(File::Dir(l[4..].to_owned(), None));
         } else {
-            cur_files.push(File::Size(l.nums().next().unwrap()))
+            cur_files.push(File::Size(l.nums().nu()))
         }
     }
 
@@ -284,7 +284,7 @@ pub fn part2(input: &str) -> i64 {
         } else if let Some(dir_name) = l.strip_prefix("dir ") {
             cur_files.push(File::Dir(dir_name.to_owned(), None));
         } else {
-            cur_files.push(File::Size(l.nums().next().unwrap()))
+            cur_files.push(File::Size(l.nums().nu()))
         }
     }
     if !cur_files.is_empty() {

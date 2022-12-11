@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
-use crate::standard_parsers::AocParsed;
+use crate::{standard_parsers::AocParsed, helpers::IterExtension};
 
 fn fix_tail(head: (i64, i64), tail: (i64, i64)) -> (i64, i64) {
     let diff_x: i64 = head.0 - tail.0;
@@ -18,13 +18,13 @@ fn solve(input: &str, rope_length: usize) -> i64 {
     let mut knots = vec![(0, 0); rope_length];
 
     input.non_empty().for_each(|l| {
-        let (dx, dy) = match l.chars().next().unwrap() {
+        let (dx, dy) = match l.chars().nu() {
             'R' => (1, 0),
             'L' => (-1, 0),
             'U' => (0, 1),
             _ => (0, -1),
         };
-        let steps = l.nums().next().unwrap();
+        let steps = l.nums().nu();
 
         for _ in 0..steps {
             let last = knots.iter_mut().last().unwrap();

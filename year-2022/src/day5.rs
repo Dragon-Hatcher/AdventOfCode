@@ -1,4 +1,4 @@
-use crate::standard_parsers::{AocParsed, IntoTup};
+use crate::{standard_parsers::{AocParsed, IntoTup}, helpers::IterExtension};
 
 #[derive(Debug, Clone)]
 struct Position {
@@ -6,7 +6,7 @@ struct Position {
 }
 
 fn position_from_lines(str: &str) -> Position {
-    let first_line_len = str.split('\n').next().unwrap().len();
+    let first_line_len = str.split('\n').nu().len();
     let columns = (first_line_len + 1) / 4;
     let mut stacks: Vec<Vec<char>> = vec![Vec::new(); columns];
 
@@ -161,8 +161,8 @@ fn move_from_line(line: &str) -> Move {
 ///
 pub fn part1(input: &str) -> String {
     let mut sections = input.sections();
-    let stacks = sections.next().unwrap();
-    let moves = sections.next().unwrap();
+    let stacks = sections.nu();
+    let moves = sections.nu();
     let mut stacks = position_from_lines(stacks);
     let moves = moves.non_empty().map(move_from_line);
 
@@ -252,8 +252,8 @@ pub fn part1(input: &str) -> String {
 ///
 pub fn part2(input: &str) -> String {
     let mut sections = input.sections();
-    let stacks = sections.next().unwrap();
-    let moves = sections.next().unwrap();
+    let stacks = sections.nu();
+    let moves = sections.nu();
     let mut stacks = position_from_lines(stacks);
     let moves = moves.non_empty().map(move_from_line);
 

@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{BoolExtension, I64Extension},
+    helpers::{BoolExtension, I64Extension, IterExtension},
     standard_parsers::AocParsed,
 };
 
@@ -253,7 +253,7 @@ pub fn part1(input: &str) -> i64 {
         } else {
             cycle(x);
             cycle(x);
-            x += l.nums().next().unwrap();
+            x += l.nums().nu();
         }
     }
 
@@ -433,7 +433,7 @@ pub fn part2(input: &str) -> String {
         } else {
             cycle(x);
             cycle(x);
-            x += l.nums().next().unwrap();
+            x += l.nums().nu();
         }
     }
 
