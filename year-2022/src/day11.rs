@@ -72,7 +72,7 @@ impl MonkeyPen {
         self.0.iter().map(|m| m.divisor).product()
     }
 
-    fn run_round(&mut self, worry_decrease: bool) {
+    fn run_round(&mut self, worry_divisor: i64) {
         let cd = self.common_denominator();
         let monkeys = &mut self.0;
 
@@ -82,9 +82,7 @@ impl MonkeyPen {
 
                 let mut worry_level = monkeys[mi].items.drain(0..1).nu();
                 worry_level = monkeys[mi].equation.exec(worry_level);
-                if worry_decrease {
-                    worry_level /= 3
-                };
+                worry_level /= worry_divisor;
                 worry_level %= cd; // Prevent worry levels from becoming too high
 
                 let target = monkeys[mi].target_monkey(worry_level);
@@ -370,7 +368,7 @@ pub fn part1(input: &str) -> i64 {
     let mut monkeys = MonkeyPen(input.sections().map(parse_monkey).collect_vec());
 
     for _ in 0..20 {
-        monkeys.run_round(true);
+        monkeys.run_round(3);
     }
 
     monkeys.monkey_business()
@@ -481,7 +479,7 @@ pub fn part2(input: &str) -> i64 {
     let mut monkeys = MonkeyPen(input.sections().map(parse_monkey).collect_vec());
 
     for _ in 0..10000 {
-        monkeys.run_round(false);
+        monkeys.run_round(1);
     }
 
     monkeys.monkey_business()
