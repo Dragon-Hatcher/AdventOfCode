@@ -20,6 +20,7 @@ mod day8;
 mod day9;
 mod day10;
 mod day11;
+mod day12;
 
 lazy_static! {
     static ref DAY_FNS: Vec<(DayFunc, DayFunc, Answers)> = vec![
@@ -35,6 +36,7 @@ lazy_static! {
         (day9::part1.into(), day9::part2.into(), day9::ANSWERS),
         (day10::part1.into(), day10::part2.into(), day10::ANSWERS),
         (day11::part1.into(), day11::part2.into(), day11::ANSWERS),
+        (day12::part1.into(), day12::part2.into(), day12::ANSWERS),
     ];
 }
 
