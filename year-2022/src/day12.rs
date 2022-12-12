@@ -1,8 +1,106 @@
+use crate::standard_parsers::AocParsed;
+use itertools::Itertools;
 use std::collections::HashSet;
 
-use itertools::Itertools;
+struct Hill {
+    start: (i64, i64),
+    end: (i64, i64),
+    heights: Vec<Vec<u8>>,
+}
 
-use crate::standard_parsers::AocParsed;
+impl Hill {
+    fn in_bounds(&self, loc: (i64, i64)) -> bool {
+        loc.0 >= 0
+            && loc.1 >= 0
+            && loc.0 < self.heights[0].len() as i64
+            && loc.1 < self.heights.len() as i64
+    }
+
+    fn neighbors(&self, loc: (i64, i64)) -> impl Iterator<Item = (i64, i64)> + '_ {
+        [(1, 0), (-1, 0), (0, 1), (0, -1)]
+            .iter()
+            .map(move |(dx, dy)| (loc.0 + dx, loc.1 + dy))
+            .filter(|loc| self.in_bounds(*loc))
+    }
+
+    fn height(&self, loc: (i64, i64)) -> u8 {
+        self.heights[loc.1 as usize][loc.0 as usize]
+    }
+
+    fn search(
+        &self,
+        start: (i64, i64),
+        can_move: impl Fn(u8, u8) -> bool,
+        end_condition: impl Fn((i64, i64)) -> bool,
+    ) -> i64 {
+        if end_condition(start) {
+            return 0;
+        }
+
+        let mut dist = 0;
+        let mut visited = HashSet::new();
+        visited.insert(start);
+        let mut frontier = visited.clone();
+
+        loop {
+            dist += 1;
+
+            let mut new_frontier = HashSet::new();
+
+            for p in frontier.iter() {
+                let start_height = self.height(*p);
+
+                for p in self.neighbors(*p) {
+                    if can_move(self.height(p), start_height) && !visited.contains(&p) {
+                        if end_condition(p) {
+                            return dist;
+                        }
+                        new_frontier.insert(p);
+                    }
+                }
+            }
+
+            visited.extend(new_frontier.iter());
+            frontier.clear();
+            frontier.extend(new_frontier);
+        }
+    }
+}
+
+fn parse_hill(input: &str) -> Hill {
+    let mut start = (0, 0);
+    let mut end = (0, 0);
+    let heights: Vec<Vec<u8>> = input
+        .non_empty()
+        .enumerate()
+        .map(|(y, l)| {
+            l.chars()
+                .enumerate()
+                .map(|(x, c)| {
+                    match c {
+                        'S' => start = (x as i64, y as i64),
+                        'E' => end = (x as i64, y as i64),
+                        _ => {}
+                    }
+
+                    let num = match c {
+                        'S' => 'a',
+                        'E' => 'z',
+                        _ => c,
+                    } as usize
+                        - 'a' as usize;
+                    num as u8
+                })
+                .collect_vec()
+        })
+        .collect_vec();
+
+    Hill {
+        start,
+        end,
+        heights,
+    }
+}
 
 ///
 /// --- Day 12: Hill Climbing Algorithm ---
@@ -63,76 +161,8 @@ use crate::standard_parsers::AocParsed;
 /// location that should get the best signal?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let mut start: (i64, i64) = (0, 0);
-    let mut end: (i64, i64) = (0, 0);
-    let heights = input
-        .non_empty()
-        .enumerate()
-        .map(|(y, l)| {
-            l.chars()
-                .enumerate()
-                .map(|(x, c)| {
-                    if c == 'S' {
-                        start = (x as i64, y as i64);
-                        return 0;
-                    }
-                    if c == 'E' {
-                        end = (x as i64, y as i64);
-                        return 'z' as i64 - 'a' as i64;
-                    }
-                    c as i64 - 'a' as i64
-                })
-                .collect_vec()
-        })
-        .collect_vec();
-
-    fn find_shortest(
-        start: (i64, i64),
-        end: (i64, i64),
-        heights: &Vec<Vec<i64>>,
-        visited: &mut HashSet<(i64, i64)>,
-    ) -> i64 {
-        fn in_bounds(loc: (i64, i64), heights: &Vec<Vec<i64>>) -> bool {
-            loc.0 >= 0
-                && loc.1 >= 0
-                && (loc.0 as usize) < heights[0].len()
-                && (loc.1 as usize) < heights.len()
-        }
-
-        if start == end {
-            return 0;
-        }
-
-        visited.insert(start);
-
-        let mut frontier = HashSet::new();
-
-        for p in visited.iter() {
-            let start_height = heights[p.1 as usize][p.0 as usize];
-            for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                let p = (p.0 + dx, p.1 + dy);
-                if in_bounds(p, heights)
-                    && heights[p.1 as usize][p.0 as usize] <= start_height + 1
-                    && !visited.contains(&p)
-                {
-                    if p == end {
-                        return 1;
-                    }
-                    frontier.insert(p);
-                }
-            }
-        }
-
-        for p in &frontier {
-            visited.insert(*p);
-        }
-        // println!("{} {}", frontier.len(), visited.len());
-        find_shortest(start, end, heights, visited) + 1
-    }
-
-    let mut f = HashSet::new();
-    f.insert(start);
-    find_shortest(start, end, &heights, &mut f)
+    let hill = parse_hill(input);
+    hill.search(hill.start, |from, to| from <= to + 1, |p| hill.end == p)
 }
 
 ///
@@ -178,76 +208,8 @@ pub fn part1(input: &str) -> i64 {
 /// `a` to the location that should get the best signal?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let mut start: (i64, i64) = (0, 0);
-    let mut end: (i64, i64) = (0, 0);
-    let heights = input
-        .non_empty()
-        .enumerate()
-        .map(|(y, l)| {
-            l.chars()
-                .enumerate()
-                .map(|(x, c)| {
-                    if c == 'S' {
-                        start = (x as i64, y as i64);
-                        return 0;
-                    }
-                    if c == 'E' {
-                        end = (x as i64, y as i64);
-                        return 'z' as i64 - 'a' as i64;
-                    }
-                    c as i64 - 'a' as i64
-                })
-                .collect_vec()
-        })
-        .collect_vec();
-
-    fn find_shortest(
-        start: (i64, i64),
-        end: (i64, i64),
-        heights: &Vec<Vec<i64>>,
-        visited: &mut HashSet<(i64, i64)>,
-    ) -> i64 {
-        fn in_bounds(loc: (i64, i64), heights: &Vec<Vec<i64>>) -> bool {
-            loc.0 >= 0
-                && loc.1 >= 0
-                && (loc.0 as usize) < heights[0].len()
-                && (loc.1 as usize) < heights.len()
-        }
-
-        if heights[start.1 as usize][start.0 as usize] == 0 {
-            return 0;
-        }
-
-        visited.insert(start);
-
-        let mut frontier = HashSet::new();
-
-        for p in visited.iter() {
-            let start_height = heights[p.1 as usize][p.0 as usize];
-            for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                let p = (p.0 + dx, p.1 + dy);
-                if in_bounds(p, heights)
-                    && heights[p.1 as usize][p.0 as usize] >= start_height - 1
-                    && !visited.contains(&p)
-                {
-                    if heights[p.1 as usize][p.0 as usize] == 0 {
-                        return 1;
-                    }
-                    frontier.insert(p);
-                }
-            }
-        }
-
-        for p in &frontier {
-            visited.insert(*p);
-        }
-        // println!("{} {}", frontier.len(), visited.len());
-        find_shortest(start, end, heights, visited) + 1
-    }
-
-    let mut f = HashSet::new();
-    f.insert(end);
-    find_shortest(end, end, &heights, &mut f)
+    let hill = parse_hill(input);
+    hill.search(hill.end, |from, to| from >= to - 1, |p| hill.height(p) == 0)
 }
 
 const PART1_EX_ANSWER: &str = "31";
