@@ -3,13 +3,18 @@ use std::{
     fs::read_to_string,
     io::stdin,
     process::exit,
+    thread,
     time::{Duration, Instant},
 };
-mod standard_parsers;
+
 mod helpers;
+mod standard_parsers;
 
 // SOLUTION MODULES
 mod day1;
+mod day10;
+mod day11;
+mod day12;
 mod day2;
 mod day3;
 mod day4;
@@ -18,9 +23,6 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
-mod day10;
-mod day11;
-mod day12;
 
 lazy_static! {
     static ref DAY_FNS: Vec<(DayFunc, DayFunc, Answers)> = vec![
@@ -74,8 +76,57 @@ impl DayFunc {
     }
 }
 
+const MAX_TIME: Duration = Duration::from_millis(250);
+
+const RED: &str = "\x1b[31m";
+const GREEN: &str = "\x1b[32m";
+const RESET: &str = "\x1b[0m";
+
 // type DayFunc = fn(&str) -> i64;
 type Answers = (&'static str, &'static str, &'static str, &'static str);
+
+fn get_inputs(day_num: usize) -> (String, String) {
+    let input_file_name = format!("./inputs/day{day_num}.txt");
+    let test_input_file_name = format!("./inputs/day{day_num}-test.txt");
+
+    let input = read_to_string(input_file_name).unwrap();
+    let test_input = read_to_string(test_input_file_name).unwrap();
+
+    (input, test_input)
+}
+
+fn check(
+    name: &str,
+    ans_fn: &DayFunc,
+    input: &str,
+    ans: &str,
+    all_correct: &mut bool,
+    total_dir: &mut Duration,
+) {
+    let start = Instant::now();
+    let guess = ans_fn.call(input);
+    let elapsed = start.elapsed();
+    println!(
+        "    {:<10} {}{guess:>11}{RESET} - {ans:<12} {}{elapsed:.2?}{RESET}",
+        format!("{name}:"),
+        if guess == ans { GREEN } else { RED },
+        if elapsed > MAX_TIME { RED } else { GREEN }
+    );
+
+    *all_correct = *all_correct && guess == ans;
+    *total_dir += elapsed;
+}
+
+fn check_no_time(name: &str, ans_fn: &DayFunc, input: &str, ans: &str, all_correct: &mut bool) {
+    let guess = ans_fn.call(input);
+    println!(
+        "    {:<10} {}{guess:>11}{RESET} - {ans:<12}",
+        format!("{name}:"),
+        if guess == ans { GREEN } else { RED },
+    );
+
+    *all_correct = *all_correct && guess == ans;
+}
 
 fn test_day(
     day_num: usize,
@@ -86,39 +137,7 @@ fn test_day(
     all_correct_out: &mut bool,
     total_dir_out: &mut Duration,
 ) {
-    let input_file_name = format!("./inputs/day{day_num}.txt");
-    let test_input_file_name = format!("./inputs/day{day_num}-test.txt");
-
-    let input = read_to_string(input_file_name).unwrap();
-    let test_input = read_to_string(test_input_file_name).unwrap();
-
-    fn check(
-        name: &str,
-        ans_fn: &DayFunc,
-        input: &str,
-        ans: &str,
-        all_correct: &mut bool,
-        total_dir: &mut Duration,
-    ) {
-        const MAX_TIME: Duration = Duration::from_millis(250);
-
-        const RED: &str = "\x1b[31m";
-        const GREEN: &str = "\x1b[32m";
-        const RESET: &str = "\x1b[0m";
-
-        let start = Instant::now();
-        let guess = ans_fn.call(input);
-        let elapsed = start.elapsed();
-        println!(
-            "    {:<10} {}{guess:>11}{RESET} - {ans:<12} {}{elapsed:.2?}{RESET}",
-            format!("{name}:"),
-            if guess == ans { GREEN } else { RED },
-            if elapsed > MAX_TIME { RED } else { GREEN }
-        );
-
-        *all_correct = *all_correct && guess == ans;
-        *total_dir += elapsed;
-    }
+    let (input, test_input) = get_inputs(day_num);
 
     println!("Day {day_num}:");
     let mut all_correct = true;
@@ -170,7 +189,78 @@ fn test_day(
     }
 }
 
+fn benchmark_day(day_num: usize) {
+    const TRIALS: usize = 1000;
+
+    let (input, _) = get_inputs(day_num);
+    let (part1, part2, (_, p1_answer, _, p2_answer)) = &DAY_FNS[day_num - 1];
+
+    let mut all_correct = true;
+
+    println!("Day {day_num}:");
+    check_no_time("Part 1", part1, &input, p1_answer, &mut all_correct);
+    check_no_time("Part 2", part2, &input, p2_answer, &mut all_correct);
+
+    let mut part1_durations: Vec<Duration> = Vec::with_capacity(TRIALS);
+    let mut part2_durations: Vec<Duration> = Vec::with_capacity(TRIALS);
+
+    for i in 0..TRIALS {
+        match i {
+            _ if i == TRIALS / 4 || i == TRIALS * 3 / 4 => {
+                thread::sleep(Duration::from_millis(500))
+            }
+            _ if i == TRIALS / 2 => thread::sleep(Duration::from_millis(1000)),
+            _ => {}
+        }
+
+        let start = Instant::now();
+        part1.call(&input);
+        part1_durations.push(start.elapsed());
+
+        let start = Instant::now();
+        part2.call(&input);
+        part2_durations.push(start.elapsed());
+    }
+
+    fn average(durations: &[Duration]) -> Duration {
+        let total: u128 = durations.iter().map(Duration::as_nanos).sum();
+        Duration::from_nanos((total / durations.len() as u128) as u64)
+    }
+
+    fn explain(part_num: usize, durations: &[Duration]) {
+        let avg = average(durations);
+        let min = *durations.iter().min().unwrap();
+        let max = *durations.iter().max().unwrap();
+
+        println!(
+            "    Part {part_num}: {}{avg:>8.2?}{RESET} {}{min:>8.2?}{RESET} {}{max:>8.2?}{RESET}",
+            if avg > MAX_TIME { RED } else { GREEN },
+            if min > MAX_TIME { RED } else { GREEN },
+            if max > MAX_TIME { RED } else { GREEN },
+        );
+    }
+
+    println!();
+    println!("Benchmarks:      Avg      Min      Max");
+    explain(1, &part1_durations);
+    explain(2, &part2_durations);
+}
+
 fn main() {
+    let certain_day = std::env::args()
+        .nth(1)
+        .and_then(|a| a.parse::<usize>().ok());
+
+    if let Some(certain_day) = certain_day {
+        if certain_day > 0 && certain_day <= DAY_FNS.len() {
+            benchmark_day(certain_day);
+            exit(0);
+        } else {
+            println!("That day doesn't exist.");
+            exit(2);
+        }
+    }
+
     let run_examples = !std::env::args().skip(1).any(|a| {
         a.trim() == "--skip-ex" || a.trim() == "-s" || a.trim() == "-sp" || a.trim() == "-ps"
     });
