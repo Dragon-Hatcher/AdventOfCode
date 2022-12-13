@@ -210,11 +210,10 @@ pub fn part1(input: &str) -> i64 {
     let mut cur_files = Vec::new();
 
     for l in input.non_empty() {
-        if l.starts_with("$ cd ") {
+        if let Some(file_name) = l.strip_prefix("$ cd ") {
             if !cur_files.is_empty() {
                 sup_root.add_contents(cur_path.clone(), cur_files.clone());
             }
-            let file_name = &l[5..];
             if file_name == ".." {
                 cur_path.pop();
             } else {
@@ -223,8 +222,8 @@ pub fn part1(input: &str) -> i64 {
             cur_files = Vec::new();
         } else if l.starts_with("$ ls") {
             cur_files = Vec::new();
-        } else if l.starts_with("dir ") {
-            cur_files.push(File::Dir(l[4..].to_owned(), None));
+        } else if let Some(l) = l.strip_prefix("dir ") {
+            cur_files.push(File::Dir(l.to_owned(), None));
         } else {
             cur_files.push(File::Size(l.nums().nu()))
         }
