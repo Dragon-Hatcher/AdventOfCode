@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
-use itertools::Itertools;
 use crate::standard_parsers::{AocParsed, IntoTup};
+use itertools::Itertools;
+use std::{cmp::Ordering, iter::once};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 enum Element {
@@ -9,66 +9,72 @@ enum Element {
 }
 
 impl Element {
-    fn less_than(&self, other: &Element) -> bool {
+    fn wrap(self) -> Element {
+        Element::List(vec![self])
+    }
+}
+
+impl PartialOrd for Element {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Element {
+    fn cmp(&self, other: &Self) -> Ordering {
+        use Element::{List, Num};
+
         match (self, other) {
-            (Element::Num(l), Element::Num(r)) => l < r,
-            (Element::Num(l), Element::List(_)) => {
-                Element::List(vec![Element::Num(*l)]).less_than(other)
-            }
-            (Element::List(_), Element::Num(r)) => {
-                self.less_than(&Element::List(vec![Element::Num(*r)]))
-            }
-            (Element::List(l), Element::List(r)) => {
+            (Num(l), Num(r)) => l.cmp(r),
+            (Num(l), List(_)) => Num(*l).wrap().cmp(other),
+            (List(_), Num(r)) => self.cmp(&Num(*r).wrap()),
+            (List(l), List(r)) => {
                 for i in 0..l.len() {
                     if i >= r.len() {
-                        return false;
+                        return Ordering::Greater;
                     }
 
-                    if l[i].less_than(&r[i]) == r[i].less_than(&l[i]) {
-                        continue;
-                    } else {
-                        return l[i].less_than(&r[i]);
+                    let o = l[i].cmp(&r[i]);
+                    match o {
+                        Ordering::Less | Ordering::Greater => return o,
+                        Ordering::Equal => continue,
                     }
                 }
-                true
+
+                l.len().cmp(&r.len())
             }
         }
     }
 }
 
-fn parse(input: &str) -> (usize, Element) {
-    let mut elements = Vec::new();
-    let mut dig = "".to_owned();
-    let mut i = 0;
+fn parse(input: &str) -> Element {
+    fn parse(input: &mut impl Iterator<Item = char>) -> Element {
+        let mut elements = Vec::new();
+        let mut dig = "".to_owned();
 
-    while i < input.len() {
-        match input.chars().nth(i).unwrap() {
-            '[' => {
-                let (ni, e) = parse(&input[i + 1..]);
-                i += ni;
-                elements.push(e)
-            }
-            ',' => {
-                if let Ok(num) = dig.parse::<i64>() {
-                    elements.push(Element::Num(num));
+        while let Some(c) = input.next() {
+            match c {
+                '[' => elements.push(parse(input)),
+                ',' => {
+                    if let Ok(num) = dig.parse::<i64>() {
+                        elements.push(Element::Num(num));
+                    }
+                    dig = "".to_owned();
                 }
-                dig = "".to_owned();
-            }
-            ']' => {
-                if let Ok(num) = dig.parse::<i64>() {
-                    elements.push(Element::Num(num));
+                ']' => {
+                    if let Ok(num) = dig.parse::<i64>() {
+                        elements.push(Element::Num(num));
+                    }
+                    return Element::List(elements);
                 }
-                return (i + 1, Element::List(elements));
+                _ => dig.push(c),
             }
-            _ => dig.push(input.chars().nth(i).unwrap()),
         }
 
-        // dbg!(&elements, input.chars().nth(i).unwrap());
-        // thread::sleep(Duration::from_millis(1000));
-        i += 1
+        elements.pop().unwrap()
     }
 
-    unreachable!()
+    parse(&mut input.chars())
 }
 
 ///
@@ -215,15 +221,13 @@ fn parse(input: &str) -> (usize, Element) {
 /// sum of the indices of those pairs?*
 ///
 pub fn part1(input: &str) -> i64 {
-    fn handle(section: &str) -> bool {
-        let (left, right) = section.non_empty().map(|l| parse(&l[1..]).1).tup();
-        left.less_than(&right)
-    }
-
     input
         .sections()
         .enumerate()
-        .filter(|(_, l)| handle(l))
+        .filter(|(_, section)| {
+            let (left, right) = section.non_empty().map(parse).tup();
+            left < right
+        })
         .map(|(i, _)| i + 1)
         .sum::<usize>() as i64
 }
@@ -281,25 +285,19 @@ pub fn part1(input: &str) -> i64 {
 /// for the distress signal?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let div1 = Element::List(vec![Element::List(vec![Element::Num(2)])]);
-    let div2 = Element::List(vec![Element::List(vec![Element::Num(6)])]);
+    let key1 = Element::Num(2).wrap().wrap();
+    let key2 = Element::Num(6).wrap().wrap();
 
-    let mut es = input.non_empty().map(|l| parse(&l[1..]).1).collect_vec();
-    es.push(div1.clone());
-    es.push(div2.clone());
-
-    es.sort_by(|l, r| {
-        if l.less_than(r) == r.less_than(l) {
-            Ordering::Equal
-        } else if l.less_than(r) {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        }
-    });
-
-    (es.iter().position(|x| *x == div1).unwrap() as i64 + 1)
-        * (es.iter().position(|x| *x == div2).unwrap() as i64 + 1)
+    input
+        .non_empty()
+        .map(parse)
+        .chain(once(key1.clone()))
+        .chain(once(key2.clone()))
+        .sorted()
+        .enumerate()
+        .filter(|(_, e)| *e == key1 || *e == key2)
+        .map(|(i, _)| i + 1)
+        .product::<usize>() as i64
 }
 
 const PART1_EX_ANSWER: &str = "13";
