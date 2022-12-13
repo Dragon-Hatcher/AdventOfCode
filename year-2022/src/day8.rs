@@ -1,15 +1,14 @@
-use crate::standard_parsers::AocParsed;
-use itertools::Itertools;
+use crate::{
+    grid::{Grid, Point},
+    standard_parsers::AocParsed,
+};
 
-fn parse(input: &str) -> Vec<Vec<i64>> {
-    input
-        .non_empty()
-        .map(|l| l.chars().map(|c| c.to_digit(10).unwrap() as i64).collect())
-        .collect()
-}
-
-fn in_bounds(x: i64, y: i64, digs: &Vec<Vec<i64>>) -> bool {
-    x >= 0 && y >= 0 && x < digs.len() as i64 && y < digs[0].len() as i64
+fn parse(input: &str) -> Grid<i64> {
+    Grid::new(
+        input
+            .non_empty()
+            .map(|l| l.chars().map(|c| c.to_digit(10).unwrap() as i64)),
+    )
 }
 
 ///
@@ -64,29 +63,28 @@ fn in_bounds(x: i64, y: i64, digs: &Vec<Vec<i64>>) -> bool {
 /// Consider your map; *how many trees are visible from outside the grid?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let digs = parse(input);
+    let heights = parse(input);
 
-    fn is_visible(x: usize, y: usize, dx: i64, dy: i64, digs: &Vec<Vec<i64>>) -> bool {
-        let height = digs[x][y];
-        let mut x = x as i64 + dx;
-        let mut y = y as i64 + dy;
-        while in_bounds(x, y, digs) {
-            if digs[x as usize][y as usize] >= height {
+    fn is_visible(p: Point, delta: Point, heights: &Grid<i64>) -> bool {
+        let height = heights[p];
+        let mut search = p + delta;
+        while heights.in_bounds(search) {
+            if heights[search] >= height {
                 return false;
             }
-            x += dx;
-            y += dy;
+            search += delta;
         }
+
         true
     }
 
-    (0..digs.len())
-        .cartesian_product(0..digs[0].len())
-        .map(|(x, y)| {
-            is_visible(x, y, 1, 0, &digs)
-                || is_visible(x, y, -1, 0, &digs)
-                || is_visible(x, y, 0, 1, &digs)
-                || is_visible(x, y, 0, -1, &digs)
+    heights
+        .points()
+        .map(|p| {
+            is_visible(p, Point::new(1, 0), &heights)
+                || is_visible(p, Point::new(-1, 0), &heights)
+                || is_visible(p, Point::new(0, 1), &heights)
+                || is_visible(p, Point::new(0, -1), &heights)
         })
         .filter(|b| *b)
         .count() as i64
@@ -156,31 +154,29 @@ pub fn part1(input: &str) -> i64 {
 /// any tree?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let digs = parse(input);
+    let heights = parse(input);
 
-    fn calc_dist(x: usize, y: usize, dx: i64, dy: i64, digs: &Vec<Vec<i64>>) -> i64 {
-        let height = digs[x][y];
-        let mut x = x as i64 + dx;
-        let mut y = y as i64 + dy;
+    fn calc_dist(p: Point, delta: Point, heights: &Grid<i64>) -> i64 {
+        let height = heights[p];
         let mut dist = 0;
-        while in_bounds(x, y, digs) {
+        let mut search = p + delta;
+        while heights.in_bounds(search) {
             dist += 1;
-            if digs[x as usize][y as usize] >= height {
+            if heights[search] >= height {
                 break;
             }
-            x += dx;
-            y += dy;
+            search += delta;
         }
         dist
     }
 
-    (0..digs.len())
-        .cartesian_product(0..digs[0].len())
-        .map(|(x, y)| {
-            calc_dist(x, y, 1, 0, &digs)
-                * calc_dist(x, y, -1, 0, &digs)
-                * calc_dist(x, y, 0, 1, &digs)
-                * calc_dist(x, y, 0, -1, &digs)
+    heights
+        .points()
+        .map(|p| {
+            calc_dist(p, Point::new(1, 0), &heights)
+                * calc_dist(p, Point::new(-1, 0), &heights)
+                * calc_dist(p, Point::new(0, 1), &heights)
+                * calc_dist(p, Point::new(0, -1), &heights)
         })
         .max()
         .unwrap_or_default()

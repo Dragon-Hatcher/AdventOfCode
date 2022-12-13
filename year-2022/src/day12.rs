@@ -1,37 +1,21 @@
-use crate::standard_parsers::AocParsed;
-use itertools::Itertools;
+use crate::{
+    grid::{Grid, Point},
+    standard_parsers::AocParsed,
+};
 use std::collections::HashSet;
 
 struct Hill {
-    start: (i64, i64),
-    end: (i64, i64),
-    heights: Vec<Vec<u8>>,
+    start: Point,
+    end: Point,
+    heights: Grid<u8>,
 }
 
 impl Hill {
-    fn in_bounds(&self, loc: (i64, i64)) -> bool {
-        loc.0 >= 0
-            && loc.1 >= 0
-            && loc.0 < self.heights[0].len() as i64
-            && loc.1 < self.heights.len() as i64
-    }
-
-    fn neighbors(&self, loc: (i64, i64)) -> impl Iterator<Item = (i64, i64)> + '_ {
-        [(1, 0), (-1, 0), (0, 1), (0, -1)]
-            .iter()
-            .map(move |(dx, dy)| (loc.0 + dx, loc.1 + dy))
-            .filter(|loc| self.in_bounds(*loc))
-    }
-
-    fn height(&self, loc: (i64, i64)) -> u8 {
-        self.heights[loc.1 as usize][loc.0 as usize]
-    }
-
     fn search(
         &self,
-        start: (i64, i64),
+        start: Point,
         can_move: impl Fn(u8, u8) -> bool,
-        end_condition: impl Fn((i64, i64)) -> bool,
+        end_condition: impl Fn(Point) -> bool,
     ) -> i64 {
         if end_condition(start) {
             return 0;
@@ -48,10 +32,10 @@ impl Hill {
             let mut new_frontier = HashSet::new();
 
             for p in frontier.iter() {
-                let start_height = self.height(*p);
+                let start_height = self.heights[*p];
 
-                for p in self.neighbors(*p) {
-                    if can_move(self.height(p), start_height) && !visited.contains(&p) {
+                for p in self.heights.neighbors4(*p) {
+                    if can_move(self.heights[p], start_height) && !visited.contains(&p) {
                         if end_condition(p) {
                             return dist;
                         }
@@ -68,32 +52,21 @@ impl Hill {
 }
 
 fn parse_hill(input: &str) -> Hill {
-    let mut start = (0, 0);
-    let mut end = (0, 0);
-    let heights: Vec<Vec<u8>> = input
-        .non_empty()
-        .enumerate()
-        .map(|(y, l)| {
-            l.chars()
-                .enumerate()
-                .map(|(x, c)| {
-                    match c {
-                        'S' => start = (x as i64, y as i64),
-                        'E' => end = (x as i64, y as i64),
-                        _ => {}
-                    }
-
-                    let num = match c {
-                        'S' => 'a',
-                        'E' => 'z',
-                        _ => c,
-                    } as usize
-                        - 'a' as usize;
-                    num as u8
-                })
-                .collect_vec()
-        })
-        .collect_vec();
+    let mut start = Point::new(0, 0);
+    let mut end = Point::new(0, 0);
+    let mut chars: Grid<char> = Grid::new(input.non_empty().map(str::chars));
+    chars.points().for_each(|p| match chars[p] {
+        'S' => {
+            start = p;
+            chars[p] = 'a';
+        }
+        'E' => {
+            end = p;
+            chars[p] = 'z';
+        }
+        _ => {}
+    });
+    let heights = chars.map(|c| (*c as i64 - 'a' as i64) as u8);
 
     Hill {
         start,
@@ -209,7 +182,11 @@ pub fn part1(input: &str) -> i64 {
 ///
 pub fn part2(input: &str) -> i64 {
     let hill = parse_hill(input);
-    hill.search(hill.end, |from, to| from >= to - 1, |p| hill.height(p) == 0)
+    hill.search(
+        hill.end,
+        |from, to| from >= to - 1,
+        |p| hill.heights[p] == 0,
+    )
 }
 
 const PART1_EX_ANSWER: &str = "31";
