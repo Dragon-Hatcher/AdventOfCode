@@ -96,7 +96,7 @@ fn parse(input: &str, floor: bool) -> SandHeap {
     let mut occupied = HashSet::new();
 
     input.non_empty().for_each(|l| {
-        l.nums()
+        l.nums_pos()
             .tuples()
             .into_iter()
             .map(|(x, y)| Point::new(x, y))
