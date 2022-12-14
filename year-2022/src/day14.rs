@@ -3,131 +3,112 @@ use std::collections::HashSet;
 use crate::{grid::Point, standard_parsers::AocParsed};
 use itertools::Itertools;
 
-fn count_sand(points: &mut HashSet<Point>) -> i64 {
-    let mut sand = 0;
-    let max_y = points.iter().map(|p| p.y).max().unwrap_or_default();
-    // println!("{points:?} {max_y}");
+struct SandHeap {
+    occupied: HashSet<Point>,
+    floor: bool,
+    max_y: i64,
+    locations: Vec<Point>,
+}
 
-    loop {
-        let mut sand_p = Point::new(500, 0);
+impl SandHeap {
+    const SAND_START: Point = Point::new(500, 0);
+
+    fn new(occupied: HashSet<Point>) -> SandHeap {
+        let max_y = occupied.iter().map(|p| p.y).max().unwrap_or_default();
+        SandHeap {
+            occupied,
+            floor: false,
+            max_y: max_y + 2,
+            locations: vec![Self::SAND_START],
+        }
+    }
+
+    fn new_with_floor(occupied: HashSet<Point>) -> SandHeap {
+        let max_y = occupied.iter().map(|p| p.y).max().unwrap_or_default();
+        SandHeap {
+            occupied,
+            floor: true,
+            max_y: max_y + 2,
+            locations: vec![Self::SAND_START],
+        }
+    }
+
+    fn can_hold_sand(&self, p: Point) -> bool {
+        !self.occupied.contains(&p) && (!self.floor || p.y != self.max_y)
+    }
+
+    fn drop_sand(&mut self) -> bool {
+        let mut sand_p = *self.locations.last().unwrap_or(&Self::SAND_START);
 
         loop {
-            // println!("{sand_p:?}");
-
-            if sand_p.y > max_y {
-                return sand;
+            if sand_p.y > self.max_y + 2 {
+                break false;
             }
-            
+
             let down = Point::new(sand_p.x, sand_p.y + 1);
             let left = Point::new(sand_p.x - 1, sand_p.y + 1);
             let right = Point::new(sand_p.x + 1, sand_p.y + 1);
 
-            if !points.contains(&down) {
+            if self.can_hold_sand(down) {
                 sand_p = down;
-            } else if !points.contains(&left) {
+            } else if self.can_hold_sand(left) {
                 sand_p = left;
-            } else if !points.contains(&right) {
+            } else if self.can_hold_sand(right) {
                 sand_p = right
+            } else if self.can_hold_sand(sand_p) {
+                self.locations.pop();
+                self.occupied.insert(sand_p);
+                break true;
             } else {
-                points.insert(sand_p);
-                break;
+                break false;
             }
-        }
 
-        sand += 1;
+            self.locations.push(sand_p);
+        }
     }
 
-    sand
-}
-
-fn count_sand_block(points: &mut HashSet<Point>) -> i64 {
-    let mut sand = 0;
-    let max_y = points.iter().map(|p| p.y).max().unwrap_or_default();
-    // println!("{points:?} {max_y}");
-
-    loop {
-        let mut sand_p = Point::new(500, 0);
-
+    fn fill(&mut self) -> i64 {
+        let mut dropped = 0;
         loop {
-            // println!("{sand_p:?}");
-
-            if sand_p.y > max_y {
-                return sand;
-            }
-            
-            let down = Point::new(sand_p.x, sand_p.y + 1);
-            let left = Point::new(sand_p.x - 1, sand_p.y + 1);
-            let right = Point::new(sand_p.x + 1, sand_p.y + 1);
-
-            if !points.contains(&down) {
-                sand_p = down;
-            } else if !points.contains(&left) {
-                sand_p = left;
-            } else if !points.contains(&right) {
-                sand_p = right
-            } else if !points.contains(&sand_p) {
-                points.insert(sand_p);
-                break;
+            if self.drop_sand() {
+                dropped += 1;
             } else {
-                return sand;
-            }
-        }
-
-        sand += 1;
-    }
-
-    sand
-}
-
-fn find_points(lines: Vec<Vec<Point>>) -> HashSet<Point> {
-    let mut points = HashSet::new();
-
-    for line in lines {
-        for (from, to) in line.iter().tuple_windows() {
-            // println!("{from:?} {to:?}");
-            if from.y == to.y && from.x < to.x {
-                for x in from.x..=to.x {
-                    points.insert(Point::new(x, from.y));
-                }
-            } else if from.y == to.y && from.x > to.x {
-                for x in to.x..=from.x {
-                    points.insert(Point::new(x, from.y));
-                }
-            } else if from.x == to.x && from.y < to.y {
-                for y in from.y..=to.y {
-                    points.insert(Point::new(from.x, y));
-                    // println!("-")
-                }
-            } else {
-                for y in to.y..=from.y {
-                    points.insert(Point::new(from.x, y));
-                }
+                break dropped;
             }
         }
     }
-
-    points
 }
 
-fn add_line(points: &mut HashSet<Point>) {
-    let max_y = points.iter().map(|p| p.y).max().unwrap_or_default();
+fn connect_line(occupied: &mut HashSet<Point>, a: Point, b: Point) {
+    let from_x = a.x.min(b.x);
+    let to_x = a.x.max(b.x);
+    let from_y = a.y.min(b.y);
+    let to_y = a.y.max(b.y);
 
-    for x in -1000..1000 {
-        points.insert(Point::new(x, max_y + 2));
-    }    
+    for x in from_x..=to_x {
+        for y in from_y..=to_y {
+            occupied.insert(Point::new(x, y));
+        }
+    }
 }
 
-fn parse(input: &str) -> Vec<Vec<Point>> {
-    input
-        .non_empty()
-        .map(|l| {
-            l.nums()
-                .tuples()
-                .into_iter()
-                .map(|(x, y)| Point::new(x, y))
-                .collect_vec()
-        })
-        .collect_vec()
+fn parse(input: &str, floor: bool) -> SandHeap {
+    let mut occupied = HashSet::new();
+
+    input.non_empty().for_each(|l| {
+        l.nums()
+            .tuples()
+            .into_iter()
+            .map(|(x, y)| Point::new(x, y))
+            .tuple_windows()
+            .for_each(|(a, b)| connect_line(&mut occupied, a, b));
+    });
+
+    if floor {
+        SandHeap::new_with_floor(occupied)
+    } else {
+        SandHeap::new(occupied)
+    }
 }
 
 ///
@@ -309,27 +290,24 @@ fn parse(input: &str) -> Vec<Vec<Point>> {
 /// before sand starts flowing into the abyss below?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let lines = parse(input);
-    // println!("{lines:?}");
-    let mut points = find_points(lines);
-    count_sand(&mut points)
+    parse(input, false).fill()
 }
 
-/// 
+///
 /// --- Part Two ---
-/// 
-/// You realize you misread the scan. There isn't an endless void at the bottom of 
+///
+/// You realize you misread the scan. There isn't an endless void at the bottom of
 /// the scan - there's floor, and you're standing on it!
-/// 
-/// You don't have time to scan the floor, so assume the floor is an infinite horizontal 
-/// line with a `y` coordinate equal to *two plus the highest `y` coordinate* of 
+///
+/// You don't have time to scan the floor, so assume the floor is an infinite horizontal
+/// line with a `y` coordinate equal to *two plus the highest `y` coordinate* of
 /// any point in your scan.
-/// 
-/// In the example above, the highest `y` coordinate of any point is `9`, and so 
-/// the floor is at `y=11`. (This is as if your scan contained one extra rock path 
-/// like `-infinity,11 -> infinity,11`.) With the added floor, the example above 
+///
+/// In the example above, the highest `y` coordinate of any point is `9`, and so
+/// the floor is at `y=11`. (This is as if your scan contained one extra rock path
+/// like `-infinity,11 -> infinity,11`.) With the added floor, the example above
 /// now looks like this:
-/// 
+///
 /// ```
 ///         ...........+........
 ///         ....................
@@ -343,14 +321,14 @@ pub fn part1(input: &str) -> i64 {
 ///         .....#########......
 ///         ....................
 /// <-- etc #################### etc -->
-/// 
+///
 /// ```
-/// 
-/// To find somewhere safe to stand, you'll need to simulate falling sand until a 
-/// unit of sand comes to rest at `500,0`, blocking the source entirely and stopping 
-/// the flow of sand into the cave. In the example above, the situation finally looks 
+///
+/// To find somewhere safe to stand, you'll need to simulate falling sand until a
+/// unit of sand comes to rest at `500,0`, blocking the source entirely and stopping
+/// the flow of sand into the cave. In the example above, the situation finally looks
 /// like this after `*93*` units of sand come to rest:
-/// 
+///
 /// ```
 /// ............o............
 /// ...........ooo...........
@@ -364,18 +342,14 @@ pub fn part1(input: &str) -> i64 {
 /// ...ooo#########ooooooo...
 /// ..ooooo.......ooooooooo..
 /// #########################
-/// 
+///
 /// ```
-/// 
-/// Using your scan, simulate the falling sand until the source of the sand becomes 
+///
+/// Using your scan, simulate the falling sand until the source of the sand becomes
 /// blocked. *How many units of sand come to rest?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let lines = parse(input);
-    // println!("{lines:?}");
-    let mut points = find_points(lines);
-    add_line(&mut points);
-    count_sand_block(&mut points)
+    parse(input, true).fill()
 }
 
 const PART1_EX_ANSWER: &str = "24";
