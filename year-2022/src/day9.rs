@@ -1,5 +1,5 @@
-use std::{cmp::Ordering, collections::HashSet};
-
+use std::{cmp::Ordering};
+use rustc_hash::FxHashSet;
 use crate::{standard_parsers::AocParsed, helpers::IterExtension};
 
 fn fix_tail(head: (i64, i64), tail: (i64, i64)) -> (i64, i64) {
@@ -14,7 +14,7 @@ fn fix_tail(head: (i64, i64), tail: (i64, i64)) -> (i64, i64) {
 }
 
 fn solve(input: &str, rope_length: usize) -> i64 {
-    let mut visited: HashSet<(i64, i64)> = HashSet::new();
+    let mut visited: FxHashSet<(i64, i64)> = FxHashSet::default();
     let mut knots = vec![(0, 0); rope_length];
 
     input.non_empty().for_each(|l| {

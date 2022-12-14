@@ -1,8 +1,9 @@
+use rustc_hash::FxHashSet;
+
 use crate::{
     grid::{Grid, Point},
     standard_parsers::AocParsed,
 };
-use std::collections::HashSet;
 
 struct Hill {
     start: Point,
@@ -22,14 +23,14 @@ impl Hill {
         }
 
         let mut dist = 0;
-        let mut visited = HashSet::new();
+        let mut visited = FxHashSet::default();
         visited.insert(start);
         let mut frontier = visited.clone();
 
         loop {
             dist += 1;
 
-            let mut new_frontier = HashSet::new();
+            let mut new_frontier = FxHashSet::default();
 
             for p in frontier.iter() {
                 let start_height = self.heights[*p];

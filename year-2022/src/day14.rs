@@ -1,10 +1,9 @@
-use std::collections::HashSet;
-
 use crate::{grid::Point, standard_parsers::AocParsed};
 use itertools::Itertools;
+use rustc_hash::FxHashSet;
 
 struct SandHeap {
-    occupied: HashSet<Point>,
+    occupied: FxHashSet<Point>,
     floor: bool,
     max_y: i64,
     locations: Vec<Point>,
@@ -13,7 +12,7 @@ struct SandHeap {
 impl SandHeap {
     const SAND_START: Point = Point::new(500, 0);
 
-    fn new(occupied: HashSet<Point>) -> SandHeap {
+    fn new(occupied: FxHashSet<Point>) -> SandHeap {
         let max_y = occupied.iter().map(|p| p.y).max().unwrap_or_default();
         SandHeap {
             occupied,
@@ -23,7 +22,7 @@ impl SandHeap {
         }
     }
 
-    fn new_with_floor(occupied: HashSet<Point>) -> SandHeap {
+    fn new_with_floor(occupied: FxHashSet<Point>) -> SandHeap {
         let max_y = occupied.iter().map(|p| p.y).max().unwrap_or_default();
         SandHeap {
             occupied,
@@ -79,7 +78,7 @@ impl SandHeap {
     }
 }
 
-fn connect_line(occupied: &mut HashSet<Point>, a: Point, b: Point) {
+fn connect_line(occupied: &mut FxHashSet<Point>, a: Point, b: Point) {
     let from_x = a.x.min(b.x);
     let to_x = a.x.max(b.x);
     let from_y = a.y.min(b.y);
@@ -93,7 +92,7 @@ fn connect_line(occupied: &mut HashSet<Point>, a: Point, b: Point) {
 }
 
 fn parse(input: &str, floor: bool) -> SandHeap {
-    let mut occupied = HashSet::new();
+    let mut occupied = FxHashSet::default();
 
     input.non_empty().for_each(|l| {
         l.nums_pos()
