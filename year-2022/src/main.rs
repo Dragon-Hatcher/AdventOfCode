@@ -127,7 +127,7 @@ fn check(
 fn check_no_time(name: &str, ans_fn: &DayFunc, input: &str, ans: &str, all_correct: &mut bool) {
     let guess = ans_fn.call(input);
     println!(
-        "    {:<10} {}{guess:>11}{RESET} - {ans:<12}",
+        "    {:<10} {}{guess:>14}{RESET} - {ans:<15}",
         format!("{name}:"),
         if guess == ans { GREEN } else { RED },
     );

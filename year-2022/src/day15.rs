@@ -168,18 +168,33 @@ pub fn part1(input: &str) -> i64 {
 
     let pos = parse(input);
 
-    let mut not = 0;
-    for x in -height * 3..height * 3 {
-        let p = Point::new(x, height);
-        if pos
-            .iter()
-            .any(|(s, b)| *b != p && dist(s, &p) <= dist(s, b))
-        {
-            not += 1;
+    let mut ranges = pos
+        .iter()
+        .filter_map(|(s, b)| {
+            let d = dist(s, b);
+            let dy = (s.y - height).abs();
+            let dx = d - dy;
+            if dx < 0 {
+                None
+            } else {
+                Some((s.x - dx)..(s.x + dx))
+            }
+        })
+        .sorted_by_key(|r| r.start);
+
+    let mut excluded = 0;
+    let mut curr = ranges.nu();
+    for r in ranges {
+        if r.start <= curr.end {
+            curr.end = r.end.max(curr.end);
+        } else {
+            excluded += curr.end - curr.start;
+            curr = r;
         }
     }
+    excluded += curr.end - curr.start;
 
-    not
+    excluded
 }
 
 ///
@@ -204,9 +219,11 @@ pub fn part1(input: &str) -> i64 {
 pub fn part2(input: &str) -> i64 {
     let height = input.non_empty().nu().nums().nu() * 2;
 
-    let pos = parse(input);
+    let mut pos = parse(input);
 
     for y in 0..=height {
+        pos.sort_by_key(|(s, _)| (s.y - y).abs());
+
         let mut x = 0;
         'out: while x <= height {
             let p = Point::new(x, y);
