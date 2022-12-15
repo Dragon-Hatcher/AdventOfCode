@@ -26,6 +26,7 @@ mod day8;
 mod day9;
 mod day13;
 mod day14;
+mod day15;
 
 lazy_static! {
     static ref DAY_FNS: Vec<(DayFunc, DayFunc, Answers)> = vec![
@@ -44,6 +45,7 @@ lazy_static! {
         (day12::part1.into(), day12::part2.into(), day12::ANSWERS),
         (day13::part1.into(), day13::part2.into(), day13::ANSWERS),
         (day14::part1.into(), day14::part2.into(), day14::ANSWERS),
+        (day15::part1.into(), day15::part2.into(), day15::ANSWERS),
     ];
 }
 
@@ -112,7 +114,7 @@ fn check(
     let guess = ans_fn.call(input);
     let elapsed = start.elapsed();
     println!(
-        "    {:<10} {}{guess:>11}{RESET} - {ans:<12} {}{elapsed:.2?}{RESET}",
+        "    {:<10} {}{guess:>14}{RESET} - {ans:<15} {}{elapsed:.2?}{RESET}",
         format!("{name}:"),
         if guess == ans { GREEN } else { RED },
         if elapsed > MAX_TIME { RED } else { GREEN }
