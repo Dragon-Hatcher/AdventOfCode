@@ -3,12 +3,11 @@ use std::{
     fs::read_to_string,
     io::stdin,
     process::exit,
-    thread,
     time::{Duration, Instant},
 };
 
-mod helpers;
 mod grid;
+mod helpers;
 mod standard_parsers;
 
 // SOLUTION MODULES
@@ -16,6 +15,9 @@ mod day1;
 mod day10;
 mod day11;
 mod day12;
+mod day13;
+mod day14;
+mod day15;
 mod day2;
 mod day3;
 mod day4;
@@ -24,9 +26,6 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
-mod day13;
-mod day14;
-mod day15;
 
 lazy_static! {
     static ref DAY_FNS: Vec<(DayFunc, DayFunc, Answers)> = vec![
@@ -196,9 +195,7 @@ fn test_day(
     }
 }
 
-fn benchmark_day(day_num: usize) {
-    const TRIALS: usize = 1000;
-
+fn benchmark_day(day_num: usize, trials: usize) {
     let (input, _) = get_inputs(day_num);
     let (part1, part2, (_, p1_answer, _, p2_answer)) = &DAY_FNS[day_num - 1];
 
@@ -208,18 +205,10 @@ fn benchmark_day(day_num: usize) {
     check_no_time("Part 1", part1, &input, p1_answer, &mut all_correct);
     check_no_time("Part 2", part2, &input, p2_answer, &mut all_correct);
 
-    let mut part1_durations: Vec<Duration> = Vec::with_capacity(TRIALS);
-    let mut part2_durations: Vec<Duration> = Vec::with_capacity(TRIALS);
+    let mut part1_durations: Vec<Duration> = Vec::with_capacity(trials);
+    let mut part2_durations: Vec<Duration> = Vec::with_capacity(trials);
 
-    for i in 0..TRIALS {
-        match i {
-            _ if i == TRIALS / 4 || i == TRIALS * 3 / 4 => {
-                thread::sleep(Duration::from_millis(500))
-            }
-            _ if i == TRIALS / 2 => thread::sleep(Duration::from_millis(1000)),
-            _ => {}
-        }
-
+    for _ in 0..trials {
         let start = Instant::now();
         part1.call(&input);
         part1_durations.push(start.elapsed());
@@ -260,7 +249,12 @@ fn main() {
 
     if let Some(certain_day) = certain_day {
         if certain_day > 0 && certain_day <= DAY_FNS.len() {
-            benchmark_day(certain_day);
+            let trials = std::env::args()
+                .nth(2)
+                .and_then(|a| a.parse::<usize>().ok())
+                .unwrap_or(10000);
+
+            benchmark_day(certain_day, trials);
             exit(0);
         } else {
             println!("That day doesn't exist.");
