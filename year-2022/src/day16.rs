@@ -38,20 +38,6 @@ struct Valve {
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
 struct ValveSet(u64);
 
-impl Debug for ValveSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[")?;
-
-        for i in 0..64 {
-            if self.is_set(i) {
-                write!(f, "{}", ('A' as usize + i) as u8 as char)?;
-            }
-        }
-
-        write!(f, "]")
-    }
-}
-
 impl ValveSet {
     fn is_set(self, valve: usize) -> bool {
         self.0 & (1 << valve) != 0
