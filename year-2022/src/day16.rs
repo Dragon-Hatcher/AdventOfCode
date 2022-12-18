@@ -5,6 +5,104 @@ use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt::Debug;
 
+fn parse(input: &str) -> (usize, Vec<Valve>) {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("[A-Z]{2}").unwrap();
+    }
+
+    let names = input.non_empty().map(|l| &l[6..8]).collect_vec();
+    let start = names.iter().position(|n| *n == "AA").unwrap();
+
+    let valves = input
+        .non_empty()
+        .map(|l| {
+            let rate = l.nums().nu();
+            let connections = RE
+                .captures_iter(l)
+                .skip(1)
+                .map(|c| names.iter().position(|i| *i == &c[0]).unwrap())
+                .collect_vec();
+            Valve { rate, connections }
+        })
+        .collect();
+
+    (start, valves)
+}
+
+#[derive(Debug)]
+struct Valve {
+    rate: i64,
+    connections: Vec<usize>,
+}
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+struct ValveSet(u64);
+
+impl Debug for ValveSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+
+        for i in 0..64 {
+            if self.is_set(i) {
+                write!(f, "{}", ('A' as usize + i) as u8 as char)?;
+            }
+        }
+
+        write!(f, "]")
+    }
+}
+
+impl ValveSet {
+    fn is_set(self, valve: usize) -> bool {
+        self.0 & (1 << valve) != 0
+    }
+
+    fn toggle(self, valve: usize) -> Self {
+        Self(self.0 ^ (1 << valve))
+    }
+}
+
+fn calc_distance(from: usize, res: &mut FxHashMap<(usize, usize), usize>, valves: &[Valve]) {
+    let mut dist = 0;
+    let mut visited = FxHashSet::default();
+    visited.insert(from);
+    let mut frontier = visited.clone();
+
+    loop {
+        dist += 1;
+
+        let mut new_frontier = FxHashSet::default();
+
+        for v in frontier.iter() {
+            for n in valves[*v].connections.iter() {
+                if !visited.contains(&n) {
+                    res.insert((from, *n), dist);
+                    new_frontier.insert(*n);
+                }
+            }
+        }
+
+        visited.extend(new_frontier.iter());
+        frontier.clear();
+        frontier.extend(new_frontier);
+
+        if visited.len() == valves.len() {
+            break;
+        }
+    }
+}
+
+fn calc_distances(closed_valves: ValveSet, valves: &[Valve]) -> FxHashMap<(usize, usize), usize> {
+    let mut ret = FxHashMap::default();
+    for from in 0..64 {
+        if !closed_valves.is_set(from) {
+            continue;
+        }
+        calc_distance(from, &mut ret, valves);
+    }
+    ret
+}
+
 ///
 /// --- Day 16: Proboscidea Volcanium ---
 ///
@@ -188,107 +286,11 @@ use std::fmt::Debug;
 /// pressure you can release?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let names = input.non_empty().map(|l| &l[6..8]).collect_vec();
-
-    #[derive(Debug)]
-    struct Valve {
-        rate: i64,
-        connections: Vec<usize>,
-    }
-
-    lazy_static! {
-        static ref RE: Regex = Regex::new("[A-Z]{2}").unwrap();
-    }
-
-    let valves = input
-        .non_empty()
-        .map(|l| {
-            let rate = l.nums().nu();
-            let connections = RE
-                .captures_iter(l)
-                .skip(1)
-                .map(|c| names.iter().position(|i| *i == &c[0]).unwrap())
-                .collect_vec();
-            Valve { rate, connections }
-        })
-        .collect_vec();
-
-    #[derive(Clone, Copy, Default, PartialEq, Eq)]
-    struct ValveSet(u64);
-
-    impl Debug for ValveSet {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "[")?;
-
-            for i in 0..64 {
-                if self.is_set(i) {
-                    write!(f, "{}", ('A' as usize + i) as u8 as char)?;
-                }
-            }
-
-            write!(f, "]")
-        }
-    }
-
-    impl ValveSet {
-        fn is_set(self, valve: usize) -> bool {
-            self.0 & (1 << valve) != 0
-        }
-
-        fn toggle(&mut self, valve: usize) {
-            self.0 ^= 1 << valve;
-        }
-    }
-
-    fn calc_distance(from: usize, res: &mut FxHashMap<(usize, usize), usize>, valves: &[Valve]) {
-        let mut dist = 0;
-        let mut visited = FxHashSet::default();
-        visited.insert(from);
-        let mut frontier = visited.clone();
-
-        loop {
-            dist += 1;
-
-            let mut new_frontier = FxHashSet::default();
-
-            for v in frontier.iter() {
-                for n in valves[*v].connections.iter() {
-                    if !visited.contains(&n) {
-                        res.insert((from, *n), dist);
-                        new_frontier.insert(*n);
-                    }
-                }
-            }
-
-            visited.extend(new_frontier.iter());
-            frontier.clear();
-            frontier.extend(new_frontier);
-
-            if visited.len() == valves.len() {
-                break;
-            }
-        }
-    }
-
-    fn calc_distances(
-        closed_valves: &ValveSet,
-        valves: &[Valve],
-    ) -> FxHashMap<(usize, usize), usize> {
-        let mut ret = FxHashMap::default();
-        for from in 0..64 {
-            if !closed_valves.is_set(from) {
-                continue;
-            }
-            calc_distance(from, &mut ret, valves);
-        }
-        ret
-    }
-
     fn solve(
         mins_left: usize,
         loc: usize,
         cur_flow_rate: i64,
-        closed_valves: &mut ValveSet,
+        closed_valves: ValveSet,
         distances: &FxHashMap<(usize, usize), usize>,
         valves: &[Valve],
     ) -> i64 {
@@ -299,21 +301,21 @@ pub fn part1(input: &str) -> i64 {
                 continue;
             }
 
-            let dist = distances.get(&(loc, dest)).unwrap_or(&usize::MAX);
-            let time = dist + 1;
+            let time = distances
+                .get(&(loc, dest))
+                .unwrap_or(&usize::MAX)
+                .saturating_add(1);
             if time < mins_left {
                 let new_flow_rate = cur_flow_rate + valves[dest].rate;
-                closed_valves.toggle(dest);
                 let total_released = time as i64 * cur_flow_rate
                     + solve(
                         mins_left - time,
                         dest,
                         new_flow_rate,
-                        closed_valves,
+                        closed_valves.toggle(dest),
                         distances,
                         valves,
                     );
-                closed_valves.toggle(dest);
                 max = total_released.max(max);
             }
         }
@@ -321,28 +323,205 @@ pub fn part1(input: &str) -> i64 {
         max
     }
 
-    let start = names.iter().position(|n| *n == "AA").unwrap();
+    let (start, valves) = parse(input);
     let mut closed_valves = ValveSet(0);
     for i in 0..valves.len() {
         if valves[i].rate != 0 {
-            closed_valves.toggle(i);
+            closed_valves = closed_valves.toggle(i);
         }
     }
 
-    closed_valves.toggle(start);
-    let distances = calc_distances(&closed_valves, &valves);
-    closed_valves.toggle(start);
+    let distances = calc_distances(closed_valves.toggle(start), &valves);
 
-    solve(30, start, 0, &mut closed_valves, &distances, &valves)
+    solve(30, start, 0, closed_valves, &distances, &valves)
 }
 
+///
+/// --- Part Two ---
+///
+/// You're worried that even with an optimal approach, the pressure released won't
+/// be enough. What if you got one of the elephants to help you?
+///
+/// It would take you 4 minutes to teach an elephant how to open the right valves
+/// in the right order, leaving you with only *26 minutes* to actually execute your
+/// plan. Would having two of you working together be better, even if it means having
+/// less time? (Assume that you teach the elephant before opening any valves yourself,
+/// giving you both the same full 26 minutes.)
+///
+/// In the example above, you could teach the elephant to help you as follows:
+///
+/// ```
+/// == Minute 1 ==
+/// No valves are open.
+/// You move to valve II.
+/// The elephant moves to valve DD.
+///
+/// == Minute 2 ==
+/// No valves are open.
+/// You move to valve JJ.
+/// The elephant opens valve DD.
+///
+/// == Minute 3 ==
+/// Valve DD is open, releasing 20 pressure.
+/// You open valve JJ.
+/// The elephant moves to valve EE.
+///
+/// == Minute 4 ==
+/// Valves DD and JJ are open, releasing 41 pressure.
+/// You move to valve II.
+/// The elephant moves to valve FF.
+///
+/// == Minute 5 ==
+/// Valves DD and JJ are open, releasing 41 pressure.
+/// You move to valve AA.
+/// The elephant moves to valve GG.
+///
+/// == Minute 6 ==
+/// Valves DD and JJ are open, releasing 41 pressure.
+/// You move to valve BB.
+/// The elephant moves to valve HH.
+///
+/// == Minute 7 ==
+/// Valves DD and JJ are open, releasing 41 pressure.
+/// You open valve BB.
+/// The elephant opens valve HH.
+///
+/// == Minute 8 ==
+/// Valves BB, DD, HH, and JJ are open, releasing 76 pressure.
+/// You move to valve CC.
+/// The elephant moves to valve GG.
+///
+/// == Minute 9 ==
+/// Valves BB, DD, HH, and JJ are open, releasing 76 pressure.
+/// You open valve CC.
+/// The elephant moves to valve FF.
+///
+/// == Minute 10 ==
+/// Valves BB, CC, DD, HH, and JJ are open, releasing 78 pressure.
+/// The elephant moves to valve EE.
+///
+/// == Minute 11 ==
+/// Valves BB, CC, DD, HH, and JJ are open, releasing 78 pressure.
+/// The elephant opens valve EE.
+///
+/// (At this point, all valves are open.)
+///
+/// == Minute 12 ==
+/// Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+///
+/// ...
+///
+/// == Minute 20 ==
+/// Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+///
+/// ...
+///
+/// == Minute 26 ==
+/// Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+///
+/// ```
+///
+/// With the elephant helping, after 26 minutes, the best you could do would release
+/// a total of `*1707*` pressure.
+///
+/// *With you and an elephant working together for 26 minutes, what is the most pressure
+/// you could release?*
+///
 pub fn part2(input: &str) -> i64 {
-    0
+    fn solve(
+        mins_left: usize,
+        loc1: usize,
+        cooldown1: usize,
+        loc2: usize,
+        cooldown2: usize,
+        cur_flow_rate: i64,
+        closed_valves: ValveSet,
+        distances: &FxHashMap<(usize, usize), usize>,
+        valves: &[Valve],
+    ) -> i64 {
+        if cooldown1 == 0 {
+            // Pick a new destination for agent 1
+
+            let new_flow_rate = cur_flow_rate + valves[loc1].rate;
+            let mut max = new_flow_rate * mins_left as i64
+                + (mins_left - cooldown2) as i64 * valves[loc2].rate;
+
+            for dest in 0..64 {
+                if !closed_valves.is_set(dest) {
+                    continue;
+                }
+
+                let time = distances
+                    .get(&(loc1, dest))
+                    .unwrap_or(&usize::MAX)
+                    .saturating_add(1);
+
+                // TODO what if agent1 can't but agent 2 can?
+                if time < mins_left {
+                    let to_elapse = time.min(cooldown2);
+                    let total_released = to_elapse as i64 * new_flow_rate
+                        + solve(
+                            mins_left - to_elapse,
+                            dest,
+                            time - to_elapse,
+                            loc2,
+                            cooldown2 - to_elapse,
+                            new_flow_rate,
+                            closed_valves.toggle(dest),
+                            distances,
+                            valves,
+                        );
+
+                    max = total_released.max(max);
+                }
+            }
+
+            max
+        } else if cooldown2 == 0 {
+            // Swap agents
+
+            solve(
+                mins_left,
+                loc2,
+                cooldown2,
+                loc1,
+                cooldown1,
+                cur_flow_rate,
+                closed_valves,
+                distances,
+                valves,
+            )
+        } else {
+            unreachable!()
+        }
+    }
+
+    let (start, valves) = parse(input);
+    let mut closed_valves = ValveSet(0);
+    for i in 0..valves.len() {
+        if valves[i].rate != 0 {
+            closed_valves = closed_valves.toggle(i);
+        }
+    }
+
+    let distances = calc_distances(closed_valves.toggle(start), &valves);
+
+    solve(
+        26,
+        start,
+        0,
+        start,
+        0,
+        0,
+        closed_valves,
+        &distances,
+        &valves,
+    )
 }
 
 const PART1_EX_ANSWER: &str = "1651";
 const PART1_ANSWER: &str = "1724";
-const PART2_EX_ANSWER: &str = "0";
-const PART2_ANSWER: &str = "0";
+const PART2_EX_ANSWER: &str = "1707";
+const PART2_ANSWER: &str = "2283";
 pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
