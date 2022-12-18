@@ -1,11 +1,9 @@
-use std::{cmp::Ordering, fmt::Debug};
-
+use crate::{helpers::IterExtension, standard_parsers::AocParsed};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
-
-use crate::{helpers::IterExtension, standard_parsers::AocParsed};
+use std::fmt::Debug;
 
 ///
 /// --- Day 16: Proboscidea Volcanium ---
@@ -215,22 +213,6 @@ pub fn part1(input: &str) -> i64 {
         })
         .collect_vec();
 
-    let rates = {
-        let mut rates = [0; 64];
-        for i in 0..64 {
-            rates[i] = valves.get(i).map(|v| v.rate).unwrap_or_default();
-        }
-        rates
-    };
-
-    fn calc_released(open: u64, rates: &[i64; 64]) -> i64 {
-        let mut released_now = 0;
-        for i in 0..64 {
-            released_now += rates[i] * ((1 << i) & open != 0) as i64;
-        }
-        released_now
-    }
-
     #[derive(Clone, Copy, Default, PartialEq, Eq)]
     struct ValveSet(u64);
 
@@ -253,341 +235,105 @@ pub fn part1(input: &str) -> i64 {
             self.0 & (1 << valve) != 0
         }
 
-        fn set(self, valve: usize) -> Self {
-            Self(self.0 | (1 << valve))
-        }
-
-        fn is_superset_of(self, other: ValveSet) -> bool {
-            (self.0 | other.0) == self.0
-        }
-
-        fn has_disjunction(self, other: ValveSet) -> bool {
-            (self.0 ^ other.0) != 0
-        }
-
-        fn calc_released(self, released: &[i64; 64]) -> i64 {
-            (0..64)
-                .map(|valve| released[valve] * self.is_set(valve) as i64)
-                .sum()
+        fn toggle(&mut self, valve: usize) {
+            self.0 ^= 1 << valve;
         }
     }
 
-    #[derive(Clone, Copy)]
-    struct State {
+    fn calc_distance(from: usize, res: &mut FxHashMap<(usize, usize), usize>, valves: &[Valve]) {
+        let mut dist = 0;
+        let mut visited = FxHashSet::default();
+        visited.insert(from);
+        let mut frontier = visited.clone();
+
+        loop {
+            dist += 1;
+
+            let mut new_frontier = FxHashSet::default();
+
+            for v in frontier.iter() {
+                for n in valves[*v].connections.iter() {
+                    if !visited.contains(&n) {
+                        res.insert((from, *n), dist);
+                        new_frontier.insert(*n);
+                    }
+                }
+            }
+
+            visited.extend(new_frontier.iter());
+            frontier.clear();
+            frontier.extend(new_frontier);
+
+            if visited.len() == valves.len() {
+                break;
+            }
+        }
+    }
+
+    fn calc_distances(
+        closed_valves: &ValveSet,
+        valves: &[Valve],
+    ) -> FxHashMap<(usize, usize), usize> {
+        let mut ret = FxHashMap::default();
+        for from in 0..64 {
+            if !closed_valves.is_set(from) {
+                continue;
+            }
+            calc_distance(from, &mut ret, valves);
+        }
+        ret
+    }
+
+    fn solve(
+        mins_left: usize,
         loc: usize,
-        open: ValveSet,
-        visited_since_open: ValveSet,
-        released: i64,
-    }
+        cur_flow_rate: i64,
+        closed_valves: &mut ValveSet,
+        distances: &FxHashMap<(usize, usize), usize>,
+        valves: &[Valve],
+    ) -> i64 {
+        let mut max = cur_flow_rate * mins_left as i64;
 
-    impl State {
-        fn next_options(
-            &self,
-            res: &mut FxHashMap<usize, Vec<State>>,
-            valves: &[Valve],
-            rates: &[i64; 64],
-            full_valve_set: ValveSet,
-        ) {
-            let released = self.released + self.open.calc_released(rates);
-
-            if self.open == full_valve_set {
-                let new_state = State { released, ..*self };
-                res.entry(new_state.loc)
-                    .or_insert_with(|| Vec::default())
-                    .push(new_state);
-                return;
+        for dest in 0..64 {
+            if !closed_valves.is_set(dest) {
+                continue;
             }
 
-            if !self.open.is_set(self.loc) && valves[self.loc].rate != 0 {
-                let new_state = State {
-                    open: self.open.set(self.loc),
-                    released,
-                    visited_since_open: ValveSet::default(),
-                    ..*self
-                };
-                res.entry(new_state.loc)
-                    .or_insert_with(|| Vec::default())
-                    .push(new_state)
-            }
-
-            for connection in &valves[self.loc].connections {
-                if self.visited_since_open.is_set(*connection) {
-                    continue;
-                }
-
-                let visited_since_open = self.visited_since_open.set(self.loc);
-                let new_state = State {
-                    loc: *connection,
-                    open: self.open,
-                    visited_since_open,
-                    released,
-                };
-                res.entry(new_state.loc)
-                    .or_insert_with(|| Vec::default())
-                    .push(new_state)
+            let dist = distances.get(&(loc, dest)).unwrap_or(&usize::MAX);
+            let time = dist + 1;
+            if time < mins_left {
+                let new_flow_rate = cur_flow_rate + valves[dest].rate;
+                closed_valves.toggle(dest);
+                let total_released = time as i64 * cur_flow_rate
+                    + solve(
+                        mins_left - time,
+                        dest,
+                        new_flow_rate,
+                        closed_valves,
+                        distances,
+                        valves,
+                    );
+                closed_valves.toggle(dest);
+                max = total_released.max(max);
             }
         }
+
+        max
     }
 
-    impl Debug for State {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(
-                f,
-                "State {{ loc: {:?}, open: {:?}, visited_since_open: {:?}, released: {:?} }}",
-                ('A' as u8 + self.loc as u8) as char,
-                self.open,
-                self.visited_since_open,
-                self.released
-            )
-        }
-    }
-
-    impl PartialEq for State {
-        fn eq(&self, other: &Self) -> bool {
-            // really means one isn't strictly worse than the other
-            self.cmp(other).is_eq()
-        }
-    }
-
-    impl Eq for State {}
-
-    impl PartialOrd for State {
-        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-            Some(self.cmp(other))
-        }
-    }
-
-    impl Ord for State {
-        fn cmp(&self, other: &Self) -> Ordering {
-            if self.loc != other.loc {
-                Ordering::Equal
-            } else if self.open == other.open && self.released == other.released {
-                Ordering::Equal
-            } else if self.open.is_superset_of(other.open) && self.released >= other.released {
-                Ordering::Greater
-            } else if other.open.is_superset_of(self.open) && other.released > self.released {
-                Ordering::Less
-            } else {
-                Ordering::Equal
-            }
-        }
-    }
-
-    let mut current_states: FxHashMap<usize, Vec<State>> = FxHashMap::default();
     let start = names.iter().position(|n| *n == "AA").unwrap();
-    current_states.insert(
-        start,
-        vec![State {
-            loc: start,
-            open: ValveSet::default(),
-            visited_since_open: ValveSet::default(),
-            released: 0,
-        }],
-    );
-
-    let full_valve_set = {
-        let mut set = ValveSet::default();
-        for i in 0..valves.len() {
-            set = set.set(i);
+    let mut closed_valves = ValveSet(0);
+    for i in 0..valves.len() {
+        if valves[i].rate != 0 {
+            closed_valves.toggle(i);
         }
-        set
-    };
-
-    // println!("{valves:?}");
-
-    for min in 0..30 {
-        let mut frontier = FxHashMap::default();
-
-        // get next steps
-        current_states
-            .values()
-            .flatten()
-            .for_each(|s| s.next_options(&mut frontier, &valves, &rates, full_valve_set));
-
-        // println!("min {min} -> {}.", min + 1);
-        // println!("  pre  {}", current_states.values().flatten().count());
-
-        // reduce next steps
-        // if min != 13 {
-        for (loc, items) in frontier.iter_mut() {
-            // let debug = *loc == 5 && min == 13 && false;
-
-            let mut items_iter = items.iter();
-            let mut diff = vec![];
-            if let Some(i) = items_iter.next() {
-                diff.push(*i);
-                for i in items_iter {
-                    // if debug {
-                    //     println!("{diff:?}");
-                    // }
-                    let mut greater = false;
-                    let mut eq = false;
-                    let mut exact_eq = false;
-                    for d in &diff {
-                        if i.loc == d.loc
-                            && i.open == d.open
-                            && i.visited_since_open == d.visited_since_open
-                            && i.released == d.released
-                        {
-                            exact_eq = true;
-                            break;
-                        }
-                        match i.cmp(&d) {
-                            Ordering::Less => {}
-                            Ordering::Equal => {
-                                // let pos = diff.binary_search(i).unwrap_or_else(|e| e);
-                                // diff.insert(pos, *i);
-                                eq = true;
-                                break;
-                            }
-                            Ordering::Greater => {
-                                greater = true;
-                            }
-                        }
-                    }
-                    if exact_eq {
-                    } else if eq {
-                        diff.push(*i);
-                    } else if greater {
-                        diff.clear();
-                        diff.push(*i);
-                    }
-
-                    // match i.cmp(diff.first().unwrap()) {
-                    //     Ordering::Less => {}
-                    //     Ordering::Equal => {
-                    //         let pos = diff.binary_search(i).unwrap_or_else(|e| e);
-                    //         diff.insert(pos, *i);
-                    //         // diff.push(*i)
-                    //     }
-                    //     Ordering::Greater => {
-                    //         diff.clear();
-                    //         diff.push(*i);
-                    //     }
-                }
-            }
-            _ = std::mem::replace(items, diff);
-        }
-        // }
-        current_states = frontier;
-
-        let count = current_states.values().flatten().count();
-        let correct = [
-            0, 0, 20, 40, 60, 93, 126, 159, 192, 246, 300, 354, 408, 462, 516, 570, 624, 700, 776,
-            852, 928, 1007, 1086, 1165, 1246, 1327, 1408, 1489, 1570, 1651,
-        ];
-
-        // println!("  post {}", count);
-        // current_states
-        //     .values()
-        //     .flatten()
-        //     .filter(|v| v.released == correct[min])
-        //     // .sorted_by_key(|v| -v.released)
-        //     // .take(10)
-        //     .for_each(|s| println!("    {s:?}"))
     }
 
-    current_states
-        .values()
-        .flatten()
-        .map(|s| s.released)
-        .max()
-        .unwrap_or_default()
+    closed_valves.toggle(start);
+    let distances = calc_distances(&closed_valves, &valves);
+    closed_valves.toggle(start);
 
-    // fn upper_bound(mins_remaining: usize, rates: &[i64; 64], open: u64) -> i64 {
-    //     let mut already = 0;
-
-    //     let mut rates = *rates;
-    //     for i in 0..64 {
-    //         if (1 << i) & open != 0 {
-    //             already += rates[i] * mins_remaining as i64;
-    //             rates[i] = 0;
-    //         }
-    //     }
-
-    //     rates
-    //         .iter()
-    //         .sorted()
-    //         .rev()
-    //         .enumerate()
-    //         .take((mins_remaining + 1) / 2)
-    //         .map(|(i, r)| *r * (mins_remaining as i64 - i as i64 * 2))
-    //         .sum::<i64>()
-    //         + already
-    // }
-
-    // fn solve(
-    //     min: usize,
-    //     valves: &[Valve],
-    //     rates: &[i64; 64],
-    //     open: ValveSet,
-    //     loc: usize,
-    //     visited: u64,
-    // ) -> i64 {
-    //     if min >= 30 {
-    //         return 0;
-    //     }
-
-    //     let released_now = open.calc_released(rates);
-    //     let cur_valve = &valves[loc];
-
-    //     // if loc_times.iter().any(|(o, l, m, s)| {
-    //     //     *o == open && *l == loc && min >= *m && *s >= tot_so_far + released_now
-    //     // }) {
-    //     //     // println!("{open} @ {loc} but {min}");
-    //     //     // println!("xxx @ {min}");
-    //     //     return released_now * (30 - min) as i64;
-    //     // }
-
-    //     // loc_times.push((open, loc, min, tot_so_far + released_now));
-
-    //     // let nothing_value = solve(min + 1, valves, rates, open, loc, best_known);
-
-    //     let move_value = cur_valve
-    //         .connections
-    //         .iter()
-    //         .flat_map(|new_loc| {
-    //             if visited & (1 << new_loc) == 0 {
-    //                 let new_visited = visited | (1 << new_loc);
-    //                 Some(solve(min + 1, valves, &rates, open, *new_loc, new_visited))
-    //             } else {
-    //                 None
-    //             }
-    //         })
-    //         .max()
-    //         .unwrap_or_default();
-
-    //     let open_value = if cur_valve.rate != 0 && (1 << loc) & open == 0 {
-    //         let new_opened = open ^ (1 << loc);
-    //         solve(min + 1, valves, rates, new_opened, loc, 0)
-    //     } else {
-    //         0
-    //     };
-
-    //     if min < 4 {
-    //         print!("{}", "|".repeat(min));
-    //         print_open(open);
-    //         println!("     {min}: +{released_now} loc {loc} with = {move_value} & {open_value}");
-    //     }
-
-    //     released_now + (move_value).max(open_value)
-    // }
-
-    // let s = solve(
-    //     // 4,
-    //     0,
-    //     &valves,
-    //     &rates,
-    //     // 0 | (1 << 3),
-    //     0,
-    //     // 1,
-    //     names.iter().position(|n| *n == "AA").unwrap(),
-    //     0,
-    //     // &mut vec![],
-    // );
-
-    // println!("{s}");
-    // todo!()
+    solve(30, start, 0, &mut closed_valves, &distances, &valves)
 }
 
 pub fn part2(input: &str) -> i64 {
