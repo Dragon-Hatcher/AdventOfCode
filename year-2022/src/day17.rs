@@ -70,13 +70,45 @@ fn run_iters(input: &str, iters: u64) -> i64 {
     let mut tallest = 0;
     let mut removed = 0;
 
+    fn path_across(board: &mut [Vec<bool>; WIDTH], y: usize, x: usize, going: i8) -> usize {
+        if !board[x][y] {
+            return 0;
+        }
+
+        if x + 1 >= WIDTH {
+            return y;
+        }
+
+        let lowest =path_across(board, y, x + 1, 0);
+        if lowest != 0 {
+            return y.min(lowest);
+        }
+
+        if going >= 0 && y + 1 < board[0].len() {
+            let lowest = path_across(board, y + 1, x, 1);
+            if lowest != 0 {
+                return y.min(lowest);
+            }
+        }
+
+        if going <= 0 && y > 0 {
+            let lowest = path_across(board, y - 1, x, -1);
+            if lowest != 0 {
+                return y.min(lowest);
+            }
+        }
+
+        0
+    }
+
     fn chop(board: &mut [Vec<bool>; WIDTH], lowest: usize) -> usize {
         for y in (lowest..lowest.saturating_add(6).min(board[0].len())).rev() {
-            if board.iter().all(|c| c[y]) {
+            let lowest = path_across(board, y, 0, 0);
+            if lowest != 0 {
                 for c in board.iter_mut() {
-                    c.drain(0..=y);
+                    c.drain(0..=lowest);
                 }
-                return y + 1;
+                return lowest + 1;
             }
         }
 
