@@ -1,10 +1,168 @@
-use std::ops::Add;
-
-use itertools::Itertools;
-use lazy_static::lazy_static;
-use rustc_hash::FxHashSet;
-
 use crate::grid::Point;
+use itertools::Itertools;
+use rustc_hash::FxHashMap;
+
+static PIECES: [&[Point]; 5] = [
+    &[
+        Point::new(0, 0),
+        Point::new(1, 0),
+        Point::new(2, 0),
+        Point::new(3, 0),
+    ],
+    &[
+        Point::new(1, 0),
+        Point::new(0, 1),
+        Point::new(1, 1),
+        Point::new(2, 1),
+        Point::new(1, 2),
+    ],
+    &[
+        Point::new(0, 0),
+        Point::new(1, 0),
+        Point::new(2, 0),
+        Point::new(2, 1),
+        Point::new(2, 2),
+    ],
+    &[
+        Point::new(0, 0),
+        Point::new(0, 1),
+        Point::new(0, 2),
+        Point::new(0, 3),
+    ],
+    &[
+        Point::new(0, 0),
+        Point::new(1, 0),
+        Point::new(0, 1),
+        Point::new(1, 1),
+    ],
+];
+
+#[derive(Debug, Clone, Copy)]
+enum Move {
+    Left,
+    Right,
+}
+
+impl Move {
+    fn dx(self) -> i64 {
+        match self {
+            Move::Left => -1,
+            Move::Right => 1,
+        }
+    }
+}
+
+fn parse_move(char: char) -> Move {
+    match char {
+        '<' => Move::Left,
+        _ => Move::Right,
+    }
+}
+
+fn run_iters(input: &str, iters: u64) -> i64 {
+    const WIDTH: usize = 7;
+
+    let moves = input.trim().chars().map(parse_move).collect_vec();
+
+    let mut current_move = 0;
+    let mut current_piece = 0;
+    let mut board: [Vec<bool>; WIDTH] = [vec![], vec![], vec![], vec![], vec![], vec![], vec![]];
+    let mut tallest = 0;
+    let mut removed = 0;
+
+    fn chop(board: &mut [Vec<bool>; WIDTH], lowest: usize) -> usize {
+        for y in (lowest..lowest.saturating_add(6).min(board[0].len())).rev() {
+            if board.iter().all(|c| c[y]) {
+                for c in board.iter_mut() {
+                    c.drain(0..=y);
+                }
+                return y + 1;
+            }
+        }
+
+        0
+    }
+
+    fn collision(p: Point, board: &[Vec<bool>; WIDTH]) -> bool {
+        p.x < 0
+            || p.x >= WIDTH as i64
+            || p.y < 0
+            || (board[p.x as usize].len() as i64 > p.y && board[p.x as usize][p.y as usize])
+    }
+
+    let mut current_height = tallest + 3;
+    let mut current_offset = 2;
+
+    let mut seen = FxHashMap::default();
+
+    let mut i = 0;
+    while i < iters {
+        loop {
+            let dx = moves[current_move].dx();
+            current_move = (current_move + 1) % moves.len();
+            if !PIECES[current_piece]
+                .iter()
+                .map(|p| Point::new(p.x + current_offset + dx, p.y + current_height))
+                .any(|p| collision(p, &board))
+            {
+                current_offset += dx;
+            }
+
+            if !PIECES[current_piece]
+                .iter()
+                .map(|p| Point::new(p.x + current_offset, p.y + current_height - 1))
+                .any(|p| collision(p, &board))
+            {
+                current_height -= 1;
+            } else {
+                break;
+            }
+        }
+
+        let lowest = PIECES[current_piece]
+            .iter()
+            .map(|p| {
+                let p = Point::new(p.x + current_offset, p.y + current_height);
+                if p.y >= board[p.x as usize].len() as i64 {
+                    for _ in 0..(p.y - board[p.x as usize].len() as i64 + 1) {
+                        board.iter_mut().for_each(|x| x.push(false));
+                    }
+                }
+                board[p.x as usize][p.y as usize] = true;
+
+                p.y as usize
+            })
+            .min()
+            .unwrap();
+
+        removed += chop(&mut board, lowest);
+        let key = (board.clone(), current_piece, current_move);
+
+        current_piece = (current_piece + 1) % PIECES.len();
+        tallest = board[0].len() as i64;
+
+        if let Some((old_iter, old_height)) = seen.get(&key) {
+            let d_i = i - old_iter;
+            let d_height = removed as i64 + tallest - old_height;
+
+            let iters_left = iters - i - 1;
+            let simulate_steps = iters_left / d_i;
+            removed += d_height as usize * simulate_steps as usize;
+            i += simulate_steps * d_i;
+
+            seen.clear();
+        } else {
+            seen.insert(key, (i, removed as i64 + tallest));
+        }
+
+        current_height = tallest + 3;
+        current_offset = 2;
+
+        i += 1;
+    }
+
+    removed as i64 + tallest
+}
 
 ///
 /// --- Day 17: Pyroclastic Flow ---
@@ -384,135 +542,27 @@ use crate::grid::Point;
 /// falling?*
 ///
 pub fn part1(input: &str) -> i64 {
-    lazy_static! {
-        static ref PIECES: Vec<Vec<Point>> = vec![
-            vec![
-                Point::new(0, 0),
-                Point::new(1, 0),
-                Point::new(2, 0),
-                Point::new(3, 0),
-            ],
-            vec![
-                Point::new(1, 0),
-                Point::new(0, 1),
-                Point::new(1, 1),
-                Point::new(2, 1),
-                Point::new(1, 2),
-            ],
-            vec![
-                Point::new(0, 0),
-                Point::new(1, 0),
-                Point::new(2, 0),
-                Point::new(2, 1),
-                Point::new(2, 2),
-            ],
-            vec![
-                Point::new(0, 0),
-                Point::new(0, 1),
-                Point::new(0, 2),
-                Point::new(0, 3),
-            ],
-            vec![
-                Point::new(0, 0),
-                Point::new(1, 0),
-                Point::new(0, 1),
-                Point::new(1, 1),
-            ],
-        ];
-    }
-
-    let moves = input.trim().chars().collect_vec();
-
-    let mut current_move = 0;
-    let mut current_piece = 0;
-    let mut board: FxHashSet<Point> = FxHashSet::default();
-    let mut tallest = 0;
-
-    let mut current_height = tallest + 3;
-    let mut current_offset = 2;
-
-    let mut get_next_move = || {
-        let m = moves[current_move];
-        current_move += 1;
-        if current_move >= moves.len() {
-            current_move = 0;
-        }
-        m
-    };
-
-    for _ in 0..2022 {
-        loop {
-            if get_next_move() == '<' {
-                if !PIECES[current_piece]
-                    .iter()
-                    .map(|p| Point::new(p.x + current_offset - 1, p.y + current_height))
-                    .any(|p| p.x < 0 || p.x >= 7 || board.contains(&p))
-                {
-                    current_offset -= 1;
-                }
-            } else {
-                if !PIECES[current_piece]
-                    .iter()
-                    .map(|p| Point::new(p.x + current_offset + 1, p.y + current_height))
-                    .any(|p| p.x < 0 || p.x >= 7 || board.contains(&p))
-                {
-                    current_offset += 1;
-                }
-            }
-
-            if !PIECES[current_piece]
-                .iter()
-                .map(|p| Point::new(p.x + current_offset, p.y + current_height - 1))
-                .any(|p| p.x < 0 || p.x >= 7 || p.y < 0 || board.contains(&p))
-            {
-                current_height -= 1;
-            } else {
-                break;
-            }
-        }
-
-        board.extend(
-            PIECES[current_piece]
-                .iter()
-                .map(|p| Point::new(p.x + current_offset, p.y + current_height)),
-        );
-        tallest = PIECES[current_piece]
-            .iter()
-            .map(|p| p.y + current_height)
-            .max()
-            .unwrap_or_default()
-            .add(1)
-            .max(tallest);
-        current_piece += 1;
-        if current_piece >= PIECES.len() {
-            current_piece = 0;
-        }
-
-        current_height = tallest + 3;
-        current_offset = 2;
-    }
-
-    tallest
+    run_iters(input, 2022)
 }
 
-/// 
+///
 /// --- Part Two ---
-/// 
-/// The elephants are not impressed by your simulation. They demand to know how tall 
-/// the tower will be after `*1000000000000*` rocks have stopped! Only then will 
+///
+/// The elephants are not impressed by your simulation. They demand to know how tall
+/// the tower will be after `*1000000000000*` rocks have stopped! Only then will
 /// they feel confident enough to proceed through the cave.
-/// 
+///
 /// In the example above, the tower would be `*1514285714288*` units tall!
-/// 
+///
 /// *How tall will the tower be after `1000000000000` rocks have stopped?*
 ///
 pub fn part2(input: &str) -> i64 {
-    0
+    run_iters(input, 1000000000000)
 }
 
 const PART1_EX_ANSWER: &str = "3068";
 const PART1_ANSWER: &str = "3151";
 const PART2_EX_ANSWER: &str = "1514285714288";
-const PART2_ANSWER: &str = "0";
+const PART2_ANSWER: &str = "1560919540245";
 pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
