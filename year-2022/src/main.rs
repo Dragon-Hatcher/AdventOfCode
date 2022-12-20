@@ -18,6 +18,8 @@ mod day12;
 mod day13;
 mod day14;
 mod day15;
+mod day16;
+mod day17;
 mod day2;
 mod day3;
 mod day4;
@@ -26,8 +28,6 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
-mod day16;
-mod day17;
 
 lazy_static! {
     static ref DAY_FNS: Vec<(DayFunc, DayFunc, Answers)> = vec![
@@ -52,37 +52,17 @@ lazy_static! {
     ];
 }
 
-enum DayFunc {
-    Num(Box<dyn Fn(&str) -> i64 + Sync>),
-    String(Box<dyn Fn(&str) -> String + Sync>),
-}
+struct DayFunc(Box<dyn Fn(&str) -> String + Sync>);
 
-trait FromFunc {
-    fn from_func<F: Fn(&str) -> Self + 'static + Sync>(f: F) -> DayFunc;
-}
-impl FromFunc for i64 {
-    fn from_func<F: Fn(&str) -> Self + 'static + Sync>(f: F) -> DayFunc {
-        DayFunc::Num(Box::new(f))
-    }
-}
-impl FromFunc for String {
-    fn from_func<F: Fn(&str) -> Self + 'static + Sync>(f: F) -> DayFunc {
-        DayFunc::String(Box::new(f))
-    }
-}
-
-impl<T: FromFunc, F: Fn(&str) -> T + 'static + Sync> From<F> for DayFunc {
+impl<T: ToString, F: Fn(&str) -> T + 'static + Sync> From<F> for DayFunc {
     fn from(f: F) -> Self {
-        FromFunc::from_func(f)
+        DayFunc(Box::new(move |input| f(input).to_string()))
     }
 }
 
 impl DayFunc {
     fn call(&self, input: &str) -> String {
-        match self {
-            DayFunc::Num(f) => f(input).to_string(),
-            DayFunc::String(f) => f(input),
-        }
+        (self.0)(input)
     }
 }
 
