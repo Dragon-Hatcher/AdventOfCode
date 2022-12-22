@@ -1,49 +1,59 @@
 use crate::{helpers::IterExtension, standard_parsers::AocParsed};
 use itertools::Itertools;
 
-// fn with_indicies()
-
 fn mix(nums: &mut Vec<(usize, i64)>) {
-    fn move_left(nums: &mut Vec<(usize, i64)>, i: usize) -> usize {
+    fn move_left(nums: &mut Vec<(usize, i64)>, i: usize, amount: i64) {
+        let amount = amount % (nums.len() as i64 - 1);
+
+        let new_i = match amount.cmp(&(i as i64)) {
+            std::cmp::Ordering::Less => i - amount as usize,
+            std::cmp::Ordering::Equal => nums.len() - 1,
+            std::cmp::Ordering::Greater => nums.len() - (amount as usize - i) - 1,
+        };
         let n = nums.remove(i);
-        if i == 0 {
-            nums.insert(nums.len() - 1, n);
-            nums.len() - 2
-        } else if i == 1 {
-            nums.push(n);
-            nums.len() - 1
-        } else {
-            nums.insert(i - 1, n);
-            i - 1
-        }
+        nums.insert(new_i, n);
     }
 
-    fn move_right(nums: &mut Vec<(usize, i64)>, i: usize) -> usize {
+    fn move_right(nums: &mut Vec<(usize, i64)>, i: usize, amount: i64) {
+        let amount = amount % (nums.len() as i64 - 1);
+
+        let new_i = match i.cmp(&(nums.len() - 1 - amount as usize)) {
+            std::cmp::Ordering::Less => i + amount as usize,
+            std::cmp::Ordering::Equal => 0,
+            std::cmp::Ordering::Greater => amount as usize - (nums.len() - i - 1),
+        };
         let n = nums.remove(i);
-        if i == nums.len() {
-            nums.insert(1, n);
-            1
-        } else if i == nums.len() - 1 {
-            nums.insert(0, n);
-            0
-        } else {
-            nums.insert(i + 1, n);
-            i + 1
-        }
+        nums.insert(new_i, n);
     }
 
     for i in 0..nums.len() {
-        let mut from = nums.iter().position(|(j, _)| *j == i).unwrap();
-        let n = nums[from].1;
-        let pos = n >= 0;
-        for _ in 0..(n.abs() % (nums.len() as i64 - 1)) {
-            from = if pos {
-                move_right(nums, from)
-            } else {
-                move_left(nums, from)
-            }
+        let from = nums.iter().position(|(j, _)| *j == i).unwrap();
+        let (_, n) = nums[from];
+        if n >= 0 {
+            move_right(nums, from, n);
+        } else {
+            move_left(nums, from, -n);
         }
     }
+}
+
+fn solve(input: &str, decryption_key: i64, mixes: usize) -> i64 {
+    let mut nums = input
+        .non_empty()
+        .map(|l| l.nums().nu() * decryption_key)
+        .enumerate()
+        .collect_vec();
+
+    for _ in 0..mixes {
+        mix(&mut nums);
+    }
+
+    let zero_index = nums.iter().position(|(_, n)| *n == 0).unwrap();
+
+    [1000, 2000, 3000]
+        .iter()
+        .map(|n| nums[(zero_index + n) % nums.len()].1)
+        .sum()
 }
 
 ///
@@ -130,17 +140,7 @@ fn mix(nums: &mut Vec<(usize, i64)>) {
 /// form the grove coordinates?*
 ///
 pub fn part1(input: &str) -> i64 {
-    let nums = input.non_empty().map(|l| l.nums().nu()).collect_vec();
-    let mut nums = nums.iter().copied().enumerate().collect_vec();
-
-    mix(&mut nums);
-
-    let zero_index = nums.iter().position(|(_, n)| *n == 0).unwrap();
-
-    [1000, 2000, 3000]
-        .iter()
-        .map(|n| nums[(zero_index + n) % nums.len()].1)
-        .sum::<i64>()
+    solve(input, 1, 1)
 }
 
 ///
@@ -206,27 +206,12 @@ pub fn part1(input: &str) -> i64 {
 /// sum of the three numbers that form the grove coordinates?*
 ///
 pub fn part2(input: &str) -> i64 {
-    let nums = input
-        .non_empty()
-        .map(|l| l.nums().nu() * 811589153)
-        .collect_vec();
-    let mut nums = nums.iter().copied().enumerate().collect_vec();
-
-    for _ in 0..10 {
-        mix(&mut nums);
-    }
-
-    let zero_index = nums.iter().position(|(_, n)| *n == 0).unwrap();
-
-    [1000, 2000, 3000]
-        .iter()
-        .map(|n| nums[(zero_index + n) % nums.len()].1)
-        .sum::<i64>()
+    solve(input, 811589153, 10)
 }
 
 const PART1_EX_ANSWER: &str = "3";
 const PART1_ANSWER: &str = "7278";
 const PART2_EX_ANSWER: &str = "1623178306";
-const PART2_ANSWER: &str = "0";
+const PART2_ANSWER: &str = "14375678667089";
 pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
