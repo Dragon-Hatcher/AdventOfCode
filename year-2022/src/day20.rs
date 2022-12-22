@@ -7,8 +7,7 @@ fn mix(nums: &mut Vec<(usize, i64)>) {
 
         let new_i = match amount.cmp(&(i as i64)) {
             std::cmp::Ordering::Less => i - amount as usize,
-            std::cmp::Ordering::Equal => nums.len() - 1,
-            std::cmp::Ordering::Greater => nums.len() - (amount as usize - i) - 1,
+            _ => nums.len() - (amount as usize - i) - 1,
         };
         let n = nums.remove(i);
         nums.insert(new_i, n);
@@ -19,8 +18,7 @@ fn mix(nums: &mut Vec<(usize, i64)>) {
 
         let new_i = match i.cmp(&(nums.len() - 1 - amount as usize)) {
             std::cmp::Ordering::Less => i + amount as usize,
-            std::cmp::Ordering::Equal => 0,
-            std::cmp::Ordering::Greater => amount as usize - (nums.len() - i - 1),
+            _ => amount as usize - (nums.len() - i - 1),
         };
         let n = nums.remove(i);
         nums.insert(new_i, n);
