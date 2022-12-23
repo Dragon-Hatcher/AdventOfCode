@@ -149,7 +149,7 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for (i, t) in self.elements.iter().enumerate() {
             write!(f, "{:?}", t)?;
-            if i as i64 % self.width == 0 {
+            if i as i64 % self.width == self.width - 1 {
                 writeln!(f)?;
             }
         }
