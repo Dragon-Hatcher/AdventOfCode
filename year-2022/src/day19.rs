@@ -45,7 +45,7 @@ fn max_geodes(costs: &Costs, resources: Resources, robot_count: RobotCount, mins
                 cost.0[3] - resources.0[3],
             ]);
 
-            fn ciel_div(a: i64, b: i64) -> i64 {
+            fn ceil_div(a: i64, b: i64) -> i64 {
                 if a == 0 {
                     0
                 } else if b == 0 {
@@ -55,10 +55,10 @@ fn max_geodes(costs: &Costs, resources: Resources, robot_count: RobotCount, mins
                 }
             }
 
-            let mins_till_robot = ciel_div(mats_left_to_make.0[0], robot_count.0[0])
-                .max(ciel_div(mats_left_to_make.0[1], robot_count.0[1]))
-                .max(ciel_div(mats_left_to_make.0[2], robot_count.0[2]))
-                .max(ciel_div(mats_left_to_make.0[3], robot_count.0[3]))
+            let mins_till_robot = ceil_div(mats_left_to_make.0[0], robot_count.0[0])
+                .max(ceil_div(mats_left_to_make.0[1], robot_count.0[1]))
+                .max(ceil_div(mats_left_to_make.0[2], robot_count.0[2]))
+                .max(ceil_div(mats_left_to_make.0[3], robot_count.0[3]))
                 .max(0)
                 .saturating_add(1);
 
@@ -74,10 +74,10 @@ fn max_geodes(costs: &Costs, resources: Resources, robot_count: RobotCount, mins
             ]);
 
             let new_robots = Amounts([
-                robot_count.0[0] + if i == 0 { 1 } else { 0 },
-                robot_count.0[1] + if i == 1 { 1 } else { 0 },
-                robot_count.0[2] + if i == 2 { 1 } else { 0 },
-                robot_count.0[3] + if i == 3 { 1 } else { 0 },
+                robot_count.0[0] + i64::from(i == 0),
+                robot_count.0[1] + i64::from(i == 1),
+                robot_count.0[2] + i64::from(i == 2),
+                robot_count.0[3] + i64::from(i == 3),
             ]);
 
             Some(max_geodes(
