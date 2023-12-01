@@ -1,115 +1,78 @@
-use itertools::Itertools;
+use std::collections::HashMap;
 
-use crate::standard_parsers::AocParsed;
-
-///
-/// --- Day 1: Calorie Counting ---
-///
-/// Santa's reindeer typically eat regular reindeer food, but they need a lot of
-/// [magical energy](/2018/day/25) to deliver presents on Christmas. For that, their
-/// favorite snack is a special type of *star* fruit that only grows deep in the
-/// jungle. The Elves have brought you on their annual expedition to the grove where
-/// the fruit grows.
-///
-/// To supply enough magical energy, the expedition needs to retrieve a minimum of
-/// *fifty stars* by December 25th. Although the Elves assure you that the grove
-/// has plenty of fruit, you decide to grab any fruit you see along the way, just
-/// in case.
-///
-/// Collect stars by solving puzzles. Two puzzles will be made available on each
-/// day in the Advent calendar; the second puzzle is unlocked when you complete the
-/// first. Each puzzle grants *one star*. Good luck!
-///
-/// The jungle must be too overgrown and difficult to navigate in vehicles or access
-/// from the air; the Elves' expedition traditionally goes on foot. As your boats
-/// approach land, the Elves begin taking inventory of their supplies. One important
-/// consideration is food - in particular, the number of *Calories* each Elf is carrying
-/// (your puzzle input).
-///
-/// The Elves take turns writing down the number of Calories contained by the various
-/// meals, snacks, rations, etc. that they've brought with them, one item per line.
-/// Each Elf separates their own inventory from the previous Elf's inventory (if
-/// any) by a blank line.
-///
-/// For example, suppose the Elves finish writing their items' Calories and end up
-/// with the following list:
-///
-/// ```
-/// 1000
-/// 2000
-/// 3000
-///
-/// 4000
-///
-/// 5000
-/// 6000
-///
-/// 7000
-/// 8000
-/// 9000
-///
-/// 10000
-///
-/// ```
-///
-/// This list represents the Calories of the food carried by five Elves:
-///
-/// * The first Elf is carrying food with `1000`, `2000`, and `3000` Calories, a
-/// total of `*6000*` Calories.
-/// * The second Elf is carrying one food item with `*4000*` Calories.
-/// * The third Elf is carrying food with `5000` and `6000` Calories, a total of
-/// `*11000*` Calories.
-/// * The fourth Elf is carrying food with `7000`, `8000`, and `9000` Calories, a
-/// total of `*24000*` Calories.
-/// * The fifth Elf is carrying one food item with `*10000*` Calories.
-///
-/// In case the Elves get hungry and need extra snacks, they need to know which Elf
-/// to ask: they'd like to know how many Calories are being carried by the Elf carrying
-/// the *most* Calories. In the example above, this is *`24000`* (carried by the
-/// fourth Elf).
-///
-/// Find the Elf carrying the most Calories. *How many total Calories is that Elf
-/// carrying?*
-///
-pub fn part1(input: &str) -> i64 {
-    input
-        .sections()
-        .map(|section| section.nums().sum())
-        .max()
-        .unwrap_or_default()
+fn find(line: &str, char_map: &HashMap<String, i64>) -> i64 {
+    *char_map
+        .iter()
+        .map(|(k, v)| (line.find(k), v))
+        .filter(|(f, _)| f.is_some())
+        .min_by_key(|(f, _)| *f)
+        .unwrap()
+        .1
 }
 
-///
-/// --- Part Two ---
-///
-/// By the time you calculate the answer to the Elves' question, they've already
-/// realized that the Elf carrying the most Calories of food might eventually *run
-/// out of snacks*.
-///
-/// To avoid this unacceptable situation, the Elves would instead like to know the
-/// total Calories carried by the *top three* Elves carrying the most Calories. That
-/// way, even if one of those Elves runs out of snacks, they still have two backups.
-///
-/// In the example above, the top three Elves are the fourth Elf (with `24000` Calories),
-/// then the third Elf (with `11000` Calories), then the fifth Elf (with `10000`
-/// Calories). The sum of the Calories carried by these three elves is `*45000*`.
-///
-/// Find the top three Elves carrying the most Calories. *How many Calories are those
-/// Elves carrying in total?*
-///
-pub fn part2(input: &str) -> i64 {
+fn solve(line: &str, char_map: &HashMap<String, i64>) -> i64 {
+    let first = find(line, char_map);
+
+    let mut rev_map = HashMap::new();
+    for (k, v) in char_map { rev_map.insert(k.chars().rev().collect::<String>(), *v); }
+
+    let second = find(&line.chars().rev().collect::<String>(), &rev_map);
+
+    first * 10 + second
+}
+
+pub fn part1(input: &str) -> i64 {
+    let mut map: HashMap<String, i64> = HashMap::new();
+    map.insert("0".to_owned(), 0);
+    map.insert("1".to_owned(), 1);
+    map.insert("2".to_owned(), 2);
+    map.insert("3".to_owned(), 3);
+    map.insert("4".to_owned(), 4);
+    map.insert("5".to_owned(), 5);
+    map.insert("6".to_owned(), 6);
+    map.insert("7".to_owned(), 7);
+    map.insert("8".to_owned(), 8);
+    map.insert("9".to_owned(), 9);
+    
     input
-        .sections()
-        .map(|section| section.nums().sum::<i64>())
-        .sorted()
-        .rev()
-        .take(3)
+        .lines()
+        .map(|l| solve(l, &map))
         .sum()
 }
 
-const PART1_EX_ANSWER: &str = "24000";
-const PART1_ANSWER: &str = "67016";
-const PART2_EX_ANSWER: &str = "45000";
-const PART2_ANSWER: &str = "200116";
+
+pub fn part2(input: &str) -> i64 {
+    let mut map: HashMap<String, i64> = HashMap::new();
+    map.insert("0".to_owned(), 0);
+    map.insert("1".to_owned(), 1);
+    map.insert("2".to_owned(), 2);
+    map.insert("3".to_owned(), 3);
+    map.insert("4".to_owned(), 4);
+    map.insert("5".to_owned(), 5);
+    map.insert("6".to_owned(), 6);
+    map.insert("7".to_owned(), 7);
+    map.insert("8".to_owned(), 8);
+    map.insert("9".to_owned(), 9);
+    map.insert("zero".to_owned(), 0);
+    map.insert("one".to_owned(), 1);
+    map.insert("two".to_owned(), 2);
+    map.insert("three".to_owned(), 3);
+    map.insert("four".to_owned(), 4);
+    map.insert("five".to_owned(), 5);
+    map.insert("six".to_owned(), 6);
+    map.insert("seven".to_owned(), 7);
+    map.insert("eight".to_owned(), 8);
+    map.insert("nine".to_owned(), 9);
+    
+    input
+        .lines()
+        .map(|l| solve(l, &map))
+        .sum()
+}
+
+const PART1_EX_ANSWER: &str = "142";
+const PART1_ANSWER: &str = "54632";
+const PART2_EX_ANSWER: &str = "142";
+const PART2_ANSWER: &str = "54019";
 pub const ANSWERS: (&str, &str, &str, &str) =
     (PART1_EX_ANSWER, PART1_ANSWER, PART2_EX_ANSWER, PART2_ANSWER);
