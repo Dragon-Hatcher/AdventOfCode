@@ -21,6 +21,28 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn new(width: i64, height: i64, t: T) -> Grid<T>
+    where
+        T: Clone,
+    {
+        Grid {
+            elements: (0..width * height).map(|_| t.clone()).collect(),
+            width,
+        }
+    }
+
+    pub fn new_with<F>(width: i64, height: i64, f: F) -> Grid<T>
+    where
+        F: Fn(Vector2) -> T,
+    {
+        Grid {
+            elements: iproduct!(0..width, 0..height)
+                .map(|(x, y)| f(Vector2::new(x, y)))
+                .collect(),
+            width,
+        }
+    }
+
     pub fn width(&self) -> i64 {
         self.width
     }
@@ -81,11 +103,45 @@ impl<T> Grid<T> {
         iproduct!(0..self.width(), 0..self.height()).map(|(x, y)| Vector2::new(x, y))
     }
 
+    pub fn subgrid_points(
+        &self,
+        top_left: Vector2,
+        bottom_right: Vector2,
+    ) -> impl Iterator<Item = Vector2> {
+        assert!(self.in_bounds(top_left));
+        assert!(self.in_bounds(bottom_right));
+
+        iproduct!(top_left.x..=bottom_right.x, top_left.y..=bottom_right.y)
+            .map(|(x, y)| Vector2::new(x, y))
+    }
+
+    pub fn fill_subgrid(&mut self, t: T, top_left: Vector2, bottom_right: Vector2)
+    where
+        T: Clone,
+    {
+        for p in self.subgrid_points(top_left, bottom_right) {
+            self[p] = t.clone();
+        }
+    }
+
+    pub fn fill_subgrid_with<F>(&mut self, f: F, top_left: Vector2, bottom_right: Vector2)
+    where
+        F: Fn(Vector2, &T) -> T,
+    {
+        for p in self.subgrid_points(top_left, bottom_right) {
+            self[p] = f(p, &self[p]);
+        }
+    }
+
     pub fn map<U>(&self, f: impl Fn(&T) -> U) -> Grid<U> {
         Grid {
             elements: self.elements.iter().map(f).collect(),
             width: self.width,
         }
+    }
+
+    pub fn elements(&self) -> impl Iterator<Item = &T> {
+        self.elements.iter()
     }
 
     fn calc_index(&self, vec2: Vector2) -> usize {
