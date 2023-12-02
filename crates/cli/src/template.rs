@@ -18,6 +18,13 @@ fn main() {
 }
 
 #[test]
+fn example() {
+    let input = "";
+    assert_eq!(part1(input), 0);
+    assert_eq!(part2(input), 0);
+}
+
+#[test]
 fn default() {
     let input = default_input();
     assert_eq!(part1(input), 0);

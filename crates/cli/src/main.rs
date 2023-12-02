@@ -258,5 +258,7 @@ fn new(year: u32, day: u32) -> Result<()> {
         format!("Use `cargo advent -y {year} -d {day} run` to run"),
     );
 
+    _ = process::Command::new("code").arg(bin_path).status();
+
     Ok(())
 }

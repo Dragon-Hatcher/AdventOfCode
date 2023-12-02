@@ -9,6 +9,9 @@ yansi = "0.5.1"
 reqwest = "0.11.22"
 serde = "1.0.193"
 toml = "0.8.8"
+itertools = "0.12.0"
+regex-macro = "0.2.0"
+rustc-hash = "1.1.0"
 
 [package]
 name = "advent-bins"
@@ -17,11 +20,95 @@ edition = "2021"
 
 [dependencies]
 advent = { path = "crates/advent" }
-itertools = "0.12.0"
+rustc-hash = { workspace = true }
 
 [[bin]]
 name = "202201"
 path = "2022/01.rs"
+
+[[bin]]
+name = "202202"
+path = "2022/02.rs"
+
+[[bin]]
+name = "202203"
+path = "2022/03.rs"
+
+[[bin]]
+name = "202204"
+path = "2022/04.rs"
+
+[[bin]]
+name = "202205"
+path = "2022/05.rs"
+
+[[bin]]
+name = "202206"
+path = "2022/06.rs"
+
+[[bin]]
+name = "202207"
+path = "2022/07.rs"
+
+[[bin]]
+name = "202208"
+path = "2022/08.rs"
+
+[[bin]]
+name = "202209"
+path = "2022/09.rs"
+
+[[bin]]
+name = "202210"
+path = "2022/10.rs"
+
+[[bin]]
+name = "202211"
+path = "2022/11.rs"
+
+[[bin]]
+name = "202212"
+path = "2022/12.rs"
+
+[[bin]]
+name = "202213"
+path = "2022/13.rs"
+
+[[bin]]
+name = "202214"
+path = "2022/14.rs"
+
+[[bin]]
+name = "202215"
+path = "2022/15.rs"
+
+[[bin]]
+name = "202216"
+path = "2022/16.rs"
+
+[[bin]]
+name = "202217"
+path = "2022/17.rs"
+
+[[bin]]
+name = "202218"
+path = "2022/18.rs"
+
+[[bin]]
+name = "202219"
+path = "2022/19.rs"
+
+[[bin]]
+name = "202220"
+path = "2022/20.rs"
+
+[[bin]]
+name = "202221"
+path = "2022/21.rs"
+
+[[bin]]
+name = "202222"
+path = "2022/22.rs"
 
 [[bin]]
 name = "202301"

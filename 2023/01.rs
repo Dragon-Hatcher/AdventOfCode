@@ -9,67 +9,68 @@ fn part1(input: &str) -> i64 {
         .lines()
         .map(|l| {
             let mut iter = l.chars().filter(char::is_ascii_digit).peekable();
-            let first = iter.peek().unwrap().to_digit(10).unwrap() as i64;
-            let last = iter.next_back().unwrap().to_digit(10).unwrap() as i64;
+            let first = iter.clone().nu().to_digit(10).unwrap() as i64;
+            let last = iter.nbu().to_digit(10).unwrap() as i64;
             first * 10 + last
         })
         .sum()
 }
 
+fn parse_match(str: &str) -> i64 {
+    match str {
+        "zero" | "0" => 0,
+        "one" | "1" => 1,
+        "two" | "2" => 2,
+        "three" | "3" => 3,
+        "four" | "4" => 4,
+        "five" | "5" => 5,
+        "six" | "6" => 6,
+        "seven" | "7" => 7,
+        "eight" | "8" => 8,
+        "nine" | "9" => 9,
+        _ => panic!("invalid match {str}"),
+    }
+}
+
 fn part2(input: &str) -> i64 {
-    const WORDS: &[&str] = &[
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine"
-    ];
+    let start_re = regex!(r#"\d|zero|one|two|three|four|five|six|seven|eight|nine"#);
+    let end_re = regex!(r#".*(\d|zero|one|two|three|four|five|six|seven|eight|nine)"#);
 
-    input.lines().map(|l| {
-        let mut first = 0;
-        'out: for i in 0..l.len() {
-            let char = l.chars().nth(i).unwrap();
-            if char.is_ascii_digit() {
-                first = char.to_digit(10).unwrap() as i64;
-                break;
-            }
-
-            for (idx, word) in WORDS.iter().enumerate() {
-                if l.find(word) == Some(i) {
-                    first = idx as i64;
-                    break 'out;
-                }
-            }
-        }
-
-        let mut second = 0;
-        'out: for i in (0..l.len()).rev() {
-            let char = l.chars().nth(i).unwrap();
-            if char.is_ascii_digit() {
-                second = char.to_digit(10).unwrap() as i64;
-                break;
-            }
-
-            for (idx, word) in WORDS.iter().enumerate() {
-                if l.rfind(word) == Some(i) {
-                    second = idx as i64;
-                    break 'out;
-                }
-            }
-        }
-
-        first * 10 + second
-    }).sum()
+    input
+        .lines()
+        .map(|l| {
+            let first = parse_match(start_re.find(l).unwrap().as_str());
+            let last = parse_match(end_re.captures(l).unwrap().get(1).unwrap().as_str());
+            dbg!(l, first, last);
+            first * 10 + last
+        })
+        .sum()
 }
 
 fn main() {
     let solution = advent::new(default_input).part(part1).part(part2).build();
     solution.cli();
+}
+
+#[test]
+fn example1() {
+    let input = "1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet";
+    assert_eq!(part1(input), 142);
+}
+
+#[test]
+fn example2() {
+    let input = "two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen";
+    assert_eq!(part2(input), 281);
 }
 
 #[test]
