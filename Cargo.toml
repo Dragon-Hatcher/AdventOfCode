@@ -23,6 +23,10 @@ advent = { path = "crates/advent" }
 rustc-hash = { workspace = true }
 
 [[bin]]
+name = "201501"
+path = "2015/01.rs"
+
+[[bin]]
 name = "202201"
 path = "2022/01.rs"
 
