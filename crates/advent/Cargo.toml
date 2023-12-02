@@ -1,0 +1,9 @@
+[package]
+name = "advent"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+prelude = { path = "../prelude" }
+yansi = { workspace = true }
