@@ -1,15 +1,18 @@
 use std::time::Duration;
-
 use yansi::Paint;
+
+use crate::{human, stats::Stats};
 
 pub enum Summary {
     Run(Vec<RunSummary>),
+    Bench(Vec<BenchSummary>),
 }
 
 impl Summary {
     pub fn print(&self) {
         match self {
             Self::Run(runs) => print_run_summary(runs),
+            Self::Bench(benches) => print_bench_summary(benches),
         }
     }
 }
@@ -20,9 +23,9 @@ pub struct RunSummary {
     pub time: Duration,
 }
 
-fn print_run_summary(runs: &[RunSummary]) {
-    for (i, run) in runs.iter().enumerate() {
-        let RunSummary { name, result, time } = run;
+fn print_run_summary(parts: &[RunSummary]) {
+    for (i, part) in parts.iter().enumerate() {
+        let RunSummary { name, result, time } = part;
         if i != 0 {
             println!();
         }
@@ -34,5 +37,43 @@ fn print_run_summary(runs: &[RunSummary]) {
             Paint::new(result).bold(),
             width = width
         )
+    }
+}
+
+pub struct BenchSummary {
+    pub name: String,
+    pub stats: Stats,
+}
+
+fn print_bench_summary(parts: &[BenchSummary]) {
+    for (i, part) in parts.iter().enumerate() {
+        let BenchSummary { name, stats } = part;
+        if i != 0 {
+            println!();
+        }
+        println!(
+            "{}{:>width$}",
+            Paint::new(name).bold(),
+            Paint::fixed(245, &human::Samples::new(stats.samples)),
+            width = 46 - name.chars().count(),
+        );
+        let mean = human::Time::new(stats.mean.as_secs_f64());
+        let std_dev = human::Time::with_scale(stats.std_dev.as_secs_f64(), mean.scale());
+        let min = human::Time::with_scale(stats.min.as_secs_f64(), mean.scale());
+        let max = human::Time::with_scale(stats.max.as_secs_f64(), mean.scale());
+        println!(
+            "  Time ({} ± {}):        {:>9} ± {:>8}",
+            Paint::green("mean").bold(),
+            Paint::green("σ"),
+            Paint::green(&mean).bold(),
+            Paint::green(&std_dev),
+        );
+        println!(
+            "  Range ({} … {}):      {:>9} … {:>8}",
+            Paint::cyan("min"),
+            Paint::magenta("max"),
+            Paint::cyan(&min),
+            Paint::magenta(&max),
+        );
     }
 }

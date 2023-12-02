@@ -1,7 +1,18 @@
-pub use prelude;
-use std::{fmt::Display, panic::UnwindSafe, time::Instant};
+use argh::FromArgs;
+use std::{
+    fmt::Display,
+    hint,
+    panic::UnwindSafe,
+    time::{Duration, Instant},
+};
 use summary::{RunSummary, Summary};
+use yansi::Paint;
+use crate::{stats::Stats, summary::BenchSummary};
 
+pub use prelude;
+
+mod human;
+mod stats;
 mod summary;
 
 pub fn new<'a, F, I>(parse: F) -> Builder<'a, I>
@@ -82,7 +93,73 @@ where
         Summary::Run(runs)
     }
 
-    pub fn cli(self) {
-        self.run().print()
+    fn bench(self) -> Summary {
+        let Self { parse, parts } = self;
+        let mut benches = Vec::new();
+
+        fn bench_with_input<F, I, O>(input: I, f: F) -> Stats
+        where
+            I: Clone,
+            F: Fn(I) -> O,
+        {
+            const FIVE_SECS: Duration = Duration::from_secs(5);
+            const THREE_SECS: Duration = Duration::from_secs(3);
+
+            // warm up for 3 secs
+            let start = Instant::now();
+            while start.elapsed() < THREE_SECS {
+                hint::black_box(f(input.clone()));
+            }
+
+            // now time for 5 secs, but with at least 25 samples
+            let mut times = Vec::new();
+            let start = Instant::now();
+            while times.len() < 25 || (start.elapsed() < FIVE_SECS && times.len() < 123_456) {
+                let input = input.clone();
+                let start = Instant::now();
+                hint::black_box(f(input));
+                times.push(start.elapsed());
+            }
+
+            stats::basics(&times)
+        }
+
+        let input = (parse)();
+
+        let stats = bench_with_input((), move |_| parse());
+        benches.push(BenchSummary { name: "Parse".into(), stats });
+
+        for (name, f) in parts {
+            let stats = bench_with_input(input.clone(), &f);
+            benches.push(BenchSummary { name, stats });
+        }
+
+        Summary::Bench(benches)
     }
+
+    pub fn cli(self) {
+        let Opt { bench } = argh::from_env();
+
+        let summary = if bench {
+            if cfg!(not(profile = "release")) {
+                eprintln!(
+                    "{}\n",
+                    Paint::yellow("Note: using --bench without --release").bold()
+                );
+            }
+            self.bench()
+        } else {
+            self.run()
+        };
+
+        summary.print()
+    }
+}
+
+/// Run the program.
+#[derive(Debug, FromArgs)]
+struct Opt {
+    /// whether to benchmark
+    #[argh(switch)]
+    bench: bool,
 }

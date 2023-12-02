@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 prelude = { path = "../prelude" }
 yansi = { workspace = true }
+argh = { workspace = true }

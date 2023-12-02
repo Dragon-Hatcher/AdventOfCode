@@ -4,37 +4,54 @@ fn default_input() -> &'static str {
     include_input!(2023 / 02)
 }
 
+#[derive(Debug, Clone, Copy)]
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+impl Color {
+    fn max_allowed(self) -> i64 {
+        match self {
+            Color::Red => 12,
+            Color::Green => 13,
+            Color::Blue => 14,
+        }
+    }
+}
+
+fn parse_item(item: &str) -> (i64, Color) {
+    let count = item.nums().nu();
+    let color = if item.ends_with("red") {
+        Color::Red
+    } else if item.ends_with("green") {
+        Color::Green
+    } else {
+        Color::Blue
+    };
+
+    (count, color)
+}
+
+fn parse_line(line: &str) -> (i64, impl Iterator<Item = (i64, Color)> + '_) {
+    let id = line.nums().nu();
+    let (_, items) = line.split_once(':').unwrap();
+    (id, items.split([';', ',']).map(parse_item))
+}
+
 fn part1(input: &str) -> i64 {
     input
         .lines()
         .map(|l| {
-            // let id = l.nums().nu();
+            let (id, mut items) = parse_line(l);
+            let impossible = items.any(|(count, color)| count > color.max_allowed());
 
-            let newl = l.chars().skip(8).collect::<String>();
-            let iter = newl.split([';', ',']);
-            for item in iter {
-                // dbg!(1, item);
-
-                if item.ends_with("blue") {
-                    if item.nums().nu() > 14 {
-                        return 0;
-                    }
-                }
-
-                if item.ends_with("red") {
-                    if item.nums().nu() > 12 {
-                        return 0;
-                    }
-                }
-
-                if item.ends_with("green") {
-                    if item.nums().nu() > 13 {
-                        return 0;
-                    }
-                }
+            if impossible {
+                0
+            } else {
+                id
             }
-
-            l.nums().nu()
         })
         .sum()
 }
@@ -43,28 +60,17 @@ fn part2(input: &str) -> i64 {
     input
         .lines()
         .map(|l| {
-            // let id = l.nums().nu();
-
-            let newl = l.chars().skip(8).collect::<String>();
-            let iter = newl.split([';', ',']);
+            let (_, items) = parse_line(l);
 
             let mut red = 0;
             let mut blue = 0;
             let mut green = 0;
 
-            for item in iter {
-                // dbg!(1, item);
-
-                if item.ends_with("blue") {
-                    blue = blue.max(item.nums().nu());
-                }
-
-                if item.ends_with("red") {
-                    red = red.max(item.nums().nu());
-                }
-
-                if item.ends_with("green") {
-                    green = green.max(item.nums().nu());
+            for (count, color) in items {
+                match color {
+                    Color::Red => red = red.max(count),
+                    Color::Green => blue = blue.max(count),
+                    Color::Blue => green = green.max(count),
                 }
             }
 
@@ -79,19 +85,19 @@ fn main() {
 }
 
 #[test]
-fn example() {
+fn example1() {
     let input = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green";
-    // assert_eq!(part1(input), 8);
-    assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 8);
+    assert_eq!(part2(input), 2286);
 }
 
-// #[test]
-// fn default() {
-//     let input = default_input();
-//     assert_eq!(part1(input), 0);
-//     assert_eq!(part2(input), 0);
-// }
+#[test]
+fn default() {
+    let input = default_input();
+    assert_eq!(part1(input), 2486);
+    assert_eq!(part2(input), 87984);
+}

@@ -39,6 +39,7 @@ struct Opt {
 enum Command {
     Run,
     Test,
+    Bench,
     New,
 }
 
@@ -47,6 +48,7 @@ impl argh::FromArgValue for Command {
         match value {
             "run" => Ok(Self::Run),
             "test" => Ok(Self::Test),
+            "bench" => Ok(Self::Bench),
             "new" => Ok(Self::New),
             _ => Err("expected one of: run".into()),
         }
@@ -90,6 +92,7 @@ fn main() -> Result<()> {
     match command {
         Command::Run => run(year, day, &args),
         Command::Test => test(year, day, &args),
+        Command::Bench => bench(year, day, &args),
         Command::New => new(year, day),
     }
 }
@@ -168,6 +171,25 @@ fn test(year: u32, day: u32, args: &[String]) -> Result<()> {
     let status = process::Command::new(env!("CARGO"))
         .args(["test", "--release", "--bin", &bin_name])
         .args(args)
+        .status()?;
+
+    process::exit(status.code().unwrap())
+}
+
+fn bench(year: u32, day: u32, args: &[String]) -> Result<()> {
+    ensure_input_fetched(year, day)?;
+
+    let bin_name = format!("{year:04}{day:02}");
+
+    let (cargo_args, bin_args) = match args.iter().position(|a| a == "--") {
+        Some(i) => (&args[..i], &args[i + 1..]),
+        None => (args, &[][..]),
+    };
+    let status = process::Command::new(env!("CARGO"))
+        .args(["run", "--release", "--bin", &bin_name])
+        .args(cargo_args)
+        .args(["--", "--bench"])
+        .args(bin_args)
         .status()?;
 
     process::exit(status.code().unwrap())
