@@ -12,3 +12,7 @@ pub fn gcd(mut x: i64, mut y: i64) -> i64 {
 pub fn lcm(x: i64, y: i64) -> i64 {
     x * y / gcd(x, y)
 }
+
+pub fn sum_to(n: i64) -> i64 {
+    n * (n + 1) / 2
+}
