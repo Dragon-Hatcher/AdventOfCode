@@ -1,73 +1,61 @@
 use advent::prelude::*;
+use std::convert::identity;
 
 fn default_input() -> &'static str {
     include_input!(2023 / 03)
 }
 
-fn part1(input: &str) -> i64 {
-    let grid = Grid::new_by_char(input, |c| c != '.' && !c.is_ascii_digit());
+fn get_numbers(grid: &Grid<char>) -> Vec<(i64, Vec<Vector2>)> {
+    let mut numbers = Vec::new();
 
-    let mut sum = 0;
-    for (y, row) in input.lines().enumerate() {
-        let mut adj = false;
-        let mut accum = "".to_owned();
+    for y in 0..grid.height() {
+        let mut number = "".to_owned();
+        let mut squares = FxHashSet::default();
 
-        for (x, c) in row.chars().enumerate() {
-            let p = Vector2::new(x as i64, y as i64);
+        for x in 0..grid.width() {
+            let p = Vector2::new(x, y);
+            let c = grid[p];
 
             if c.is_ascii_digit() {
-                accum.push(c);
-                adj = adj || grid.neighbors8(p).any(|p| grid[p]);
-            } else {
-                if !accum.is_empty() && adj {
-                    sum += accum.parse::<i64>().unwrap();
-                }
-                adj = false;
-                accum = "".to_owned();
+                number.push(c);
+                squares.extend(grid.neighbors8(p));
+            } else if !number.is_empty() {
+                numbers.push((number.parse().unwrap(), squares.into_iter().collect()));
+                number = "".to_owned();
+                squares = FxHashSet::default();
             }
         }
 
-        if !accum.is_empty() && adj {
-            sum += accum.parse::<i64>().unwrap();
+        if !number.is_empty() {
+            numbers.push((number.parse().unwrap(), squares.into_iter().collect()));
         }
     }
 
-    sum
+    numbers
+}
+
+fn part1(input: &str) -> i64 {
+    let grid = Grid::new_by_char(input, identity);
+
+    fn is_special(char: char) -> bool {
+        char != '.' && !char.is_ascii_digit()
+    }
+
+    get_numbers(&grid)
+        .iter()
+        .filter(|(_, adjecencies)| adjecencies.iter().any(|&p| is_special(grid[p])))
+        .map(|(num, _)| num)
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let grid = Grid::new_by_char(input, |c| c == '*');
+    let grid = Grid::new_by_char(input, identity);
 
-    let mut gears: FxHashMap<Vector2, FxHashSet<i64>> = FxHashMap::default();
-
-    for (y, row) in input.lines().enumerate() {
-        let mut adj = FxHashSet::default();
-        let mut accum = "".to_owned();
-
-        for (x, c) in row.chars().enumerate() {
-            let p = Vector2::new(x as i64, y as i64);
-
-            if c.is_ascii_digit() {
-                accum.push(c);
-                for n in grid.neighbors8(p).filter(|p| grid[*p]) {
-                    adj.insert(n);
-                }
-            } else {
-                if !accum.is_empty() && !adj.is_empty() {
-                    let num = accum.parse::<i64>().unwrap();
-                    for gear in &adj {
-                        gears.entry(*gear).or_default().insert(num);
-                    }
-                }
-                adj.clear();
-                accum = "".to_owned();
-            }
-        }
-
-        if !accum.is_empty() && !adj.is_empty() {
-            let num = accum.parse::<i64>().unwrap();
-            for gear in adj {
-                gears.entry(gear).or_default().insert(num);
+    let mut gears: FxHashMap<Vector2, Vec<i64>> = FxHashMap::default();
+    for (num, adjecencies) in get_numbers(&grid) {
+        for pos in adjecencies {
+            if grid[pos] == '*' {
+                gears.entry(pos).or_default().push(num);
             }
         }
     }
@@ -75,7 +63,7 @@ fn part2(input: &str) -> i64 {
     gears
         .values()
         .filter(|s| s.len() == 2)
-        .map(|s| s.iter().product::<i64>())
+        .map(|s| s[0] * s[1])
         .sum()
 }
 
