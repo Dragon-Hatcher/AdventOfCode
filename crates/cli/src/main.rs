@@ -160,7 +160,7 @@ fn run(year: u32, day: u32, args: &[String]) -> Result<()> {
         .args(args)
         .status()?;
 
-    process::exit(status.code().unwrap())
+    process::exit(status.code().unwrap_or(1))
 }
 
 fn test(year: u32, day: u32, args: &[String]) -> Result<()> {
@@ -173,7 +173,7 @@ fn test(year: u32, day: u32, args: &[String]) -> Result<()> {
         .args(args)
         .status()?;
 
-    process::exit(status.code().unwrap())
+    process::exit(status.code().unwrap_or(1))
 }
 
 fn bench(year: u32, day: u32, args: &[String]) -> Result<()> {
@@ -192,7 +192,7 @@ fn bench(year: u32, day: u32, args: &[String]) -> Result<()> {
         .args(bin_args)
         .status()?;
 
-    process::exit(status.code().unwrap())
+    process::exit(status.code().unwrap_or(1))
 }
 
 fn new(year: u32, day: u32) -> Result<()> {
