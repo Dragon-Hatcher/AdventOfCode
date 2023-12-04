@@ -20,6 +20,7 @@ edition = "2021"
 
 [dependencies]
 advent = { path = "crates/advent" }
+maplit = "1.0.2"
 memoize = "0.4.1"
 rand = "0.8.5"
 rustc-hash = { workspace = true }
@@ -127,6 +128,10 @@ path = "2015/25.rs"
 [[bin]]
 name = "201601"
 path = "2016/01.rs"
+
+[[bin]]
+name = "201602"
+path = "2016/02.rs"
 
 [[bin]]
 name = "202201"

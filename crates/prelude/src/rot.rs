@@ -5,10 +5,20 @@ pub enum Direction {
     North,
     East,
     South,
-    West
+    West,
 }
 
 impl Direction {
+    pub fn from_char(char: char) -> Direction {
+        match char {
+            'U' => Direction::North,
+            'R' => Direction::East,
+            'D' => Direction::South,
+            'L' => Direction::West,
+            _ => panic!("Invalid direction char {char}."),
+        }
+    }
+
     pub fn vector(self) -> Vector2 {
         match self {
             Direction::North => Vector2::E2,
@@ -31,6 +41,15 @@ impl Direction {
             (D::South, T::Right) => D::West,
             (D::West, T::Left) => D::South,
             (D::West, T::Right) => D::North,
+        }
+    }
+
+    pub fn reverse(self) -> Direction {
+        match self {
+            Direction::North => Direction::South,
+            Direction::East => Direction::South,
+            Direction::South => Direction::North,
+            Direction::West => Direction::West,
         }
     }
 }
