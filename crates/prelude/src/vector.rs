@@ -165,6 +165,10 @@ impl Vector2 {
     pub fn manhatan_dist(&self, rhs: Vector2) -> i64 {
         (self.x - rhs.x).abs() + (self.y - rhs.y).abs()
     }
+
+    pub fn manhatan_mag(&self) -> i64 {
+        self.manhatan_dist(Vector2::ZERO)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -1,9 +1,11 @@
 mod grid;
+mod rot;
 mod vector;
 mod extensions;
 mod math;
 
 pub use grid::*;
+pub use rot::*;
 pub use vector::*;
 pub use extensions::*;
 pub use math::*;
