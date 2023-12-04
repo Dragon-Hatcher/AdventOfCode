@@ -1,40 +1,51 @@
 use advent::prelude::*;
 
+#[derive(Debug, Clone)]
+struct Card {
+    guesses: FxHashSet<i64>,
+    winners: FxHashSet<i64>,
+}
+
+impl Card {
+    fn winning_numbers(&self) -> usize {
+        self.guesses.intersection(&self.winners).count()
+    }
+
+    fn points(&self) -> i64 {
+        let wins = self.winning_numbers() as u32;
+        if wins == 0 { 0} else { 2i64.pow(wins - 1) }
+    }
+}
+
+fn parse_card(card: &str) -> Card {
+    let (_, numbers) = card.split_once(": ").unwrap();
+    let (guesses, winners) = numbers.split_once(" | ").unwrap();
+    let guesses = guesses.nums().collect();
+    let winners = winners.nums().collect();
+    Card { guesses, winners }
+}
+
 fn default_input() -> &'static str {
     include_input!(2023 / 04)
 }
 
 fn part1(input: &str) -> i64 {
-    input
-        .lines()
-        .map(|l| {
-            let (_, rest) = l.split_once(": ").unwrap();
-            let (a, b) = rest.split_once(" | ").unwrap();
-            let a: FxHashSet<i64> = a.nums().collect();
-            let b: FxHashSet<i64> = b.nums().collect();
-            let t = a.intersection(&b).count() as u32;
-            2_i64.pow(t - 1)
-        })
-        .sum()
+    input.lines().map(parse_card).map(|c| c.points()).sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let wins = input
+    let win_counts = input
         .lines()
-        .map(|l| {
-            let (_, rest) = l.split_once(": ").unwrap();
-            let (a, b) = rest.split_once(" | ").unwrap();
-            let a: FxHashSet<i64> = a.nums().collect();
-            let b: FxHashSet<i64> = b.nums().collect();
-            let t = a.intersection(&b).count() as u32;
-            t        })
+        .map(parse_card)
+        .map(|c| c.winning_numbers())
         .collect_vec();
 
-    let mut counts = vec![1; wins.len()];
+    let mut counts = vec![1; win_counts.len()];
 
-    for i in 0..wins.len() {
-        for j in (i + 1)..(i + 1 + wins[i] as usize).min(wins.len()) {
-            counts[j] += counts[i];
+    for (i, &wins) in win_counts.iter().enumerate() {
+        let card_count = counts[i];
+        for count in counts.iter_mut().skip(i + 1).take(wins) {
+            *count += card_count;
         }
     }
 
