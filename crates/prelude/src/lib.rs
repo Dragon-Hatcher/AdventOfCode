@@ -23,7 +23,7 @@ pub use std::collections::{BTreeMap, BTreeSet, BinaryHeap, VecDeque};
 
 #[macro_export]
 macro_rules! include_input {
-    ($extra:literal + $year:literal / $day:literal) => {{
+    ($extra:literal / $year:literal / $day:literal) => {{
         concat!(
             $extra,
             include_str!(concat!(

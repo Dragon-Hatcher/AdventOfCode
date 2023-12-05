@@ -1,7 +1,7 @@
 use advent::prelude::*;
 
 fn default_input() -> &'static str {
-    include_input!("width = 50, height = 6\n\n" + 2016 / 08)
+    include_input!("width = 50, height = 6\n\n" / 2016 / 08)
 }
 
 enum Instruction {

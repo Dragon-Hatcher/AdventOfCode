@@ -1,11 +1,8 @@
 use advent::prelude::*;
 use memoize::memoize;
 
-fn default_input() -> String {
-    format!(
-        "{} player hp = 50, player_mana = 500",
-        include_input!(2015 / 22)
-    )
+fn default_input() -> &'static str {
+    include_input!("player_hp = 50, player_mana = 500" / 2015 / 22)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -101,8 +98,8 @@ fn solve(state: GameState, boss_damage: u8, attrition: u8) -> i64 {
     }
 }
 
-fn part1(input: String) -> i64 {
-    let (boss_hp, boss_damage, player_hp, mana) = input.nums().tup();
+fn part1(input: &str) -> i64 {
+    let (player_hp, mana, boss_hp, boss_damage) = input.nums().tup();
 
     solve(
         GameState {
@@ -115,12 +112,12 @@ fn part1(input: String) -> i64 {
             player_turn: true,
         },
         boss_damage as u8,
-        0
+        0,
     )
 }
 
-fn part2(input: String) -> i64 {
-    let (boss_hp, boss_damage, player_hp, mana) = input.nums().tup();
+fn part2(input: &str) -> i64 {
+    let (player_hp, mana, boss_hp, boss_damage) = input.nums().tup();
 
     solve(
         GameState {
@@ -133,7 +130,7 @@ fn part2(input: String) -> i64 {
             player_turn: true,
         },
         boss_damage as u8,
-        1
+        1,
     )
 }
 
@@ -144,13 +141,13 @@ fn main() {
 
 #[test]
 fn example() {
-    assert_eq!(part1("boss_hp=13 damage=8 player_hp=10 mana=250".to_owned()), 226);
-    assert_eq!(part1("boss_hp=14 damage=8 player_hp=10 mana=250".to_owned()), 641);
+    assert_eq!(part1("player_hp=10 mana=250 boss_hp=13 damage=8"), 226);
+    assert_eq!(part1("player_hp=10 mana=250 boss_hp=14 damage=8"), 641);
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    assert_eq!(part1(input.clone()), 900);
+    assert_eq!(part1(input), 900);
     assert_eq!(part2(input), 1216);
 }
