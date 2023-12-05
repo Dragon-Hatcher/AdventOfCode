@@ -19,7 +19,7 @@ pub use regex_macro::regex;
 pub use rustc_hash::{FxHashMap, FxHashSet};
 pub use std::cmp;
 pub use std::cmp::{max, min, Ordering, Reverse};
-pub use std::collections::{BTreeMap, BTreeSet, BinaryHeap, VecDeque};
+pub use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 
 #[macro_export]
 macro_rules! include_input {
