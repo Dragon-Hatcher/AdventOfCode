@@ -59,7 +59,7 @@ struct Bot(HashSet<i64>);
 impl Bot {
     fn get_low_high(&self) -> Option<(i64, i64)> {
         if self.0.len() != 2 {
-            return None;
+            None
         } else {
             let (&a, &b) = self.0.iter().tup();
             let low = a.min(b);
