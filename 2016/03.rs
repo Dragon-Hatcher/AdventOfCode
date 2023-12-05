@@ -21,10 +21,8 @@ fn part1(input: &str) -> i64 {
 fn part2(input: &str) -> i64 {
     input
         .lines()
-        .chunks(3)
-        .into_iter()
-        .map(|mut ls| {
-            let (l1, l2, l3) = ls.tup();
+        .tuples()
+        .map(|(l1, l2, l3)| {
             let (a1, b1, c1) = l1.nums().tup();
             let (a2, b2, c2) = l2.nums().tup();
             let (a3, b3, c3) = l3.nums().tup();

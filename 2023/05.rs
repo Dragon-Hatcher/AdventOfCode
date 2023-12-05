@@ -1,99 +1,109 @@
-use advent::prelude::{*, IterExtension};
+use advent::prelude::*;
+use std::ops::Range;
 
 fn default_input() -> &'static str {
     include_input!(2023 / 05)
 }
 
-fn part1(input: &str) -> i64 {
-    let mut secs = input.sections();
-    let seeds = secs.nu().nums().collect_vec();
+fn parse_rule(rule: &str) -> Rule {
+    let (dest, match_start, len) = rule.nums().tup();
+    Rule {
+        m: match_start..match_start + len,
+        dest,
+    }
+}
 
-    let map: Vec<Vec<(i64, i64, i64)>> = secs
-        .map(|s| {
-            let mut l = s.lines();
-            l.nu();
+fn parse_ruleset(rules: &str) -> Vec<Vec<Rule>> {
+    rules
+        .sections()
+        .map(|sec| sec.lines().skip(1).map(parse_rule).collect())
+        .collect()
+}
 
-            l.map(|ns| ns.nums().tup()).collect_vec()
-        })
-        .collect_vec();
+type SeedRange = Range<i64>;
 
-    seeds
-        .iter()
-        .map(|seed| {
-            let mut val = *seed;
+#[derive(Debug, Clone)]
+struct Rule {
+    m: SeedRange,
+    dest: i64,
+}
 
-            for sec in &map {
-                for (dest, source, len) in sec {
-                    if val >= *source && val < source + len {
-                        val = dest + (val - source);
-                        break;
-                    }
+impl Rule {
+    fn cut(&self, seed: &SeedRange) -> (Option<SeedRange>, Option<SeedRange>) {
+        let dest = self.dest;
+        let m = self.m.clone();
+
+        if seed.start >= m.start && seed.end <= m.end {
+            // Full intersection
+            (
+                Some(dest + (seed.start - m.start)..dest + (seed.end - m.start)),
+                None,
+            )
+        } else if seed.end <= m.start || seed.start >= m.end {
+            // No intersection
+            (None, Some(seed.clone()))
+        } else if seed.start < m.start {
+            // Left intersection
+            (
+                Some(dest..dest + (seed.end - m.start)),
+                Some(seed.start..m.start),
+            )
+        } else {
+            // Right intersection
+            (
+                Some(dest + (seed.start - m.start)..dest + (m.end - m.start)),
+                Some(m.end..seed.end),
+            )
+        }
+    }
+}
+
+fn solve(rule_sets: &[Vec<Rule>], mut seeds: Vec<SeedRange>) -> i64 {
+    for rule_set in rule_sets {
+        let mut new_ranges = Vec::default();
+        let mut left_to_process = seeds;
+
+        for rule in rule_set {
+            let mut leftovers = Vec::default();
+
+            for seed in &left_to_process {
+                let (intersection, leftover) = rule.cut(seed);
+                if let Some(intersection) = intersection {
+                    new_ranges.push(intersection);
+                }
+                if let Some(leftover) = leftover {
+                    leftovers.push(leftover);
                 }
             }
 
-            val
-        })
-        .min()
-        .unwrap_or_default()
+            left_to_process = leftovers;
+        }
+
+        new_ranges.extend(left_to_process);
+        seeds = new_ranges;
+    }
+
+    seeds.iter().map(|s| s.start).min().unwrap_or_default()
+}
+
+fn part1(input: &str) -> i64 {
+    let (seeds, rules) = input.split_once("\n\n").unwrap();
+    let seeds = seeds.nums().map(|start| start..start + 1).collect();
+    let rules = parse_ruleset(rules);
+
+    solve(&rules, seeds)
 }
 
 fn part2(input: &str) -> i64 {
-    let mut secs = input.sections();
-    let seeds = secs.nu().nums().collect_vec();
+    let (seeds, rules) = input.split_once("\n\n").unwrap();
+    let seeds = seeds
+        .nums()
+        .tuples()
+        .map(|(start, len)| start..start + len)
+        .collect();
+    let rules = parse_ruleset(rules);
 
-    let map: Vec<Vec<(i64, i64, i64)>> = secs
-        .map(|s| {
-            let mut l = s.lines();
-            l.nu();
-
-            l.map(|ns| ns.nums().tup()).collect_vec()
-        })
-        .collect_vec();
-
-    seeds
-        .iter()
-        .chunks(2)
-        .into_iter()
-        .map(|mut seed| {
-            let (start, len) = seed.tup();
-            let mut ranges = HashSet::new();
-            ranges.insert(*start..start + len);
-
-            for sec in &map {
-
-                let mut left = ranges.clone();
-                let mut next = HashSet::new();
-
-                for (dest, source, len) in sec {
-                    let mut new_left = HashSet::new();
-
-                    for r in left {
-                        if r.start >= *source && r.end <= source + len {
-                            next.insert(*dest + (r.start - source)..dest + (r.end - source));
-                        } else if r.end <= *source || r.start >= source + len {
-                            new_left.insert(r);
-                        } else if r.start < *source {
-                            new_left.insert(r.start..*source);
-                            next.insert(*dest..dest + (r.end - source));
-                        } else {
-                            new_left.insert((source + len)..r.end);
-                            next.insert(dest + (r.start - source)..dest + len);
-                        }
-                    }
-
-                    left = new_left;
-                }
-
-                next.extend(left);
-                ranges = next;
-            }
-
-
-            let min = ranges.iter().map(|r| r.start).min().unwrap_or_default();
-            min
-        })
-        .min()
-        .unwrap_or_default()
+    solve(&rules, seeds)
 }
 
 fn main() {
