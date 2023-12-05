@@ -8,7 +8,7 @@ fn default_input() -> &'static str {
 fn parse_rule(rule: &str) -> Rule {
     let (dest, match_start, len) = rule.nums().tup();
     Rule {
-        m: match_start..match_start + len,
+        range: match_start..match_start + len,
         dest,
     }
 }
@@ -24,38 +24,8 @@ type SeedRange = Range<i64>;
 
 #[derive(Debug, Clone)]
 struct Rule {
-    m: SeedRange,
+    range: SeedRange,
     dest: i64,
-}
-
-impl Rule {
-    fn cut(&self, seed: &SeedRange) -> (Option<SeedRange>, Option<SeedRange>) {
-        let dest = self.dest;
-        let m = self.m.clone();
-
-        if seed.start >= m.start && seed.end <= m.end {
-            // Full intersection
-            (
-                Some(dest + (seed.start - m.start)..dest + (seed.end - m.start)),
-                None,
-            )
-        } else if seed.end <= m.start || seed.start >= m.end {
-            // No intersection
-            (None, Some(seed.clone()))
-        } else if seed.start < m.start {
-            // Left intersection
-            (
-                Some(dest..dest + (seed.end - m.start)),
-                Some(seed.start..m.start),
-            )
-        } else {
-            // Right intersection
-            (
-                Some(dest + (seed.start - m.start)..dest + (m.end - m.start)),
-                Some(m.end..seed.end),
-            )
-        }
-    }
 }
 
 fn solve(rule_sets: &[Vec<Rule>], mut seeds: Vec<SeedRange>) -> i64 {
@@ -67,12 +37,28 @@ fn solve(rule_sets: &[Vec<Rule>], mut seeds: Vec<SeedRange>) -> i64 {
             let mut leftovers = Vec::default();
 
             for seed in &left_to_process {
-                let (intersection, leftover) = rule.cut(seed);
-                if let Some(intersection) = intersection {
-                    new_ranges.push(intersection);
+                // This elegant method for computing the overlaps is from here 
+                // https://github.com/jonathanpaulson/AdventOfCode/blob/master/2023/5.py.
+                // Although I did not use it to solve the puzzle initially.
+
+                let ss = seed.start;
+                let se = seed.end;
+                let rs = rule.range.start;
+                let re = rule.range.end;
+
+                let before = ss..se.min(rs);
+                let inter = ss.max(rs)..se.min(re);
+                let after = ss.max(re)..se;
+
+
+                if before.end > before.start {
+                    leftovers.push(before);
                 }
-                if let Some(leftover) = leftover {
-                    leftovers.push(leftover);
+                if inter.end > inter.start {
+                    new_ranges.push(inter.start - rs + rule.dest..inter.end - rs + rule.dest);
+                }
+                if after.end > after.start {
+                    leftovers.push(after);
                 }
             }
 
@@ -113,6 +99,7 @@ fn main() {
 
 #[test]
 fn example() {
+    // 
     let input = "seeds: 79 14 55 13
 
 seed-to-soil map:
