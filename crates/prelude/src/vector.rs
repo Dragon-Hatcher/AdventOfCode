@@ -158,6 +158,14 @@ impl Neg for &Vector2 {
 }
 
 impl Vector2 {
+    pub fn x_comp(&self) -> Vector2 {
+        Vector2::new(self.x, 0)
+    }
+
+    pub fn y_comp(&self) -> Vector2 {
+        Vector2::new(0, self.y)
+    }
+
     pub fn dot(&self, rhs: Vector2) -> i64 {
         self.x * rhs.x + self.y * rhs.y
     }

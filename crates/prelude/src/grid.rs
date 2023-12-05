@@ -1,4 +1,4 @@
-use crate::{IterExtension, Vector2};
+use crate::{IterExtension, Range, Vector2};
 use itertools::iproduct;
 use std::fmt::Debug;
 use std::ops::{Index, IndexMut};
@@ -59,6 +59,10 @@ impl<T> Grid<T> {
         Self::in_bounds_with_dim(vec2, self.width(), self.height())
     }
 
+    pub fn range_in_bounds(&self, range: Range) -> bool {
+        self.in_bounds(range.top_left()) && self.in_bounds(range.bottom_right())
+    }
+
     pub fn neighbors_with_deltas<'a>(
         &self,
         vec2: Vector2,
@@ -99,36 +103,42 @@ impl<T> Grid<T> {
         self.neighbors_with_deltas(vec2, DELTAS)
     }
 
+    pub fn range(&self) -> Range {
+        Range::new_bl(Vector2::ZERO, Vector2::new(self.width(), self.height()))
+    }
+
     pub fn points(&self) -> impl Iterator<Item = Vector2> {
-        iproduct!(0..self.width(), 0..self.height()).map(|(x, y)| Vector2::new(x, y))
+        self.range().points()
     }
 
-    pub fn subgrid_points(
-        &self,
-        top_left: Vector2,
-        bottom_right: Vector2,
-    ) -> impl Iterator<Item = Vector2> {
-        assert!(self.in_bounds(top_left));
-        assert!(self.in_bounds(bottom_right));
-
-        iproduct!(top_left.x..=bottom_right.x, top_left.y..=bottom_right.y)
-            .map(|(x, y)| Vector2::new(x, y))
+    pub fn row(&self, y: i64) -> Range {
+        assert!(0 <= y && y <= self.height());
+        Range::new_bl(Vector2::new(0, y), Vector2::new(self.width(), 1))
     }
 
-    pub fn fill_subgrid(&mut self, t: T, top_left: Vector2, bottom_right: Vector2)
+    pub fn col(&self, x: i64) -> Range {
+        assert!(0 <= x && x <= self.width());
+        Range::new_bl(Vector2::new(x, 0), Vector2::new(1, self.height()))
+    }
+
+    pub fn fill_range(&mut self, t: T, range: Range)
     where
         T: Clone,
     {
-        for p in self.subgrid_points(top_left, bottom_right) {
+        assert!(self.range_in_bounds(range));
+
+        for p in range.points() {
             self[p] = t.clone();
         }
     }
 
-    pub fn fill_subgrid_with<F>(&mut self, f: F, top_left: Vector2, bottom_right: Vector2)
+    pub fn fill_range_with<F>(&mut self, f: F, range: Range)
     where
         F: Fn(Vector2, &T) -> T,
     {
-        for p in self.subgrid_points(top_left, bottom_right) {
+        assert!(self.range_in_bounds(range));
+
+        for p in range.points() {
             self[p] = f(p, &self[p]);
         }
     }
@@ -144,8 +154,69 @@ impl<T> Grid<T> {
         self.elements.iter()
     }
 
+    pub fn rotate_range_by_delta(&mut self, range: Range, delta: Vector2)
+    where
+        T: Clone,
+    {
+        let new = Grid::new_with(range.width(), range.height(), |p| {
+            let mut raw = p - delta;
+            raw.x = raw.x.rem_euclid(range.width());
+            raw.y = raw.y.rem_euclid(range.height());
+            self[range.bottom_left() + raw].clone()
+        });
+
+        for p in new.points() {
+            self[range.bottom_left() + p] = new[p].clone();
+        }
+    }
+
+    pub fn rotate_right(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, Vector2::E1 * dist)
+    }
+
+    pub fn rotate_left(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, -Vector2::E1 * dist)
+    }
+
+    pub fn rotate_up(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, Vector2::E2 * dist)
+    }
+
+    pub fn rotate_down(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, -Vector2::E2 * dist)
+    }
+
     fn calc_index(&self, vec2: Vector2) -> usize {
         (vec2.y * self.width() + vec2.x) as usize
+    }
+}
+
+impl Grid<bool> {
+    pub fn pretty(&self) -> String {
+        let mut out = "".to_owned();
+
+        for y in (0..self.height()).rev() {
+            for x in 0..self.width() {
+                let p = Vector2::new(x, y);
+                let c = if self[p] { '█' } else { ' ' };
+                out.push(c);
+            }
+            out.push('\n');
+        }
+
+        out
     }
 }
 
@@ -171,11 +242,13 @@ where
     T: Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for (i, t) in self.elements.iter().enumerate() {
-            write!(f, "{:?}", t)?;
-            if i as i64 % self.width == self.width - 1 {
-                writeln!(f)?;
+        writeln!(f)?;
+        for y in (0..self.height()).rev() {
+            for x in 0..self.width() {
+                let p = Vector2::new(x, y);
+                write!(f, "{:?}", self[p])?;
             }
+            writeln!(f)?;
         }
 
         Ok(())
