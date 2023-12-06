@@ -98,7 +98,6 @@ fn main() {
 
 #[test]
 fn example() {
-    // 
     let input = "seeds: 79 14 55 13
 
 seed-to-soil map:
