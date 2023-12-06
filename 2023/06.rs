@@ -5,12 +5,18 @@ fn default_input() -> &'static str {
 }
 
 fn ways_to_win(time: i64, dist: i64) -> i64 {
-    (0..time)
-        .filter(|charging| {
-            let moving = time - charging;
-            charging * moving > dist
-        })
-        .count() as i64
+    let t = time as f64;
+    let d = dist as f64;
+
+    // If charging time is c distance is given by c * (t - c).
+    // We want the distance to be greater than d so -c^2 + tc -d > 0.
+    // Use the quadratic formula to obtain that (t - √t^2 - 4*d) / 2 < c < (t - √t^2 - 4*d) / 2
+
+    let root = (t*t - 4.0*d).sqrt();
+    let upper = (t + root) / 2.0; 
+    let lower = (t - root) / 2.0; 
+
+    upper.ceil() as i64 - lower.floor() as i64 - 1
 }
 
 fn part1(input: &str) -> i64 {
