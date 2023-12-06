@@ -16,12 +16,8 @@ fn part1(input: &str) -> i64 {
     code
 }
 
-fn part2(_input: &str) -> i64 {
-    todo!("Part 2")
-}
-
 fn main() {
-    let solution = advent::new(default_input).part(part1).part(part2).build();
+    let solution = advent::new(default_input).part(part1).build();
     solution.cli();
 }
 
@@ -29,12 +25,10 @@ fn main() {
 fn example() {
     let input = "3 4";
     assert_eq!(part1(input), 7981243);
-    // assert_eq!(part2(input), 0);
 }
 
 #[test]
 fn default() {
     let input = default_input();
     assert_eq!(part1(input), 2650453);
-    // assert_eq!(part2(input), 0);
 }
