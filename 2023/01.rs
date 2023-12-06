@@ -41,7 +41,6 @@ fn part2(input: &str) -> i64 {
         .map(|l| {
             let first = parse_match(start_re.find(l).unwrap().as_str());
             let last = parse_match(end_re.captures(l).unwrap().get(1).unwrap().as_str());
-            dbg!(l, first, last);
             first * 10 + last
         })
         .sum()
