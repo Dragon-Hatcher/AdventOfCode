@@ -4,59 +4,30 @@ fn default_input() -> &'static str {
     include_input!(2023 / 06)
 }
 
+fn ways_to_win(time: i64, dist: i64) -> i64 {
+    (0..time)
+        .filter(|charging| {
+            let moving = time - charging;
+            charging * moving > dist
+        })
+        .count() as i64
+}
+
 fn part1(input: &str) -> i64 {
     let (time, dist) = input.lines().tup();
-    let times = time.nums().collect_vec();
-    let dists = dist.nums().collect_vec();
+    let times = time.nums();
+    let dists = dist.nums();
 
     times
-        .iter()
-        .zip(dists.iter())
-        .map(|(time, dist)| {
-            let mut sum = 0;
-
-            for charging in 0..*time {
-                let moving = time - charging;
-                if moving * charging > *dist {
-                    sum += 1;
-                }
-            }
-            sum
-
-        })
+        .zip(dists)
+        .map(|(time, dist)| ways_to_win(time, dist))
         .product()
-
-    // input
-    //     .lines()
-    //     .map(|l| {
-    //         0
-    //     })
-    //     .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let (time, dist) = input.lines().tup();
-    let time: String = time.chars().filter(|c| !c.is_whitespace()).collect();
-    let dist: String = dist.chars().filter(|c| !c.is_whitespace()).collect();
-    let times = time.nums().collect_vec();
-    let dists = dist.nums().collect_vec();
-
-    times
-        .iter()
-        .zip(dists.iter())
-        .map(|(time, dist)| {
-            let mut sum = 0;
-
-            for charging in 0..*time {
-                let moving = time - charging;
-                if moving * charging > *dist {
-                    sum += 1;
-                }
-            }
-            sum
-
-        })
-        .product()
+    let input: String = input.chars().filter(|c| !c.is_whitespace()).collect();
+    let (time, dist) = input.nums().tup();
+    ways_to_win(time, dist)
 }
 
 fn main() {
