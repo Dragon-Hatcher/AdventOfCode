@@ -50,7 +50,6 @@ fn solve(rule_sets: &[Vec<Rule>], mut seeds: Vec<SeedRange>) -> i64 {
                 let inter = ss.max(rs)..se.min(re);
                 let after = ss.max(re)..se;
 
-
                 if before.end > before.start {
                     leftovers.push(before);
                 }
