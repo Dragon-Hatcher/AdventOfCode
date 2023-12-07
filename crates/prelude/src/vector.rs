@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign, Neg};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Vector2 {
@@ -176,6 +176,40 @@ impl Vector2 {
 
     pub fn manhatan_mag(&self) -> i64 {
         self.manhatan_dist(Vector2::ZERO)
+    }
+
+    pub fn neighbors_with_deltas<'a>(
+        &self,
+        deltas: &'a [Vector2],
+    ) -> impl Iterator<Item = Vector2> + 'a {
+        let s = *self;
+        deltas.iter().map(move |delta| s + delta)
+    }
+
+    pub fn neighbors4(&self) -> impl Iterator<Item = Vector2> {
+        const DELTAS: &[Vector2] = &[
+            Vector2::new(1, 0),
+            Vector2::new(-1, 0),
+            Vector2::new(0, 1),
+            Vector2::new(0, -1),
+        ];
+
+        self.neighbors_with_deltas(DELTAS)
+    }
+
+    pub fn neighbors8(&self) -> impl Iterator<Item = Vector2> {
+        const DELTAS: &[Vector2] = &[
+            Vector2::new(1, -1),
+            Vector2::new(1, 0),
+            Vector2::new(1, 1),
+            Vector2::new(0, -1),
+            Vector2::new(0, 1),
+            Vector2::new(-1, -1),
+            Vector2::new(-1, 0),
+            Vector2::new(-1, 1),
+        ];
+
+        self.neighbors_with_deltas(DELTAS)
     }
 }
 
