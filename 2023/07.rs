@@ -4,127 +4,120 @@ fn default_input() -> &'static str {
     include_input!(2023 / 07)
 }
 
-fn part1(input: &str) -> i64 {
-    fn map(c: char) -> char {
-        if ('0'..='9').contains(&c) {
-            c
-        } else {
-            match c {
-                'A' => 'E',
-                'K' => 'D',
-                'Q' => 'C',
-                'J' => 'B',
-                'T' => 'A',
-                _ => panic!(),
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+enum Card {
+    Joker,
+    Num(i64),
+}
+
+fn parse_card(c: char, jokers: bool) -> Card {
+    match c {
+        c if c.is_ascii_digit() => Card::Num(c as i64 - '0' as i64),
+        'A' => Card::Num(14),
+        'K' => Card::Num(13),
+        'Q' => Card::Num(12),
+        'J' => {
+            if jokers {
+                Card::Joker
+            } else {
+                Card::Num(11)
             }
         }
+        'T' => Card::Num(10),
+        _ => panic!("Invalid card {c}."),
     }
-    let x = input
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum HandType {
+    HighCard,
+    Pair,
+    TwoPair,
+    Three,
+    FullHouse,
+    Four,
+    Five,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Hand([Card; 5]);
+
+impl Hand {
+    fn hand_type(self) -> HandType {
+        let mut counts: HashMap<Card, i64> = HashMap::new();
+        for card in self.0 {
+            *counts.entry(card).or_default() += 1;
+        }
+
+        let joker_count = counts.get(&Card::Joker).copied().unwrap_or_default();
+        counts.remove(&Card::Joker);
+
+        let counts = counts
+            .values()
+            .copied()
+            .sorted_by_key(|c| Reverse(*c))
+            .collect_vec();
+
+        if joker_count == 5 || counts[0] >= 5 - joker_count {
+            HandType::Five
+        } else if counts[0] >= 4 - joker_count {
+            HandType::Four
+        } else if 5 - counts[0] - counts[1] <= joker_count {
+            HandType::FullHouse
+        } else if counts[0] >= 3 - joker_count {
+            HandType::Three
+        } else if counts[0] == 2 && counts[1] >= 2 - joker_count {
+            HandType::TwoPair
+        } else if counts[0] == 2 - joker_count {
+            HandType::Pair
+        } else {
+            HandType::HighCard
+        }
+    }
+}
+
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (self.hand_type(), self.0).cmp(&(other.hand_type(), other.0))
+    }
+}
+
+#[derive(Debug)]
+struct Round {
+    hand: Hand,
+    bet: i64,
+}
+
+fn parse_round(str: &str, jokers: bool) -> Round {
+    let (hand, bet) = str.split_once(' ').unwrap();
+    let hand = hand.chars().map(|c| parse_card(c, jokers)).collect_vec();
+    let hand = Hand(hand.try_into().unwrap());
+    let bet = bet.parse().unwrap();
+    Round { hand, bet }
+}
+
+fn solve(input: &str, jokers: bool) -> i64 {
+    input
         .lines()
-        .map(|l| {
-            let m: String = l.chars().take(5).map(map).collect();
-            let mut s: HashMap<char, i64> = HashMap::new();
-
-            for c in m.chars() {
-                *s.entry(c).or_default() += 1;
-            }
-
-            let mut v = s.values().collect_vec();
-            v.sort();
-            v.reverse();
-
-            let n: String = l.chars().skip(5).collect();
-            let w = n.nums().nu();
-
-            if v[0] == &5 {
-                (format!("z{m}"), w)
-            } else if v[0] == &4 {
-                (format!("y{m}"), w)
-            } else if v[0] == &3 && v[1] == &2 {
-                (format!("x{m}"), w)
-            } else if v[0] == &3 {
-                (format!("w{m}"), w)
-            } else if v[0] == &2 && v[1] == &2 {
-                (format!("c{m}"), w)
-            } else if v[0] == &2 {
-                (format!("b{m}"), w)
-            } else {
-                (format!("a{m}"), w)
-            }
-        })
-        .sorted_by_key(|(s, _)| s.clone())
-        .collect_vec();
-
-    x.iter()
+        .map(|l| parse_round(l, jokers))
+        .sorted_by_key(|r| r.hand)
         .enumerate()
-        .map(|(i, (_, w))| w * (i as i64 + 1))
+        .map(|(i, r)| (i as i64 + 1) * r.bet)
         .sum()
 }
 
+fn part1(input: &str) -> i64 {
+    solve(input, false)
+}
+
 fn part2(input: &str) -> i64 {
-    fn map(c: char) -> char {
-        if ('0'..='9').contains(&c) {
-            c
-        } else {
-            match c {
-                'A' => 'E',
-                'K' => 'D',
-                'Q' => 'C',
-                'J' => '.',
-                'T' => 'A',
-                _ => panic!(),
-            }
-        }
-    }
-    let x = input
-        .lines()
-        .map(|l| {
-            let m: String = l.chars().take(5).map(map).collect();
-
-            let mut s: HashMap<char, i64> = HashMap::new();
-
-            for c in m.chars() {
-                *s.entry(c).or_default() += 1;
-            }
-
-            let js = s.get(&'.').map(|j| *j).unwrap_or_default();
-            s.remove(&'.');
-
-            let mut v = s.values().collect_vec();
-            v.sort();
-            v.reverse();
-
-            let n: String = l.chars().skip(5).collect();
-            let w = n.nums().nu();
-
-            if js == 5 {
-                (format!("z{m}"), w)
-            } else if *v[0] >= 5 - js {
-                (format!("z{m}"), w)
-            } else if *v[0] >= 4 - js {
-                (format!("y{m}"), w)
-            } else if (js == 0 && v[0] >= &3 && v[1] >= &2)
-                || (js == 1 && *v[0] >= 2 && v[1] >= &2)
-                || (js == 2 && *v[0] >= 2 && *v[1] >= 1)
-            {
-                (format!("x{m}"), w)
-            } else if *v[0] >= 3 - js {
-                (format!("w{m}"), w)
-            } else if v[0] == &2 && *v[1] >= 2 - js {
-                (format!("c{m}"), w)
-            } else if *v[0] >= 2 - js {
-                (format!("b{m}"), w)
-            } else {
-                (format!("a{m}"), w)
-            }
-        })
-        .sorted_by_key(|(s, _)| s.clone())
-        .collect_vec();
-
-    x.iter()
-        .enumerate()
-        .map(|(i, (_, w))| w * (i as i64 + 1))
-        .sum()
+    solve(input, true)
 }
 
 fn main() {
