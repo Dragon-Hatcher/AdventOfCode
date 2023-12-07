@@ -14,7 +14,7 @@ pub use range::*;
 pub use rot::*;
 pub use vector::*;
 
-pub use itertools::{iproduct, Itertools as _};
+pub use itertools::{iproduct, chain, Itertools as _};
 pub use regex_macro::regex;
 pub use rustc_hash::{FxHashMap, FxHashSet};
 pub use std::cmp;
