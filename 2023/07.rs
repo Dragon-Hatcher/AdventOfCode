@@ -52,26 +52,18 @@ impl Hand {
         let joker_count = counts.get(&Card::Joker).copied().unwrap_or_default();
         counts.remove(&Card::Joker);
 
-        let counts = counts
-            .values()
-            .copied()
-            .sorted_by_key(|c| Reverse(*c))
-            .collect_vec();
+        let mut counts = counts.values().copied().sorted_by_key(|c| Reverse(*c));
+        let best = counts.next().unwrap_or_default() + joker_count;
+        let second = counts.next().unwrap_or_default();
 
-        if joker_count == 5 || counts[0] >= 5 - joker_count {
-            HandType::Five
-        } else if counts[0] >= 4 - joker_count {
-            HandType::Four
-        } else if 5 - counts[0] - counts[1] <= joker_count {
-            HandType::FullHouse
-        } else if counts[0] >= 3 - joker_count {
-            HandType::Three
-        } else if counts[0] == 2 && counts[1] >= 2 - joker_count {
-            HandType::TwoPair
-        } else if counts[0] == 2 - joker_count {
-            HandType::Pair
-        } else {
-            HandType::HighCard
+        match (best, second) {
+            (5, _) => HandType::Five,
+            (4, _) => HandType::Four,
+            (3, 2) => HandType::FullHouse,
+            (3, _) => HandType::Three,
+            (2, 2) => HandType::TwoPair,
+            (2, _) => HandType::Pair,
+            _ => HandType::HighCard,
         }
     }
 }
