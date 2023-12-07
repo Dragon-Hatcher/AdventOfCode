@@ -1,11 +1,11 @@
 use advent::prelude::*;
-use std::fmt::Debug;
+use std::hash::Hash;
 
 fn default_input() -> &'static str {
     include_input!(2016 / 11)
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct ItemSet(u8);
 
 impl ItemSet {
@@ -44,13 +44,7 @@ impl ItemSet {
     }
 }
 
-impl Debug for ItemSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ItemSet({:07b})", self.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct Floor {
     microchips: ItemSet,
     generators: ItemSet,
@@ -107,10 +101,22 @@ impl Floor {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Eq)]
 struct State {
     floors: [Floor; 4],
     floor_idx: usize,
+}
+
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        self.cannonical() == other.cannonical()
+    }
+}
+
+impl Hash for State {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.cannonical().hash(state);
+    }
 }
 
 impl State {
@@ -118,6 +124,34 @@ impl State {
 
     fn is_win(&self) -> bool {
         self.floors[0].is_empty() && self.floors[1].is_empty() && self.floors[2].is_empty()
+    }
+
+    fn cannonical(self) -> (u64, usize) {
+        // We want to filter out states that aren't identical but *will* take an equivlent number
+        // of steps. To do that we use the insight that any two microchip-generator pairs with 
+        // identical positions are equivlent. We don't, however, store this representation becuase 
+        // it makes it annoying to generate the adjacent states.
+        // 
+        // The idea for this optimization comes from this reddit comment: https://www.reddit.com/r/adventofcode/comments/5hoia9/comment/db1v1ws/
+        // though I did not look at this until after I had solved the puzzle.
+
+        let mut combos = [0; 8];
+
+        for (fi, floor) in self.floors.iter().enumerate() {
+            for i in 0..8 {
+                if floor.microchips.is_set(i) {
+                    combos[i as usize] |= fi as u8;
+                }
+                if floor.generators.is_set(i) {
+                    combos[i as usize] |= (fi as u8) << 3;
+                }
+            }
+        }
+
+        // There are more zeros in our input so we want to avoid moving them a lot. That is why
+        // we do a reverse sort here. There is actually a measurable speed boost.
+        combos.sort_by_key(|b| Reverse(*b));
+        (u64::from_le_bytes(combos), self.floor_idx)
     }
 
     fn elevators(self) -> impl Iterator<Item = Floor> {
@@ -161,24 +195,6 @@ impl State {
             self.elevators()
                 .filter_map(move |el| self.apply_move(next_loc, el))
         })
-    }
-}
-
-impl Debug for State {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "State(")?;
-        for i in (0..4).rev() {
-            writeln!(
-                f,
-                "    {} {:?} {:?}",
-                if self.floor_idx == i { '>' } else { ' ' },
-                self.floors[i].microchips,
-                self.floors[i].generators
-            )?;
-        }
-        write!(f, ")")?;
-
-        Ok(())
     }
 }
 
