@@ -4,103 +4,69 @@ fn default_input() -> &'static str {
     include_input!(2023 / 08)
 }
 
-fn part1(input: &str) -> i64 {
-    let (lr, lines) = input.sections().tup();
+#[derive(Debug, Clone, Copy)]
+enum Side {
+    Left,
+    Right,
+}
 
-    let mut map = HashMap::new();
+fn parse(input: &str) -> (Vec<Side>, HashMap<String, (String, String)>) {
+    let (instructions, paths_str) = input.sections().tup();
 
-    for line in lines.lines() {
-        let (from, to) = line.split_once(" = (").unwrap();
-        let (l, r) = to.split_once(", ").unwrap();
-        let r = r.strip_suffix(")").unwrap();
+    let instructions = instructions
+        .chars()
+        .map(|c| if c == 'L' { Side::Left } else { Side::Right })
+        .collect_vec();
 
-        map.insert(from.to_owned(), (l.to_owned(), r.to_owned()));
-    }
+    let paths: HashMap<_, _> = paths_str
+        .lines()
+        .map(|line| {
+            let (from, to) = line.split_once(" = (").unwrap();
+            let (l, r) = to.split_once(", ").unwrap();
+            let r = r.strip_suffix(')').unwrap();
 
-    let mut loc = "AAA".to_owned();
+            (from.to_owned(), (l.to_owned(), r.to_owned()))
+        })
+        .collect();
+
+    (instructions, paths)
+}
+
+fn iters_to(
+    instructions: &[Side],
+    paths: &HashMap<String, (String, String)>,
+    start: &str,
+    is_end: impl Fn(&str) -> bool,
+) -> i64 {
+    let mut loc = start.to_owned();
     let mut steps = 0;
-    let len = lr.chars().count();
 
     loop {
-        let x = lr.chars().nth(steps % len).unwrap();
-        loc = if x == 'L' {
-            map[&loc].0.clone()
-        } else {
-            map[&loc].1.clone()
+        loc = match instructions[steps as usize % instructions.len()] {
+            Side::Left => paths[&loc].0.clone(),
+            Side::Right => paths[&loc].1.clone(),
         };
         steps += 1;
 
-        if loc == "ZZZ" {
-            return steps as i64;
+        if is_end(&loc) {
+            return steps;
         }
     }
 }
 
+fn part1(input: &str) -> i64 {
+    let (instructions, paths) = parse(input);
+    iters_to(&instructions, &paths, "AAA", |l| l == "ZZZ")
+}
+
 fn part2(input: &str) -> i64 {
-    let (lr, lines) = input.sections().tup();
-
-    let mut map = HashMap::new();
-
-    for line in lines.lines() {
-        let (from, to) = line.split_once(" = (").unwrap();
-        let (l, r) = to.split_once(", ").unwrap();
-        let r = r.strip_suffix(')').unwrap();
-
-        map.insert(from.to_owned(), (l.to_owned(), r.to_owned()));
-    }
-
-    let mut loc = map
+    let (instructions, paths) = parse(input);
+    paths
         .keys()
-        .filter(|s| s.ends_with('A'))
-        .cloned()
-        .collect_vec();
-    let mut steps = 0i64;
-    let len = lr.chars().count();
-
-    let mut iter_where = vec![0i64; loc.len()];
-    let mut offset = vec![0; loc.len()];
-
-    let mut l = 1;
-
-    loop {
-        let x = lr.chars().nth(steps as usize % len).unwrap();
-        loc = loc
-            .iter()
-            .map(|l| {
-                if x == 'L' {
-                    map[l].0.clone()
-                } else {
-                    map[l].1.clone()
-                }
-            })
-            .collect_vec();
-        steps += l;
-        dbg!(l, steps);
-
-        // dbg!(steps);
-
-        for i in 0..loc.len() {
-            if loc[i].ends_with('Z') {
-                let prev = iter_where[i];
-                iter_where[i] = steps;
-                offset[i] = steps - prev;
-            }
-        }
-
-        if offset.iter().all(|c| *c != 0) {
-            l = 1;
-            for o in &offset {
-                l = lcm(l, *o);
-            }
-            return l;
-        }
-
-        // dbg!(&offset);
-
-        if loc.iter().all(|l| l.ends_with('Z')) {
-            return steps as i64;
-        }
-    }
+        .filter(|l| l.ends_with('A'))
+        .map(|start| iters_to(&instructions, &paths, start, |l| l.ends_with('Z')))
+        .reduce(lcm)
+        .unwrap()
 }
 
 fn main() {
