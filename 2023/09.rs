@@ -4,70 +4,36 @@ fn default_input() -> &'static str {
     include_input!(2023 / 09)
 }
 
-fn part1(input: &str) -> i64 {
+fn get_lists(l: &str) -> Vec<Vec<i64>> {
+    let mut all = vec![l.nums().collect_vec()];
+
+    while all.last().unwrap().iter().any(|n| *n != 0) {
+        all.push(
+            all.last()
+                .unwrap()
+                .iter()
+                .tuple_windows()
+                .map(|(a, b)| b - a)
+                .collect(),
+        );
+    }
+
+    all
+}
+
+fn solve(input: &str, fold: impl FnMut(i64, &Vec<i64>) -> i64 + Copy) -> i64 {
     input
         .lines()
-        .map(|l| {
-            let mut all: Vec<Vec<i64>> = Vec::new();
-
-            let mut nums = l.nums().collect_vec();
-            all.push(nums.clone());
-            loop {
-                let next = nums
-                    .iter()
-                    .tuple_windows()
-                    .map(|(a, b)| b - a)
-                    .collect_vec();
-                all.push(next.clone());
-                if next.iter().all(|n| *n == 0) {
-                    break;
-                }
-                nums = next;
-            }
-
-            all.last_mut().unwrap().push(0);
-            for i in (0..all.len() - 1).rev() {
-                let add = all[i + 1].last().unwrap();
-                let val = all[i].last().unwrap() + add;
-                all[i].push(val);
-            }
-
-            *all[0].last().unwrap()
-        })
+        .map(|l| get_lists(l).iter().rev().fold(0, fold))
         .sum()
 }
 
+fn part1(input: &str) -> i64 {
+    solve(input, |a, ns| a + ns.last().unwrap())
+}
+
 fn part2(input: &str) -> i64 {
-    input
-        .lines()
-        .map(|l| {
-            let mut all: Vec<Vec<i64>> = Vec::new();
-
-            let mut nums = l.nums().collect_vec();
-            all.push(nums.clone());
-            loop {
-                let next = nums
-                    .iter()
-                    .tuple_windows()
-                    .map(|(a, b)| b - a)
-                    .collect_vec();
-                all.push(next.clone());
-                if next.iter().all(|n| *n == 0) {
-                    break;
-                }
-                nums = next;
-            }
-
-            all.last_mut().unwrap().insert(0, 0);
-            for i in (0..all.len() - 1).rev() {
-                let sub = all[i + 1].first().unwrap();
-                let val = all[i].first().unwrap() - sub;
-                all[i].insert(0, val);
-            }
-
-            *all[0].first().unwrap()
-        })
-        .sum()
+    solve(input, |a, ns| ns.first().unwrap() - a)
 }
 
 fn main() {
