@@ -36,8 +36,8 @@ impl<T> Grid<T> {
         F: Fn(Vector2) -> T,
     {
         Grid {
-            elements: iproduct!(0..width, 0..height)
-                .map(|(x, y)| f(Vector2::new(x, y)))
+            elements: iproduct!(0..height, 0..width)
+                .map(|(y, x)| f(Vector2::new(x, y)))
                 .collect(),
             width,
         }
