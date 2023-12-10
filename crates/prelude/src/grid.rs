@@ -201,6 +201,14 @@ impl<T> Grid<T> {
     fn calc_index(&self, vec2: Vector2) -> usize {
         (vec2.y * self.width() + vec2.x) as usize
     }
+
+    pub fn get(&self, index: Vector2) -> Option<&T> {
+        if self.in_bounds(index) {
+            Some(&self[index])
+        } else {
+            None
+        }
+    }
 }
 
 impl Grid<bool> {

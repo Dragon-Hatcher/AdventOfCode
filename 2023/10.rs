@@ -4,198 +4,162 @@ fn default_input() -> &'static str {
     include_input!(2023 / 10)
 }
 
-fn loop_length(
-    grid: &mut Grid<(bool, bool, bool, bool, bool)>,
-    start: Vector2,
-    shape: (bool, bool, bool, bool, bool),
-) -> Option<(HashSet<Vector2>, HashSet<Vector2>)> {
-    grid[start] = shape;
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
+struct Cell {
+    north: bool,
+    south: bool,
+    east: bool,
+    west: bool,
+}
 
-    let mut prev = start;
-    let mut curr = start;
-    let mut visited = HashSet::new();
-    let mut doubled = HashSet::new();
-
-    loop {
-        visited.insert(curr);
-        doubled.insert(curr * 2);
-
-        if grid[curr].0 && prev != curr - Vector2::E2 && grid.in_bounds(curr - Vector2::E2) {
-            let next = curr - Vector2::E2;
-            doubled.insert(curr * 2 - Vector2::E2);
-            prev = curr;
-            curr = next;
-            if next == start {
-                return Some((visited, doubled));
-            }
-        } else if grid[curr].1 && prev != curr + Vector2::E2 && grid.in_bounds(curr + Vector2::E2) {
-            let next = curr + Vector2::E2;
-            doubled.insert(curr * 2 + Vector2::E2);
-            prev = curr;
-            curr = next;
-            if next == start {
-                return Some((visited, doubled));
-            }
-        } else if grid[curr].2 && prev != curr + Vector2::E1 && grid.in_bounds(curr + Vector2::E1) {
-            let next = curr + Vector2::E1;
-            doubled.insert(curr * 2 + Vector2::E1);
-            prev = curr;
-            curr = next;
-            if next == start {
-                return Some((visited, doubled));
-            }
-        } else if grid[curr].3 && prev != curr - Vector2::E1 && grid.in_bounds(curr - Vector2::E1) {
-            let next = curr - Vector2::E1;
-            doubled.insert(curr * 2 - Vector2::E1);
-            prev = curr;
-            curr = next;
-            if next == start {
-                return Some((visited, doubled));
-            }
-        } else {
-            return None;
+impl Cell {
+    fn from_char(c: char) -> Option<Cell> {
+        match c {
+            '|' => Some(Cell {
+                north: true,
+                south: true,
+                ..Default::default()
+            }),
+            '-' => Some(Cell {
+                east: true,
+                west: true,
+                ..Default::default()
+            }),
+            'L' => Some(Cell {
+                north: true,
+                east: true,
+                ..Default::default()
+            }),
+            'J' => Some(Cell {
+                north: true,
+                west: true,
+                ..Default::default()
+            }),
+            '7' => Some(Cell {
+                south: true,
+                west: true,
+                ..Default::default()
+            }),
+            'F' => Some(Cell {
+                south: true,
+                east: true,
+                ..Default::default()
+            }),
+            '.' => Some(Default::default()),
+            _ => None,
         }
     }
+
+    fn from_neighbors(
+        north: Option<Cell>,
+        south: Option<Cell>,
+        east: Option<Cell>,
+        west: Option<Cell>,
+    ) -> Cell {
+        Cell {
+            north: north.map(|c| c.south).unwrap_or(false),
+            south: south.map(|c| c.north).unwrap_or(false),
+            east: east.map(|c| c.west).unwrap_or(false),
+            west: west.map(|c| c.east).unwrap_or(false),
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        !self.north && !self.south && !self.east && !self.west
+    }
+}
+
+fn parse(input: &str) -> (Grid<Cell>, Vector2) {
+    let mut grid = Grid::new_by_char(input, Cell::from_char);
+    let start = grid.points().find(|p| grid[*p].is_none()).unwrap();
+    let start_cell = Cell::from_neighbors(
+        grid.get(start - Vector2::E2).map(|c| c.unwrap()),
+        grid.get(start + Vector2::E2).map(|c| c.unwrap()),
+        grid.get(start + Vector2::E1).map(|c| c.unwrap()),
+        grid.get(start - Vector2::E1).map(|c| c.unwrap()),
+    );
+    grid[start] = Some(start_cell);
+    let grid = grid.map(|c| c.unwrap());
+
+    (grid, start)
+}
+
+fn walk(grid: &Grid<Cell>, start: Vector2) -> HashSet<Vector2> {
+    let mut edge = HashSet::new();
+    let mut seen = HashSet::new();
+
+    edge.insert(start);
+    seen.insert(start);
+
+    while !edge.is_empty() {
+        let mut new_edge = HashSet::new();
+
+        for p in edge {
+            let cell = grid[p];
+            if cell.north {
+                new_edge.insert(p - Vector2::E2);
+            }
+            if cell.south {
+                new_edge.insert(p + Vector2::E2);
+            }
+            if cell.east {
+                new_edge.insert(p + Vector2::E1);
+            }
+            if cell.west {
+                new_edge.insert(p - Vector2::E1);
+            }
+        }
+
+        edge = new_edge;
+        edge.retain(|p| !seen.contains(p));
+        seen.extend(&edge);
+    }
+
+    seen
 }
 
 fn part1(input: &str) -> i64 {
-    let mut grid = Grid::new_by_char(input, |c| match c {
-        '|' => (true, true, false, false, false),
-        '-' => (false, false, true, true, false),
-        'L' => (true, false, true, false, false),
-        'J' => (true, false, false, true, false),
-        '7' => (false, true, false, true, false),
-        'F' => (false, true, true, false, false),
-        '.' => (false, false, false, false, false),
-        'S' => (true, true, true, true, true),
-        _ => panic!(),
-    });
-
-    let start = grid.points().find(|p| grid[*p].4).unwrap();
-
-    for t in [
-        (true, true, false, false, false),
-        (false, false, true, true, false),
-        (true, false, true, false, false),
-        (true, false, false, true, false),
-        (false, true, false, true, false),
-        (false, true, true, false, false),
-        (false, false, false, false, false),
-    ] {
-        if let Some((visited, _)) = loop_length(&mut grid, start, t) {
-            return visited.len() as i64 / 2;
-        }
-    }
-
-    unreachable!()
+    let (grid, start) = parse(input);
+    walk(&grid, start).len() as i64 / 2
 }
 
 fn part2(input: &str) -> i64 {
-    let mut grid = Grid::new_by_char(input, |c| match c {
-        '|' => (true, true, false, false, false),
-        '-' => (false, false, true, true, false),
-        'L' => (true, false, true, false, false),
-        'J' => (true, false, false, true, false),
-        '7' => (false, true, false, true, false),
-        'F' => (false, true, true, false, false),
-        '.' => (false, false, false, false, false),
-        'S' => (true, true, true, true, true),
-        _ => panic!("{c}"),
-    });
+    let (mut grid, start) = parse(input);
+    let walk = walk(&grid, start);
 
-    let start = grid.points().find(|p| grid[*p].4).unwrap();
+    for p in grid.points().filter(|p| !walk.contains(p)) {
+        grid[p] = Cell::from_char('.').unwrap();
+    }
 
-    for t in [
-        (true, true, false, false, false),
-        (false, false, true, true, false),
-        (true, false, true, false, false),
-        (true, false, false, true, false),
-        (false, true, false, true, false),
-        (false, true, true, false, false),
-        (false, false, false, false, false),
-    ] {
-        if let Some((_, doubled)) = loop_length(&mut grid, start, t) {
-            let mut all_adjacent: HashSet<_> = doubled
-                .iter()
-                .flat_map(|p| p.neighbors4())
-                .filter(|p| !doubled.contains(p))
-                .collect();
+    let mut found = 0;
 
-            let min_x = doubled.iter().map(|p| p.x).min().unwrap_or_default() - 1;
-            let min_y = doubled.iter().map(|p| p.y).min().unwrap_or_default() - 1;
-            let max_x = doubled.iter().map(|p| p.x).max().unwrap_or_default() + 1;
-            let max_y = doubled.iter().map(|p| p.y).max().unwrap_or_default() + 1;
+    for y in 0..grid.height() {
+        let mut inside = false;
 
-            dbg!(min_x, min_y, max_x, max_y);
+        let mut north = false;
+        let mut south = false;
 
-            loop {
-                let next: HashSet<_> = all_adjacent
-                    .iter()
-                    .flat_map(|p| p.neighbors4())
-                    .filter(|p| {
-                        !doubled.contains(p)
-                            && p.x >= min_x
-                            && p.x <= max_x
-                            && p.y >= min_y
-                            && p.y <= max_y
-                    })
-                    .collect();
+        for x in 0..grid.width() {
+            let cell = grid[Vector2::new(x, y)];
 
-                let pre_len = all_adjacent.len();
-                all_adjacent.extend(next);
+            if cell.is_empty() && inside {
+                found += 1;
+            }
 
-                if pre_len == all_adjacent.len() {
-                    let mut sum = 0;
+            if cell.north { north = !north; }
+            if cell.south {
+                south = !south;
+            }
 
-                    while !all_adjacent.is_empty() {
-                        let group_seed = all_adjacent.iter().nu();
-                        let mut group = HashSet::new();
-                        group.insert(*group_seed);
-
-                        loop {
-                            let next_group: HashSet<Vector2> = group
-                                .iter()
-                                .flat_map(|p| p.neighbors4())
-                                .filter(|p| all_adjacent.contains(p))
-                                .collect();
-
-                            let pre_len = group.len();
-                            group.extend(next_group);
-
-                            if group.len() == pre_len {
-                                break;
-                            }
-                        }
-
-                        let edge: HashSet<Vector2> = group
-                            .iter()
-                            .copied()
-                            .filter(|p| p.neighbors4().any(|p2| !group.contains(&p2)))
-                            .collect();
-
-                        if edge
-                            .iter()
-                            .all(|p| p.neighbors4().any(|p2| doubled.contains(&p2)))
-                        {
-                            let adding: HashSet<_> = group
-                                .iter()
-                                .filter(|p| p.x % 2 == 0 && p.y % 2 == 0)
-                                .collect();
-                                sum += adding.len();
-                        }
-
-                        for p in group {
-                            all_adjacent.remove(&p);
-                        }
-                    }
-
-                    return sum as i64;
-                }
+            if north && south {
+                north = false;
+                south = false;
+                inside = !inside;
             }
         }
     }
 
-    unreachable!()
+    found
 }
 
 fn main() {
@@ -205,12 +169,19 @@ fn main() {
 
 #[test]
 fn example() {
-    assert_eq!(part1("..F7.
+    assert_eq!(
+        part1(
+            "..F7.
 .FJ|.
 SJ.L7
 |F--J
-LJ..."), 8);
-    assert_eq!(part2("FF7FSF7F7F7F7F7F---7
+LJ..."
+        ),
+        8
+    );
+    assert_eq!(
+        part2(
+            "FF7FSF7F7F7F7F7F---7
 L|LJ||||||||||||F--J
 FL-7LJLJ||||||LJL-77
 F--JF--7||LJLJ7F7FJ-
@@ -219,7 +190,10 @@ L---JF-JLJ.||-FJLJJ7
 |FFJF7L7F-JF7|JL---7
 7-L-JL7||F7|L7F-7F7|
 L.L7LFJ|||||FJL7||LJ
-L7JLJL-JLJLJL--JLJ.L"), 10);
+L7JLJL-JLJLJL--JLJ.L"
+        ),
+        10
+    );
 }
 
 #[test]
