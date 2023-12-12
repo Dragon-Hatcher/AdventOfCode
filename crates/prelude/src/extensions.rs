@@ -35,6 +35,7 @@ pub trait AocParsed<'a>: Into<&'a str> {
 
 impl<'a, I: Into<&'a str>> AocParsed<'a> for I {}
 
+#[derive(Debug, Clone)]
 pub struct NumIter<'a>(&'a str, bool);
 
 impl<'a> Iterator for NumIter<'a> {
