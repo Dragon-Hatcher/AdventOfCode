@@ -1,12 +1,13 @@
 use std::iter::once;
 
 use advent::prelude::*;
+use memoize::memoize;
 
 fn default_input() -> &'static str {
     include_input!(2023 / 12)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Spring {
     Working,
     Damaged,
@@ -31,7 +32,8 @@ fn parse_spring(char: char) -> Spring {
     }
 }
 
-fn count_arrangements(springs: &[Spring], groups: &[i64]) -> i64 {
+#[memoize]
+fn count_arrangements(springs: Vec<Spring>, groups: Vec<i64>) -> i64 {
     if springs.is_empty() || groups.is_empty() {
         return (groups.is_empty() && springs.iter().all(Spring::is_gap)) as i64;
     }
@@ -53,7 +55,7 @@ fn count_arrangements(springs: &[Spring], groups: &[i64]) -> i64 {
             && (i + group == springs.len() || springs[i + group].is_gap())
         {
             let rest_springs = &springs[(i + group + 1).min(springs.len())..];
-            sum += count_arrangements(rest_springs, rest_groups);
+            sum += count_arrangements(rest_springs.to_owned(), rest_groups.to_owned());
         }
     }
 
@@ -67,7 +69,7 @@ fn part1(input: &str) -> i64 {
             let (springs, group_sizes) = l.split_once(' ').unwrap();
             let springs = springs.chars().map(parse_spring).collect_vec();
             let group_sizes = group_sizes.nums().collect_vec();
-            count_arrangements(&springs, &group_sizes)
+            count_arrangements(springs, group_sizes)
         })
         .sum()
 }
@@ -89,7 +91,7 @@ fn part2(input: &str) -> i64 {
                 .collect_vec();
             let group_sizes = group_sizes.nums().cycle().take(group_cnt * 5).collect_vec();
 
-            count_arrangements(&springs, &group_sizes)
+            count_arrangements(springs, group_sizes)
         })
         .sum()
 }
