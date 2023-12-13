@@ -198,6 +198,15 @@ impl<T> Grid<T> {
         self.rotate_range_by_delta(r, -Vector2::E2 * dist)
     }
 
+    pub fn transpose(&self) -> Self
+    where
+        T: Clone,
+    {
+        Self::new_with(self.height(), self.width(), |p| {
+            self[Vector2::new(p.y, p.x)].clone()
+        })
+    }
+
     fn calc_index(&self, vec2: Vector2) -> usize {
         (vec2.y * self.width() + vec2.x) as usize
     }

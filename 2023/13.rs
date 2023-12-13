@@ -4,14 +4,9 @@ fn default_input() -> &'static str {
     include_input!(2023 / 13)
 }
 
-fn solve(pattern: &str, smudges: usize) -> (i64, i64) {
-    let grid = Grid::new_by_char(pattern, |c| c == '#');
-
+fn find_reflection(grid: &Grid<bool>, smudges: usize) -> Option<i64> {
     for i in 1..grid.width() {
-        let left = 0..i;
-        let right = i..grid.width();
-        let size = (left.end - left.start).min(right.end - right.start);
-
+        let size = i.min(grid.width() - i);
         let left = (i - size)..i;
         let right = i..i + size;
 
@@ -27,51 +22,27 @@ fn solve(pattern: &str, smudges: usize) -> (i64, i64) {
             .sum::<usize>()
             == smudges
         {
-            return (0, i);
+            return Some(i);
         }
     }
 
-    for i in 1..grid.height() {
-        let left = 0..i;
-        let right = i..grid.height();
-        let size = (left.end - left.start).min(right.end - right.start);
+    None
+}
 
-        let top = (i - size)..i;
-        let bottom = i..i + size;
+fn solve(pattern: &str, smudges: usize) -> i64 {
+    let grid = Grid::new_by_char(pattern, |c| c == '#');
 
-        if top
-            .zip(bottom.rev())
-            .map(|(t, b)| {
-                grid.row(t)
-                    .points()
-                    .zip(grid.row(b).points())
-                    .filter(|(tp, bp)| grid[*tp] != grid[*bp])
-                    .count()
-            })
-            .sum::<usize>()
-            == smudges
-        {
-            return (i, 0);
-        }
-    }
-
-    (0, 0)
+    find_reflection(&grid, smudges)
+        .or_else(|| find_reflection(&grid.transpose(), smudges).map(|r| r * 100))
+        .unwrap_or_default()
 }
 
 fn part1(input: &str) -> i64 {
-    input
-        .sections()
-        .map(|s| solve(s, 0))
-        .map(|(rows, columns)| columns + rows * 100)
-        .sum()
+    input.sections().map(|s| solve(s, 0)).sum()
 }
 
 fn part2(input: &str) -> i64 {
-    input
-        .sections()
-        .map(|s| solve(s, 1))
-        .map(|(rows, columns)| columns + rows * 100)
-        .sum()
+    input.sections().map(|s| solve(s, 1)).sum()
 }
 
 fn main() {
