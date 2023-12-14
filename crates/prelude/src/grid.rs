@@ -3,7 +3,7 @@ use itertools::iproduct;
 use std::fmt::Debug;
 use std::ops::{Index, IndexMut};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Grid<T> {
     elements: Vec<T>,
     width: i64,
