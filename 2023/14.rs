@@ -1,97 +1,77 @@
 use advent::prelude::*;
+use std::convert::identity;
 
 fn default_input() -> &'static str {
     include_input!(2023 / 14)
 }
 
-fn cycle(grid: &mut Grid<char>) {
-    for _ in 0..grid.height() {
-        for i in 1..grid.height() {
-            for col in 0..grid.width() {
-                let p = Vector2::new(col, i);
-                let p2 = Vector2::new(col, i - 1);
-                if grid[p] == 'O' && grid[p2] == '.' {
-                    grid[p] = '.';
-                    grid[p2] = 'O';
-                }
-            }
-        }
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Cell {
+    Empty,
+    Wall,
+    Rock,
+}
 
-    for _ in 0..grid.width() {
-        for i in 1..grid.width() {
-            for row in 0..grid.height() {
-                let p = Vector2::new(i, row);
-                let p2 = Vector2::new(i - 1, row);
-                if grid[p] == 'O' && grid[p2] == '.' {
-                    grid[p] = '.';
-                    grid[p2] = 'O';
-                }
-            }
-        }
-    }
-
-    for _ in 0..grid.height() {
-        for i in (0..grid.height() - 1).rev() {
-            for col in 0..grid.width() {
-                let p = Vector2::new(col, i);
-                let p2 = Vector2::new(col, i + 1);
-                if grid[p] == 'O' && grid[p2] == '.' {
-                    grid[p] = '.';
-                    grid[p2] = 'O';
-                }
-            }
-        }
-    }
-
-    for _ in 0..grid.width() {
-        for i in (0..grid.width() - 1).rev() {
-            for row in 0..grid.height() {
-                let p = Vector2::new(i, row);
-                let p2 = Vector2::new(i + 1, row);
-                if grid[p] == 'O' && grid[p2] == '.' {
-                    grid[p] = '.';
-                    grid[p2] = 'O';
-                }
-            }
-        }
+fn parse_cell(c: char) -> Cell {
+    match c {
+        '#' => Cell::Wall,
+        'O' => Cell::Rock,
+        _ => Cell::Empty,
     }
 }
 
-fn part1(input: &str) -> i64 {
-    let mut grid = Grid::new_by_char(input, |c| c);
-
-    for _ in 0..grid.height() {
-        for i in 1..grid.height() {
-            for col in 0..grid.width() {
-                let p = Vector2::new(col, i);
-                let p2 = Vector2::new(col, i - 1);
-                if grid[p] == 'O' && grid[p2] == '.' {
-                    grid[p] = '.';
-                    grid[p2] = 'O';
-                }
-            }
-        }
-    }
-
+fn calc_weight(grid: &Grid<Cell>) -> i64 {
     grid.points()
-        .filter(|p| grid[*p] == 'O')
+        .filter(|&p| grid[p] == Cell::Rock)
         .map(|p| grid.height() - p.y)
         .sum()
 }
 
-fn part2(input: &str) -> i64 {
-    let mut seen: HashMap<Grid<char>, i64> = HashMap::new();
+fn tilt(grid: &mut Grid<Cell>, f: impl Fn(Vector2) -> Vector2) {
+    for x in 0..grid.width() {
+        let mut valid_y = 0;
+        for y in 0..grid.height() {
+            let p = f(Vector2::new(x, y));
+            match grid[p] {
+                Cell::Empty => {}
+                Cell::Wall => valid_y = y + 1,
+                Cell::Rock => {
+                    grid[p] = Cell::Empty;
+                    grid[f(Vector2::new(x, valid_y))] = Cell::Rock;
+                    valid_y += 1;
+                }
+            }
+        }
+    }
+}
 
-    let mut grid = Grid::new_by_char(input, |c| c);
+fn cycle(grid: &mut Grid<Cell>) {
+    let size = grid.width();
+
+    tilt(grid, identity); // north
+    tilt(grid, |v| Vector2::new(v.y, v.x)); // west
+    tilt(grid, |v| Vector2::new(v.x, size - v.y - 1)); // south
+    tilt(grid, |v| Vector2::new(size - v.y - 1, v.x)); // east
+}
+
+fn part1(input: &str) -> i64 {
+    let mut grid = Grid::new_by_char(input, parse_cell);
+    tilt(&mut grid, identity);
+    calc_weight(&grid)
+}
+
+fn part2(input: &str) -> i64 {
+    const TARGET_IDX: usize = 1000000000;
+
+    let mut grid = Grid::new_by_char(input, parse_cell);
+
+    let mut seen = HashMap::new();
     let mut idx = 0;
 
-    while idx < 1000000000 {
-        if seen.contains_key(&grid) {
-            let diff = idx - seen[&grid];
-            if idx + diff < 1000000000 {
-                idx += ((1000000000 - idx) / diff) * diff;
-            }
+    while idx < TARGET_IDX {
+        if let Some(prev_idx) = seen.get(&grid) {
+            let diff = idx - prev_idx;
+            idx += ((TARGET_IDX - idx) / diff) * diff;
         }
 
         seen.insert(grid.clone(), idx);
@@ -99,10 +79,7 @@ fn part2(input: &str) -> i64 {
         idx += 1;
     }
 
-    grid.points()
-        .filter(|p| grid[*p] == 'O')
-        .map(|p| grid.height() - p.y)
-        .sum()
+    calc_weight(&grid)
 }
 
 fn main() {
