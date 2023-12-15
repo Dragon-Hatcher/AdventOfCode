@@ -4,49 +4,43 @@ fn default_input() -> &'static str {
     include_input!(2023 / 15)
 }
 
+fn hash(code: &str) -> i64 {
+    let mut hash = 0;
+    for c in code.chars() {
+        hash += c as i64;
+        hash *= 17;
+        hash %= 256;
+    }
+    hash
+}
+
 fn part1(input: &str) -> i64 {
-    input
-        .trim()
-        .split(',')
-        .map(|l| {
-            let mut hash = 0;
-            for c in l.chars() {
-                hash += c as i64;
-                hash *= 17;
-                hash %= 256;
-            }
-            hash
-        })
-        .sum()
+    input.trim().split(',').map(hash).sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let mut map: HashMap<i64, Vec<(String, i64)>> = HashMap::new();
+    let mut lenses: HashMap<i64, Vec<(String, i64)>> = HashMap::new();
 
-    for i in input.trim().split(',') {
-        let (code, rest) = i.split_once(['=', '-']).unwrap();
-        let mut hash = 0;
-        for c in code.chars() {
-            hash += c as i64;
-            hash *= 17;
-            hash %= 256;
-        }
+    for instruction in input.trim().split(',') {
+        let (code, rest) = instruction.split_once(['=', '-']).unwrap();
+        let hash = hash(code);
+        let lens_box = lenses.entry(hash).or_default();
+        let current_pos = lens_box.iter().position(|(c, _)| code == c);
 
-        let e = map.entry(hash).or_default();
-        if rest.is_empty() {
-            if let Some(idx) = e.iter().position(|(c, _)| code == c) {
-                e.remove(idx);
+        match (rest, current_pos) {
+            ("", Some(idx)) => {
+                lens_box.remove(idx);
             }
-        } else {
-            if let Some(idx) = e.iter().position(|(c, _)| code == c) {
-                e[idx] = (code.to_owned(), rest.nums().nu());
-            } else {
-                e.push((code.to_owned(), rest.nums().nu()))
+            ("", None) => {}
+            (_, Some(idx)) => {
+                lens_box[idx].1 = rest.parse().unwrap();
             }
+            (_, None) => lens_box.push((code.to_owned(), rest.parse().unwrap())),
         }
     }
 
-    map.iter()
+    lenses
+        .iter()
         .flat_map(|(&b, vs)| {
             vs.iter()
                 .enumerate()
