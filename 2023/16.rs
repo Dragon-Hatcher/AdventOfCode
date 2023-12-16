@@ -22,8 +22,8 @@ fn energized(grid: &Grid<char>, start: Pose) -> i64 {
         seen_locs.insert(pos);
 
         match (grid[pos], dir) {
-            ('/', Direction::North | Direction::South)
-            | ('\\', Direction::East | Direction::West) => {
+            ('/', Direction::Up | Direction::Down)
+            | ('\\', Direction::Right | Direction::Left) => {
                 let nd = dir.turn(Turn::Right);
                 let np = pos + nd.vector();
                 edge.push_back(Pose { pos: np, dir: nd });
@@ -33,8 +33,8 @@ fn energized(grid: &Grid<char>, start: Pose) -> i64 {
                 let np = pos + nd.vector();
                 edge.push_back(Pose { pos: np, dir: nd });
             }
-            ('-', Direction::East | Direction::West)
-            | ('|', Direction::North | Direction::South) => {
+            ('-', Direction::Right | Direction::Left)
+            | ('|', Direction::Up | Direction::Down) => {
                 let np = pos + dir.vector();
                 edge.push_back(Pose { pos: np, dir });
             }
@@ -60,7 +60,7 @@ fn part1(input: &str) -> i64 {
         &grid,
         Pose {
             pos: Vector2::ZERO,
-            dir: Direction::East,
+            dir: Direction::Right,
         },
     )
 }
@@ -70,10 +70,10 @@ fn part2(input: &str) -> i64 {
     let grid = Grid::new_by_char(input, |c| c);
 
     chain!(
-        grid.col(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::East })),
-        grid.col(grid.width() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::West })),
-        grid.row(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::South })),
-        grid.row(grid.height() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::North })),
+        grid.col(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::Right })),
+        grid.col(grid.width() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::Left })),
+        grid.row(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::Down })),
+        grid.row(grid.height() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::Up })),
     ).max().unwrap_or_default()
 
 }

@@ -2,29 +2,29 @@ use crate::Vector2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
-    North,
-    East,
-    South,
-    West,
+    Up,
+    Right,
+    Down,
+    Left,
 }
 
 impl Direction {
     pub fn from_char(char: char) -> Direction {
         match char {
-            'U' => Direction::North,
-            'R' => Direction::East,
-            'D' => Direction::South,
-            'L' => Direction::West,
+            'U' => Direction::Up,
+            'R' => Direction::Right,
+            'D' => Direction::Down,
+            'L' => Direction::Left,
             _ => panic!("Invalid direction char {char}."),
         }
     }
 
     pub fn vector(self) -> Vector2 {
         match self {
-            Direction::North => -Vector2::E2,
-            Direction::East => Vector2::E1,
-            Direction::South => Vector2::E2,
-            Direction::West => -Vector2::E1,
+            Direction::Up => -Vector2::E2,
+            Direction::Right => Vector2::E1,
+            Direction::Down => Vector2::E2,
+            Direction::Left => -Vector2::E1,
         }
     }
 
@@ -33,32 +33,32 @@ impl Direction {
         use Turn as T;
 
         match (self, turn) {
-            (D::North, T::Left) => D::West,
-            (D::North, T::Right) => D::East,
-            (D::East, T::Left) => D::North,
-            (D::East, T::Right) => D::South,
-            (D::South, T::Left) => D::East,
-            (D::South, T::Right) => D::West,
-            (D::West, T::Left) => D::South,
-            (D::West, T::Right) => D::North,
+            (D::Up, T::Left) => D::Left,
+            (D::Up, T::Right) => D::Right,
+            (D::Right, T::Left) => D::Up,
+            (D::Right, T::Right) => D::Down,
+            (D::Down, T::Left) => D::Right,
+            (D::Down, T::Right) => D::Left,
+            (D::Left, T::Left) => D::Down,
+            (D::Left, T::Right) => D::Up,
         }
     }
 
     pub fn reverse(self) -> Direction {
         match self {
-            Direction::North => Direction::South,
-            Direction::East => Direction::South,
-            Direction::South => Direction::North,
-            Direction::West => Direction::West,
+            Direction::Up => Direction::Down,
+            Direction::Right => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Left => Direction::Left,
         }
     }
 
     pub fn vertical(self) -> bool {
-        matches!(self, Direction::North | Direction::South)
+        matches!(self, Direction::Up | Direction::Down)
     }
 
     pub fn horizontal(self) -> bool {
-        matches!(self, Direction::East | Direction::West)
+        matches!(self, Direction::Right | Direction::Left)
     }
 }
 

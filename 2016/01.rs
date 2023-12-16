@@ -15,7 +15,7 @@ fn parse(input: &str) -> impl Iterator<Item = (Turn, i64)> + '_ {
 fn part1(input: &str) -> i64 {
     let directions = parse(input);
 
-    let mut facing = Direction::North;
+    let mut facing = Direction::Up;
     let mut pos = Vector2::ZERO;
 
     for (turn, dist) in directions {
@@ -29,7 +29,7 @@ fn part1(input: &str) -> i64 {
 fn part2(input: &str) -> i64 {
     let directions = parse(input);
 
-    let mut facing = Direction::North;
+    let mut facing = Direction::Up;
     let mut pos = Vector2::ZERO;
     let mut visited = FxHashSet::default();
     visited.insert(pos);
