@@ -26,15 +26,15 @@ fn solve(input: &str, keys: &HashMap<Vector2, char>) -> String {
 
 fn part1(input: &str) -> String {
     let keys = hashmap!(
-        Vector2::new(-1, 1) => '1',
+        Vector2::new(-1, -1) => '1',
         Vector2::new(-1, 0) => '4',
-        Vector2::new(-1, -1) => '7',
-        Vector2::new(0, 1) => '2',
+        Vector2::new(-1, 1) => '7',
+        Vector2::new(0, -1) => '2',
         Vector2::new(0, 0) => '5',
-        Vector2::new(0, -1) => '8',
-        Vector2::new(1, 1) => '3',
+        Vector2::new(0, 1) => '8',
+        Vector2::new(1, -1) => '3',
         Vector2::new(1, 0) => '6',
-        Vector2::new(1, -1) => '9',
+        Vector2::new(1, 1) => '9',
     );
 
     solve(input, &keys)
@@ -44,16 +44,16 @@ fn part2(input: &str) -> String {
     let keys = hashmap!(
         Vector2::new(0, 0) => '5',
         Vector2::new(1, 0) => '6',
-        Vector2::new(1, 1) => '2',
-        Vector2::new(1, -1) => 'A',
+        Vector2::new(1, -1) => '2',
+        Vector2::new(1, 1) => 'A',
         Vector2::new(2, 0) => '7',
-        Vector2::new(2, 1) => '3',
-        Vector2::new(2, 2) => '1',
-        Vector2::new(2, -1) => 'B',
-        Vector2::new(2, -2) => 'D',
+        Vector2::new(2, -1) => '3',
+        Vector2::new(2, -2) => '1',
+        Vector2::new(2, 1) => 'B',
+        Vector2::new(2, 2) => 'D',
         Vector2::new(3, 0) => '8',
-        Vector2::new(3, 1) => '4',
-        Vector2::new(3, -1) => 'C',
+        Vector2::new(3, -1) => '4',
+        Vector2::new(3, 1) => 'C',
         Vector2::new(4, 0) => '9',
     );
 
