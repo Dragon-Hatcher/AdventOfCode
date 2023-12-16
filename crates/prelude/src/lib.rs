@@ -5,6 +5,7 @@ mod math;
 mod range;
 mod rot;
 mod vector;
+mod pose;
 
 pub use crypto::*;
 pub use extensions::*;
@@ -13,6 +14,7 @@ pub use math::*;
 pub use range::*;
 pub use rot::*;
 pub use vector::*;
+pub use pose::*;
 
 pub use itertools::{iproduct, chain, Itertools as _};
 pub use regex_macro::regex;

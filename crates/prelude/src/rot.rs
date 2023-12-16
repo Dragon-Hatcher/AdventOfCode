@@ -52,6 +52,14 @@ impl Direction {
             Direction::West => Direction::West,
         }
     }
+
+    pub fn vertical(self) -> bool {
+        matches!(self, Direction::North | Direction::South)
+    }
+
+    pub fn horizontal(self) -> bool {
+        matches!(self, Direction::East | Direction::West)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

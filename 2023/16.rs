@@ -4,94 +4,78 @@ fn default_input() -> &'static str {
     include_input!(2023 / 16)
 }
 
-fn energized(grid: &Grid<char>, start: Vector2, dir: Direction) -> i64 {
-    let mut seen = HashSet::new();
-    let mut seen2 = HashSet::new();
+fn energized(grid: &Grid<char>, start: Pose) -> i64 {
+    let mut seen_locs = HashSet::new();
+    let mut seen_poses = HashSet::new();
 
     let mut edge = VecDeque::new();
-    edge.push_back((start, dir));
+    edge.push_back(start);
 
-    while let Some((p, dir)) = edge.pop_back() {
-        if seen2.contains(&(p, dir)) {
+    while let Some(pose) = edge.pop_back() {
+        let Pose { pos, dir } = pose;
+
+        if seen_poses.contains(&pose) || !grid.in_bounds(pos) {
             continue;
         }
 
-        if !grid.in_bounds(p) {
-            continue;
-        }
+        seen_poses.insert(pose);
+        seen_locs.insert(pos);
 
-        seen2.insert((p, dir));
-        seen.insert(p);
-
-        let c = grid[p];
-
-        match c {
-            '/' => {
-                let nd = dir.turn(if dir == Direction::North || dir == Direction::South {
-                    Turn::Right
-                } else {
-                    Turn::Left
-                });
-                let np = p + nd.vector();
-                edge.push_back((np, nd));
+        match (grid[pos], dir) {
+            ('/', Direction::North | Direction::South)
+            | ('\\', Direction::East | Direction::West) => {
+                let nd = dir.turn(Turn::Right);
+                let np = pos + nd.vector();
+                edge.push_back(Pose { pos: np, dir: nd });
             }
-            '\\' => {
-                let nd = dir.turn(if dir == Direction::North || dir == Direction::South {
-                    Turn::Left
-                } else {
-                    Turn::Right
-                });
-                let np = p + nd.vector();
-                edge.push_back((np, nd));
+            ('/' | '\\', _) => {
+                let nd = dir.turn(Turn::Left);
+                let np = pos + nd.vector();
+                edge.push_back(Pose { pos: np, dir: nd });
             }
-            '-' => {
-                if dir == Direction::East || dir == Direction::West {
-                    let np = p + dir.vector();
-                    edge.push_back((np, dir));
-                } else {
-                    let nd1 = dir.turn(Turn::Left);
-                    let nd2 = dir.turn(Turn::Right);
-                    edge.push_back((p + nd1.vector(), nd1));
-                    edge.push_back((p + nd2.vector(), nd2));
-                }
+            ('-', Direction::East | Direction::West)
+            | ('|', Direction::North | Direction::South) => {
+                let np = pos + dir.vector();
+                edge.push_back(Pose { pos: np, dir });
             }
-            '|' => {
-                if dir == Direction::North || dir == Direction::South {
-                    let np = p + dir.vector();
-                    edge.push_back((np, dir));
-                } else {
-                    let nd1 = dir.turn(Turn::Left);
-                    let nd2 = dir.turn(Turn::Right);
-                    edge.push_back((p + nd1.vector(), nd1));
-                    edge.push_back((p + nd2.vector(), nd2));
-                }
+            ('-' | '|', _) => {
+                let nd1 = dir.turn(Turn::Left);
+                let nd2 = dir.turn(Turn::Right);
+                edge.push_back(Pose { pos, dir: nd1 });
+                edge.push_back(Pose { pos, dir: nd2 });
             }
             _ => {
-                let np = p + dir.vector();
-                edge.push_back((np, dir));
+                let np = pos + dir.vector();
+                edge.push_back(Pose { pos: np, dir });
             }
         }
-
     }
 
-    seen.len() as i64
-
+    seen_locs.len() as i64
 }
 
 fn part1(input: &str) -> i64 {
     let grid = Grid::new_by_char(input, |c| c);
-    energized(&grid, Vector2::ZERO, Direction::East)
+    energized(
+        &grid,
+        Pose {
+            pos: Vector2::ZERO,
+            dir: Direction::East,
+        },
+    )
 }
 
+#[rustfmt::skip]
 fn part2(input: &str) -> i64 {
     let grid = Grid::new_by_char(input, |c| c);
 
-    let a = grid.col(0).points().map(|p| energized(&grid, p, Direction::East)).max().unwrap_or_default();
-    let b = grid.col(grid.width() - 1).points().map(|p| energized(&grid, p, Direction::West)).max().unwrap_or_default();
-    let c = grid.row(0).points().map(|p| energized(&grid, p, Direction::South)).max().unwrap_or_default();
-    let d = grid.row(grid.height() - 1).points().map(|p| energized(&grid, p, Direction::North)).max().unwrap_or_default();
+    chain!(
+        grid.col(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::East })),
+        grid.col(grid.width() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::West })),
+        grid.row(0).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::South })),
+        grid.row(grid.height() - 1).points().map(|pos| energized(&grid, Pose { pos, dir: Direction::North })),
+    ).max().unwrap_or_default()
 
-    a.max(b).max(c).max(d)
 }
 
 fn main() {
