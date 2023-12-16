@@ -21,9 +21,9 @@ impl Direction {
 
     pub fn vector(self) -> Vector2 {
         match self {
-            Direction::North => Vector2::E2,
+            Direction::North => -Vector2::E2,
             Direction::East => Vector2::E1,
-            Direction::South => -Vector2::E2,
+            Direction::South => Vector2::E2,
             Direction::West => -Vector2::E1,
         }
     }
