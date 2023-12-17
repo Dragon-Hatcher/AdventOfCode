@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
 pub struct Stats {
     pub samples: usize,
     pub min: Duration,

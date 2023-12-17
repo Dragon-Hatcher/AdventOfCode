@@ -1,8 +1,8 @@
+use crate::{human, stats::Stats};
 use std::time::Duration;
 use yansi::Paint;
 
-use crate::{human, stats::Stats};
-
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
 pub enum Summary {
     Run(Vec<RunSummary>),
     Bench(Vec<BenchSummary>),
@@ -15,8 +15,14 @@ impl Summary {
             Self::Bench(benches) => print_bench_summary(benches),
         }
     }
+
+    #[cfg(feature = "json")]
+    pub fn print_json(&self) -> serde_json::Result<()> {
+        serde_json::to_writer(std::io::BufWriter::new(std::io::stdout()), self)
+    }
 }
 
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
 pub struct RunSummary {
     pub name: String,
     pub result: String,
@@ -40,6 +46,7 @@ fn print_run_summary(parts: &[RunSummary]) {
     }
 }
 
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
 pub struct BenchSummary {
     pub name: String,
     pub stats: Stats,

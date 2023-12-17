@@ -138,7 +138,7 @@ where
     }
 
     pub fn cli(self) {
-        let Opt { bench } = argh::from_env();
+        let Opt { bench, output } = argh::from_env();
 
         let summary = if bench {
             if cfg!(not(profile = "release")) {
@@ -152,7 +152,11 @@ where
             self.run()
         };
 
-        summary.print()
+        match output {
+            #[cfg(feature = "json")]
+            Output::Json => summary.print_json().expect("failed to print json"),
+            _ => summary.print(),
+        }
     }
 }
 
@@ -162,4 +166,33 @@ struct Opt {
     /// whether to benchmark
     #[argh(switch)]
     bench: bool,
+
+    /// the output style (boring, festive, json)
+    #[argh(option, default = "Output::Human")]
+    output: Output,}
+
+#[derive(Debug)]
+enum Output {
+    Human,
+    #[cfg(feature = "json")]
+    Json,
+}
+
+impl argh::FromArgValue for Output {
+    fn from_arg_value(value: &str) -> Result<Self, String> {
+        match value {
+            "human" => Ok(Self::Human),
+            "json" => {
+                #[cfg(feature = "json")]
+                {
+                    Ok(Self::Json)
+                }
+                #[cfg(not(feature = "json"))]
+                {
+                    Err("`json` requires crate feature".into())
+                }
+            }
+            _ => Err("expected `human` or `json`".into()),
+        }
+    }
 }
