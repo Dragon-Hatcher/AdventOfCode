@@ -170,12 +170,12 @@ impl Vector2 {
         self.x * rhs.x + self.y * rhs.y
     }
 
-    pub fn manhatan_dist(&self, rhs: Vector2) -> i64 {
+    pub fn manhattan_dist(&self, rhs: Vector2) -> i64 {
         (self.x - rhs.x).abs() + (self.y - rhs.y).abs()
     }
 
     pub fn manhatan_mag(&self) -> i64 {
-        self.manhatan_dist(Vector2::ZERO)
+        self.manhattan_dist(Vector2::ZERO)
     }
 
     pub fn neighbors_with_deltas<'a>(

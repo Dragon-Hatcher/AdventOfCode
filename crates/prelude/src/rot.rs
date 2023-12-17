@@ -47,9 +47,9 @@ impl Direction {
     pub fn reverse(self) -> Direction {
         match self {
             Direction::Up => Direction::Down,
-            Direction::Right => Direction::Down,
+            Direction::Right => Direction::Left,
             Direction::Down => Direction::Up,
-            Direction::Left => Direction::Left,
+            Direction::Left => Direction::Right,
         }
     }
 

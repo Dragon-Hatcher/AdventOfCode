@@ -20,7 +20,7 @@ fn part1((height, positions): (i64, Vec<(Vector2, Vector2)>)) -> i64 {
     let mut ranges = positions
         .iter()
         .filter_map(|(s, b)| {
-            let d = s.manhatan_dist(*b);
+            let d = s.manhattan_dist(*b);
             let dy = (s.y - height).abs();
             let dx = d - dy;
             if dx < 0 {
@@ -57,8 +57,8 @@ fn part2((height, mut positions): (i64, Vec<(Vector2, Vector2)>)) -> i64 {
             let p = Vector2::new(x, y);
 
             for (s, b) in &positions {
-                let d = s.manhatan_dist(*b);
-                if s.manhatan_dist(p) <= d {
+                let d = s.manhattan_dist(*b);
+                if s.manhattan_dist(p) <= d {
                     let dy = (p.y - s.y).abs();
                     let dx = (s.x - p.x) + (d - dy) + 1;
                     x += dx;

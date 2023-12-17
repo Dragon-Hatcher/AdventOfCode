@@ -49,7 +49,7 @@ fn part1(input: &str) -> i64 {
                     .and_modify(|e| e.g = e.g.min(dist_to_n))
                     .or_insert(Node {
                         g: dist_to_n,
-                        h: pos.manhatan_dist(n),
+                        h: pos.manhattan_dist(n),
                     });
             }
         }
