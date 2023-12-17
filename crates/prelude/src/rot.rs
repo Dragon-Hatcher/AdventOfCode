@@ -1,6 +1,6 @@
 use crate::Vector2;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Direction {
     Up,
     Right,
@@ -59,6 +59,13 @@ impl Direction {
 
     pub fn horizontal(self) -> bool {
         matches!(self, Direction::Right | Direction::Left)
+    }
+
+    pub fn normalize(self) -> Direction {
+        match self {
+            Direction::Down | Direction::Up => Direction::Down,
+            Direction::Left | Direction::Right => Direction::Right,
+        }
     }
 }
 
