@@ -4,50 +4,38 @@ fn default_input() -> &'static str {
     include_input!(2023 / 18)
 }
 
-fn solve(is: &mut [(Direction, i64)]) -> i64 {
-    if is[0].0 == Direction::Left {
-        for i in is.iter_mut() {
-            i.0 = i.0.reverse();
-        }
+fn solve(is: &[(Direction, i64)]) -> i64 {
+    let mut vertices = Vec::new();
+    let mut pos = Vector2::ZERO;
+
+    for (dir, dist) in is {
+        pos += dir.vector() * dist;
+        vertices.push(pos);
     }
 
-    let mut sum = 0;
-    let mut height = 0;
+    let area = vertices
+        .iter()
+        .circular_tuple_windows()
+        .map(|(a, b)| (a.y + b.y) * (a.x - b.x))
+        .sum::<i64>()
+        / 2;
 
-    for i in 0..is.len() {
-        let pre = is[(i - 1).rem_euclid(is.len())];
-        let post = is[(i + 1).rem_euclid(is.len())];
-        let t = is[i];
+    let boundary_points: i64 = is.iter().map(|i| i.1).sum();
 
-        match t.0 {
-            Direction::Up => height -= t.1,
-            Direction::Down => height += t.1,
-            Direction::Right => {
-                // sub
-                let width =
-                    t.1 + 1 - (pre.0 == Direction::Down) as i64 - (post.0 == Direction::Up) as i64;
-                // eprintln!("{width} * {height} sub");
-                sum -= width * height;
-            }
-            Direction::Left => {
-                // add
-                let width =
-                    t.1 + 1 - (pre.0 == Direction::Up) as i64 - (post.0 == Direction::Down) as i64;
-                // eprintln!("{width} * {} add", height + 1);
-                sum += width * (height + 1);
-            }
-        }
-    }
+    // Pick's theorem
+    let interior_points = area - boundary_points / 2 + 1;
 
-    sum
+    boundary_points + interior_points
 }
 
 fn part1(input: &str) -> i64 {
     let mut instructions = input
         .lines()
         .map(|l| {
-            let (dir, dist, _color) = l.split(' ').tup();
-            (Direction::from_char(dir.chars().nu()), dist.nums().nu())
+            let (dir, dist, _) = l.split(' ').tup();
+            let dir = Direction::from_char(dir.chars().nu());
+            let dist = dist.parse().unwrap();
+            (dir, dist)
         })
         .collect_vec();
 
@@ -59,8 +47,10 @@ fn part2(input: &str) -> i64 {
         .lines()
         .map(|l| {
             let (_, _, color) = l.split(' ').tup();
+
             let dist: String = color.chars().skip(2).take(5).collect();
             let dist = i64::from_str_radix(&dist, 16).unwrap();
+
             let dir = match color.chars().nth(7).unwrap() {
                 '0' => Direction::Right,
                 '1' => Direction::Down,
