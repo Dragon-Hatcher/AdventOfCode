@@ -326,7 +326,7 @@ fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
         let part1 = runs.iter().find(|p| p.name == "Part 1");
         let part2 = runs.iter().find(|p| p.name == "Part 2");
 
-        if !metadata.days.contains_key(bin) {
+        if !metadata.days.contains_key(bin) || !metadata.days.get(bin).unwrap().has_all()  {
             let m = get_day_meta(year, day)?;
             metadata.days.insert(bin.clone(), m);
             write_metadata(&metadata)?;

@@ -1,4 +1,4 @@
-use std::{time::Duration, collections::HashMap};
+use std::{collections::HashMap, time::Duration};
 
 #[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub struct Stats {
@@ -35,7 +35,15 @@ pub struct DayMeta {
     pub answer2: Option<String>,
 }
 
+impl DayMeta {
+    pub fn has_all(&self) -> bool {
+        self.name.is_some()
+            && self.answer1.is_some()
+            && (self.answer2.is_some() || self.name.as_ref().unwrap().ends_with("25"))
+    }
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AllMetadata {
-    pub days: HashMap<String, DayMeta>
+    pub days: HashMap<String, DayMeta>,
 }
