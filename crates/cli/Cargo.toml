@@ -12,3 +12,5 @@ yansi = { workspace = true }
 reqwest = { workspace = true, features = ["blocking", "cookies"] }
 toml = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+regex-macro = { workspace = true }

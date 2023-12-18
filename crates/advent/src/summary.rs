@@ -31,7 +31,7 @@ pub struct RunSummary {
 
 fn print_run_summary(parts: &[RunSummary]) {
     for (i, part) in parts.iter().enumerate() {
-        let RunSummary { name, result, time } = part;
+        let RunSummary { name, result, time, .. } = part;
         if i != 0 {
             println!();
         }

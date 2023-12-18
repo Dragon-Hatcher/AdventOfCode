@@ -1,3 +1,4 @@
+use crate::{stats::Stats, summary::BenchSummary};
 use argh::FromArgs;
 use std::{
     fmt::Display,
@@ -7,7 +8,6 @@ use std::{
 };
 use summary::{RunSummary, Summary};
 use yansi::Paint;
-use crate::{stats::Stats, summary::BenchSummary};
 
 pub use prelude;
 
@@ -87,7 +87,11 @@ where
                 (result, elapsed)
             };
 
-            runs.push(RunSummary { name, result, time });
+            runs.push(RunSummary {
+                name,
+                result,
+                time,
+            });
         }
 
         Summary::Run(runs)
@@ -127,7 +131,10 @@ where
         let input = (parse)();
 
         let stats = bench_with_input((), move |_| parse());
-        benches.push(BenchSummary { name: "Parse".into(), stats });
+        benches.push(BenchSummary {
+            name: "Parse".into(),
+            stats,
+        });
 
         for (name, f) in parts {
             let stats = bench_with_input(input.clone(), &f);
@@ -169,7 +176,8 @@ struct Opt {
 
     /// the output style (boring, festive, json)
     #[argh(option, default = "Output::Human")]
-    output: Output,}
+    output: Output,
+}
 
 #[derive(Debug)]
 enum Output {

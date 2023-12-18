@@ -1,19 +1,30 @@
 use std::{
     env,
     fmt::Display,
-    fs,
+    fs::{self},
     io::{self, IsTerminal},
     path::PathBuf,
-    process,
+    process::{self, Output},
     sync::Arc,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use argh::FromArgs;
+use cargo::{display_bin_path, get_bin_name, get_bin_path, get_binaries, write_binaries};
+use json::{AllMetadata, DayMeta};
+use regex_macro::regex;
 use reqwest::{cookie::Jar, Url};
-use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcOffset};
 use yansi::Paint;
+
+use crate::{
+    human::Time,
+    json::{RunSummary, Summary},
+};
+
+mod cargo;
+mod human;
+mod json;
 
 /// 🎄 Festive Advent of Code solution management modified from rossmacarthur/advent
 #[derive(Debug, FromArgs)]
@@ -26,6 +37,10 @@ struct Opt {
     /// the puzzle day
     #[argh(option, short = 'd')]
     day: Option<u32>,
+
+    /// run on all applicable days
+    #[argh(switch, short = 'a')]
+    all: bool,
 
     /// the subcommand: run
     #[argh(positional)]
@@ -78,22 +93,33 @@ fn current_day() -> u32 {
     }
 }
 
+fn has_occurred(year: u32, day: u32) -> bool {
+    let cur_year = current_year();
+    let cur_day = current_day();
+    year < cur_year || (year == cur_year && day <= cur_day)
+}
+
 fn main() -> Result<()> {
     let Opt {
         year,
         day,
+        all,
         command,
         args,
     } = argh::from_env();
 
-    let year = year.unwrap_or(current_year());
-    let day = day.unwrap_or(current_day());
+    let f_year = year.unwrap_or(current_year());
+    let f_day = day.unwrap_or(current_day());
 
-    match command {
-        Command::Run => run(year, day, &args),
-        Command::Test => test(year, day, &args),
-        Command::Bench => bench(year, day, &args),
-        Command::New => new(year, day),
+    match (command, all) {
+        (Command::Run, false) => run(f_year, f_day, &args),
+        (Command::Run, true) => run_all(year, &args),
+        (Command::Test, false) => test(f_year, f_day, &args),
+        (Command::Test, true) => bail!("The --all flag cannot be used with test."),
+        (Command::Bench, false) => bench(f_year, f_day, &args),
+        (Command::Bench, true) => bail!("The --all flag cannot be used with bench."),
+        (Command::New, false) => new(f_year, f_day),
+        (Command::New, true) => bail!("The --all flag cannot be used with new."),
     }
 }
 
@@ -142,7 +168,12 @@ fn ensure_input_fetched(year: u32, day: u32) -> Result<()> {
         );
         let url = format!("https://adventofcode.com/{year}/day/{day}/input");
         let text = download(&url)?;
-        fs::write(&input_path, text)?;
+
+        if text != include_str!("error.txt") {
+            fs::write(&input_path, text)?;
+        } else {
+            bail!("Tried to fetch input for future day.");
+        }
     }
 
     print("Verified", format!("puzzle input `{input_display}`"));
@@ -161,6 +192,226 @@ fn run(year: u32, day: u32, args: &[String]) -> Result<()> {
         .status()?;
 
     process::exit(status.code().unwrap_or(1))
+}
+
+fn get_day_meta(year: u32, day: u32) -> Result<DayMeta> {
+    if !has_occurred(year, day) {
+        return Ok(DayMeta {
+            name: None,
+            answer1: None,
+            answer2: None,
+        });
+    }
+
+    let url = format!("https://adventofcode.com/{year}/day/{day}");
+    let text = download(&url)?;
+
+    let title_re = regex!(r#"<h2>--- Day \d+: (.?*)---</h2>"#);
+    let answer_re = regex!(r#"Your puzzle answer was <code>(.*?)</code>"#);
+
+    let name = title_re
+        .captures(&text)
+        .map(|m| m[1].trim().to_owned().replace("&apos;", "'"));
+    let mut answers = answer_re.captures_iter(&text);
+    let answer1 = answers.next().map(|m| m[1].trim().to_owned());
+    let answer2 = answers.next().map(|m| m[1].trim().to_owned());
+
+    Ok(DayMeta {
+        name,
+        answer1,
+        answer2,
+    })
+}
+
+fn load_metadata() -> Result<AllMetadata> {
+    let workspace_path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
+    let meta_path = workspace_path.join(format!("input/metadata.json"));
+
+    fs::create_dir_all(meta_path.parent().unwrap())?;
+
+    let meta = if !meta_path.exists() {
+        let m = AllMetadata {
+            days: Default::default(),
+        };
+        write_metadata(&m)?;
+        m
+    } else {
+        let text = fs::read_to_string(meta_path)?;
+        serde_json::from_str(&text)?
+    };
+
+    Ok(meta)
+}
+
+fn write_metadata(meta: &AllMetadata) -> Result<()> {
+    let workspace_path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
+    let meta_path = workspace_path.join(format!("input/metadata.json"));
+    fs::write(meta_path, serde_json::to_string(meta)?)?;
+
+    Ok(())
+}
+
+fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
+    let binaries = get_binaries()?;
+    let year_str = year.map(|y| format!("{y:04}")).unwrap_or_default();
+    let binaries = binaries
+        .bin
+        .iter()
+        .map(|b| &b.name)
+        .filter(|n| n.starts_with(&year_str));
+
+    let mut metadata = load_metadata()?;
+
+    let mut success = true;
+
+    const PART_WIDTH: usize = 30;
+    const NAME_WIDTH: usize = 30;
+
+    println!(
+        "╭────────────{pc:─^n_width$}─┬─{pc:─^width$}─────┬─{pc:─^width$}─────╮",
+        pc = "",
+        n_width = NAME_WIDTH,
+        width = PART_WIDTH
+    );
+    println!(
+        "│ {:^n_width$} │ {:^width$} │ {:^width$} │",
+        Paint::new("Puzzle").bold(),
+        Paint::new("Part 1").bold(),
+        Paint::new("Part 2").bold(),
+        n_width = NAME_WIDTH + 11,
+        width = PART_WIDTH + 4
+    );
+    println!(
+        "├────────────{pc:─^n_width$}─┼─{pc:─^width$}─┬───┼─{pc:─^width$}─┬───┤",
+        pc = "",
+        n_width = NAME_WIDTH,
+        width = PART_WIDTH
+    );
+
+    let mut prev_year = 0;
+
+    for bin in binaries {
+        let year: u32 = bin.chars().take(4).collect::<String>().parse()?;
+        let day: u32 = bin.chars().skip(4).collect::<String>().parse()?;
+
+        if year != prev_year && prev_year != 0 {
+            println!(
+                "├────────────{pc:─^n_width$}─┼─{pc:─^width$}─┼───┼─{pc:─^width$}─┼───┤",
+                pc = "",
+                n_width = NAME_WIDTH,
+                width = PART_WIDTH
+            );                    
+        }
+        prev_year = year;
+
+        let Output { status, stdout, .. } = process::Command::new(env!("CARGO"))
+            .args([
+                "run",
+                "--quiet",
+                "--features",
+                "json",
+                "--release",
+                "--bin",
+                &bin,
+                "--",
+                "--output",
+                "json",
+            ])
+            .args(args)
+            .output()?;
+
+        let stdout = String::from_utf8_lossy(&stdout);
+        let Summary::Run(runs) = serde_json::from_str(&stdout)? else { panic!("Got benchmark data?")};
+
+        let part1 = runs.iter().find(|p| p.name == "Part 1");
+        let part2 = runs.iter().find(|p| p.name == "Part 2");
+
+        if !metadata.days.contains_key(bin) {
+            let m = get_day_meta(year, day)?;
+            metadata.days.insert(bin.clone(), m);
+            write_metadata(&metadata)?;
+        }
+
+        let day_meta = metadata.days.get(bin).unwrap();
+
+        fn part(p: Option<&RunSummary>, expected: &Option<String>) -> impl Display {
+            match p {
+                Some(p) => {
+                    let result = &p.result;
+                    let result = result.replace("\n", "↩");
+                    let trimmed_result = if result.len() <= PART_WIDTH - 11 {
+                        result.clone()
+                    } else {
+                        let sub: String = result.chars().take(PART_WIDTH - 11 - 1).collect();
+                        format!("{sub}…",)
+                    };
+
+                    let time = format!("{}", Time::new(p.time.as_secs_f64()));
+                    let width = PART_WIDTH.saturating_sub(result.chars().count() + 1);
+
+                    let correct = expected.as_ref().map(|e| e == &p.result);
+                    let correct_char = match correct {
+                        Some(true) => Paint::green('✓'),
+                        Some(false) => Paint::red('✗'),
+                        None => Paint::fixed(245, '?'),
+                    };
+
+                    format!(
+                        "{} {:>width$} │ {}",
+                        if correct == Some(false) {
+                            Paint::red(trimmed_result).bold()
+                        } else {
+                            Paint::new(trimmed_result).bold()
+                        },
+                        if p.time.as_secs_f64() > 1.0 {
+                            Paint::yellow(format!("({})", time))
+                        } else {
+                            Paint::fixed(245, format!("({})", time))
+                        },
+                        correct_char,
+                        width = width
+                    )
+                }
+                None => format!("{:>width$} │  ", "", width = PART_WIDTH),
+            }
+        }
+
+        let mut puzzle_name = day_meta
+            .name
+            .as_ref()
+            .map(|s| s.as_str())
+            .unwrap_or_default()
+            .to_owned();
+        if puzzle_name.len() > NAME_WIDTH { 
+            puzzle_name = puzzle_name.chars().take(NAME_WIDTH - 1).collect();
+            puzzle_name.push('…');
+        };
+
+        println!(
+            "│ {}: {:<n_width$} │ {:<width$} │ {:<width$} │",
+            Paint::cyan(format!("{year:04} / {day:02}")).bold(),
+            puzzle_name,
+            part(part1, &day_meta.answer1),
+            part(part2, &day_meta.answer2),
+            n_width = NAME_WIDTH,
+            width = PART_WIDTH + 4
+        );
+
+        success = success && status.success();
+    }
+
+    println!(
+        "╰────────────{pc:─^n_width$}─┴─{pc:─^width$}─┴───┴─{pc:─^width$}─┴───╯",
+        pc = "",
+        n_width = NAME_WIDTH,
+        width = PART_WIDTH
+    );
+
+    if !success {
+        process::exit(1);
+    }
+
+    Ok(())
 }
 
 fn test(year: u32, day: u32, args: &[String]) -> Result<()> {
@@ -196,21 +447,15 @@ fn bench(year: u32, day: u32, args: &[String]) -> Result<()> {
 }
 
 fn new(year: u32, day: u32) -> Result<()> {
-    let bin_name = format!("{year:04}{day:02}");
-
-    let workspace_path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
-    let manifest_path = workspace_path.join("Cargo.toml");
-    let bin_path = workspace_path.join(format!("{year:04}/{day:02}.rs"));
-
-    const TEMPLATE: &str = include_str!("template.rs");
-    let bin_display = bin_path
-        .strip_prefix(&workspace_path)
-        .unwrap_or(&bin_path)
-        .display();
+    let bin_name = get_bin_name(year, day);
+    let bin_path = get_bin_path(year, day);
+    let bin_display = display_bin_path(year, day);
 
     if bin_path.exists() {
         print("Verified", format!("{bin_display} already exists"));
     } else {
+        const TEMPLATE: &str = include_str!("template.rs");
+
         let rendered = TEMPLATE
             .replace("{ year }", &format!("{year:04}"))
             .replace("{ day }", &format!("{day:02}"));
@@ -219,31 +464,10 @@ fn new(year: u32, day: u32) -> Result<()> {
         print("Created", bin_display);
     }
 
-    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
-    struct Binary {
-        name: String,
-        path: PathBuf,
-    }
+    let mut bins = get_binaries()?;
+    let added = bins.ensure_has(year, day);
+    write_binaries(bins)?;
 
-    #[derive(Debug, Clone, Deserialize, Serialize)]
-    struct Binaries {
-        bin: Vec<Binary>,
-    }
-
-    let manifest = fs::read_to_string(&manifest_path)?;
-    let index = manifest.find("[[bin]]").unwrap();
-    let (main, binaries) = manifest.split_at(index);
-    let mut bins: Binaries = toml::from_str(binaries)?;
-    let to_add = Binary {
-        name: bin_name.clone(),
-        path: bin_path.strip_prefix(&workspace_path)?.to_owned(),
-    };
-    let added = !bins.bin.contains(&to_add);
-    bins.bin.push(to_add);
-    bins.bin.sort();
-    bins.bin.dedup();
-    let binaries = toml::to_string(&bins)?;
-    fs::write(&manifest_path, main.to_owned() + &binaries)?;
     if added {
         print("Added", format!("{bin_name} binary to Cargo manifest"));
     } else {
