@@ -13,7 +13,7 @@ fn part2(input: &str) -> i64 {
 }
 
 fn main() {
-    let solution = advent::new(default_input).us_part(part1).us_part(part2).build();
+    let solution = advent::new(default_input).part(part1).part(part2).build();
     solution.cli();
 }
 
