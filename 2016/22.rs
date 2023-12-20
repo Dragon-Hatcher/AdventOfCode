@@ -11,8 +11,8 @@ struct Node {
 }
 
 impl Node {
-    fn can_take(self, other: Node) -> bool {
-        other.avail <= self.used
+    fn size(&self) -> i64 {
+        self.used + self.avail
     }
 }
 
@@ -42,7 +42,22 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2(input: &str) -> i64 {
-    todo!("Part 2")
+    let nodes = parse_nodes(input);
+    let max_x = nodes.keys().map(|p| p.x).max().unwrap_or_default();
+
+    const LARGE_SIZE: i64 = 100;
+    let wall_left = nodes
+        .iter()
+        .filter(|(_, n)| n.size() > LARGE_SIZE)
+        .map(|(p, _)| p.x)
+        .min()
+        .unwrap_or_default();
+
+    let (zero_loc, _) = nodes.iter().find(|(_, n)| n.used == 0).unwrap();
+
+    let dist = (zero_loc.x - wall_left + 1) + zero_loc.y + (max_x - wall_left + 1);
+    let moves = max_x - 1;
+    dist + moves * 5
 }
 
 fn main() {
@@ -51,15 +66,8 @@ fn main() {
 }
 
 #[test]
-fn example() {
-    let input = "";
-    assert_eq!(part1(input), 0);
-    assert_eq!(part2(input), 0);
-}
-
-#[test]
 fn default() {
     let input = default_input();
-    assert_eq!(part1(input), 0);
-    assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 934);
+    assert_eq!(part2(input), 207);
 }
