@@ -18,12 +18,12 @@ fn part1(input: &str) -> i64 {
         .map(|l| {
             let (chars, sec_id, check) = parse(l);
 
-            let mut occurence_count: FxHashMap<char, i64> = FxHashMap::default();
+            let mut occurrence_count: FxHashMap<char, i64> = FxHashMap::default();
             for c in chars.chars().filter(|&c| c != '-') {
-                *occurence_count.entry(c).or_default() += 1;
+                *occurrence_count.entry(c).or_default() += 1;
             }
 
-            let passes = occurence_count
+            let passes = occurrence_count
                 .into_iter()
                 .sorted_by_key(|(char, _)| *char)
                 .sorted_by_key(|(_, count)| -count)

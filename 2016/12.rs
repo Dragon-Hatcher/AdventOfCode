@@ -111,7 +111,7 @@ impl Machine {
         }
     }
 
-    fn run_to_completition(&mut self) {
+    fn run_to_completion(&mut self) {
         while self.ip < self.instructions.len() as i64 {
             match self.instructions[self.ip as usize] {
                 Instruction::Copy(val, to) => self.set(to, self.eval(val)),
@@ -131,14 +131,14 @@ impl Machine {
 
 fn part1(input: &str) -> i64 {
     let mut machine = parse_machine(input);
-    machine.run_to_completition();
+    machine.run_to_completion();
     machine.a
 }
 
 fn part2(input: &str) -> i64 {
     let mut machine = parse_machine(input);
     machine.c = 1;
-    machine.run_to_completition();
+    machine.run_to_completion();
     machine.a
 }
 

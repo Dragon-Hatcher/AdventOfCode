@@ -9,20 +9,20 @@ fn part1(input: &str) -> i64 {
         .lines()
         .map(|l| {
             let mut skip = 0;
-            let mut total_skiped = 0;
+            let mut total_skipped = 0;
             for c in l.chars() {
                 if skip > 0 {
                     skip -= 1;
                     if c == 'x' {
                         skip = 2;
-                        total_skiped += 2;
+                        total_skipped += 2;
                     }
                 } else if c == '\\' {
                     skip = 1;
-                    total_skiped += 1;
+                    total_skipped += 1;
                 }
             }
-            total_skiped + 2
+            total_skipped + 2
         })
         .sum()
 }

@@ -27,7 +27,7 @@ impl Computer {
         }
     }
 
-    fn run_to_completition(&mut self) {
+    fn run_to_completion(&mut self) {
         loop {
             if self.ip >= self.instructions.len() {
                 break;
@@ -122,14 +122,14 @@ fn parse_computer(comp: &str) -> Computer {
 
 fn part1(input: &str) -> i64 {
     let mut computer = parse_computer(input);
-    computer.run_to_completition();
+    computer.run_to_completion();
     computer.b
 }
 
 fn part2(input: &str) -> i64 {
     let mut computer = parse_computer(input);
     computer.a = 1;
-    computer.run_to_completition();
+    computer.run_to_completion();
     computer.b
 }
 
@@ -146,7 +146,7 @@ jio a, +2
 tpl a
 inc a",
     );
-    comp.run_to_completition();
+    comp.run_to_completion();
     assert_eq!(comp.a, 2);
 }
 

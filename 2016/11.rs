@@ -109,13 +109,13 @@ struct State {
 
 impl PartialEq for State {
     fn eq(&self, other: &Self) -> bool {
-        self.cannonical() == other.cannonical()
+        self.canonical() == other.canonical()
     }
 }
 
 impl Hash for State {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.cannonical().hash(state);
+        self.canonical().hash(state);
     }
 }
 
@@ -126,10 +126,10 @@ impl State {
         self.floors[0].is_empty() && self.floors[1].is_empty() && self.floors[2].is_empty()
     }
 
-    fn cannonical(self) -> (u64, usize) {
-        // We want to filter out states that aren't identical but *will* take an equivlent number
+    fn canonical(self) -> (u64, usize) {
+        // We want to filter out states that aren't identical but *will* take an equivalent number
         // of steps. To do that we use the insight that any two microchip-generator pairs with 
-        // identical positions are equivlent. We don't, however, store this representation becuase 
+        // identical positions are equivalent. We don't, however, store this representation because 
         // it makes it annoying to generate the adjacent states.
         // 
         // The idea for this optimization comes from this reddit comment: https://www.reddit.com/r/adventofcode/comments/5hoia9/comment/db1v1ws/

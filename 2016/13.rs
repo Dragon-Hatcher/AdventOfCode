@@ -24,7 +24,7 @@ fn part1(input: &str) -> i64 {
 
         let mut to_search = HashMap::new();
         to_search.insert(start, Node { g: 0, h: 0 });
-        let mut proccesed: HashMap<Vector2, Node> = HashMap::new();
+        let mut processed: HashMap<Vector2, Node> = HashMap::new();
 
         loop {
             let (&pos, &node) = to_search
@@ -33,7 +33,7 @@ fn part1(input: &str) -> i64 {
                 .unwrap();
 
             to_search.remove(&pos);
-            proccesed.insert(pos, node);
+            processed.insert(pos, node);
 
             if pos == goal {
                 return node.g;
@@ -41,7 +41,7 @@ fn part1(input: &str) -> i64 {
 
             for n in pos
                 .neighbors4()
-                .filter(|&p| is_open(p, key) && !proccesed.contains_key(&p))
+                .filter(|&p| is_open(p, key) && !processed.contains_key(&p))
             {
                 let dist_to_n = node.g + 1;
                 to_search

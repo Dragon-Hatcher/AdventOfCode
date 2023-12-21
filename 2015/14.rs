@@ -36,7 +36,7 @@ impl Reindeer {
     }
 }
 
-fn parse_reinder(str: &str) -> Reindeer {
+fn parse_reindeer(str: &str) -> Reindeer {
     let (speed, endurance, rest_time) = str.nums().tup();
     Reindeer {
         stats: ReindeerStats {
@@ -60,7 +60,7 @@ fn max_dist(reindeer: &[Reindeer]) -> i64 {
 }
 
 fn part1(input: &str) -> i64 {
-    let mut reindeer = input.lines().map(parse_reinder).collect_vec();
+    let mut reindeer = input.lines().map(parse_reindeer).collect_vec();
 
     for _ in 0..2503 {
         for r in reindeer.iter_mut() {
@@ -72,7 +72,7 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2(input: &str) -> i64 {
-    let mut reindeer = input.lines().map(parse_reinder).collect_vec();
+    let mut reindeer = input.lines().map(parse_reindeer).collect_vec();
 
     for _ in 0..2503 {
         for r in reindeer.iter_mut() {

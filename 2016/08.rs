@@ -10,7 +10,7 @@ enum Instruction {
     RotateCol(i64, i64),
 }
 
-fn parse_instriction(i: &str) -> Instruction {
+fn parse_instruction(i: &str) -> Instruction {
     if let Some(range) = i.strip_prefix("rect") {
         let (w, h) = range.nums().tup();
         Instruction::On(Vector2::new(w, h))
@@ -46,7 +46,7 @@ fn parse(input: &str) -> (&str, Grid<bool>) {
 fn part1(input: &str) -> i64 {
     let (instructions, mut grid) = parse(input);
 
-    for i in instructions.lines().map(parse_instriction) {
+    for i in instructions.lines().map(parse_instruction) {
         do_instruction(&mut grid, i);
     }
 
@@ -56,7 +56,7 @@ fn part1(input: &str) -> i64 {
 fn part2(input: &str) -> String {
     let (instructions, mut grid) = parse(input);
 
-    for i in instructions.lines().map(parse_instriction) {
+    for i in instructions.lines().map(parse_instruction) {
         do_instruction(&mut grid, i);
     }
 

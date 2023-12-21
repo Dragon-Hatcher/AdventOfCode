@@ -49,7 +49,7 @@ fn max_geodes(costs: &Costs, resources: Resources, robot_count: RobotCount, mins
                 cost.0[3] - resources.0[3],
             ]);
 
-            fn ciel_div(a: i64, b: i64) -> i64 {
+            fn ceil_div(a: i64, b: i64) -> i64 {
                 if a == 0 {
                     0
                 } else if b == 0 {
@@ -59,10 +59,10 @@ fn max_geodes(costs: &Costs, resources: Resources, robot_count: RobotCount, mins
                 }
             }
 
-            let mins_till_robot = ciel_div(mats_left_to_make.0[0], robot_count.0[0])
-                .max(ciel_div(mats_left_to_make.0[1], robot_count.0[1]))
-                .max(ciel_div(mats_left_to_make.0[2], robot_count.0[2]))
-                .max(ciel_div(mats_left_to_make.0[3], robot_count.0[3]))
+            let mins_till_robot = ceil_div(mats_left_to_make.0[0], robot_count.0[0])
+                .max(ceil_div(mats_left_to_make.0[1], robot_count.0[1]))
+                .max(ceil_div(mats_left_to_make.0[2], robot_count.0[2]))
+                .max(ceil_div(mats_left_to_make.0[3], robot_count.0[3]))
                 .max(0)
                 .saturating_add(1);
 
@@ -119,13 +119,13 @@ fn main() {
 fn example() {
     let input = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.";
-    // assert_eq!(part1(input), 33); // Emperical constants tuned for part 2
+    // assert_eq!(part1(input), 33); // Empirical constants tuned for part 2
     assert_eq!(part2(input), 3472);
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 1150); // Emperical constants tuned for part 2
+    // assert_eq!(part1(input), 1150); // Empirical constants tuned for part 2
     assert_eq!(part2(input), 37367);
 }

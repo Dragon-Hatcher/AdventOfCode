@@ -174,7 +174,7 @@ impl Vector2 {
         (self.x - rhs.x).abs() + (self.y - rhs.y).abs()
     }
 
-    pub fn manhatan_mag(&self) -> i64 {
+    pub fn manhattan_mag(&self) -> i64 {
         self.manhattan_dist(Vector2::ZERO)
     }
 

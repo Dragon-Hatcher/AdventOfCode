@@ -23,7 +23,7 @@ fn part1(input: &str) -> i64 {
         pos += facing.vector() * dist;
     }
 
-    pos.manhatan_mag()
+    pos.manhattan_mag()
 }
 
 fn part2(input: &str) -> i64 {
@@ -39,7 +39,7 @@ fn part2(input: &str) -> i64 {
         for _ in 0..dist {
             pos += facing.vector();
             if visited.contains(&pos) {
-                return pos.manhatan_mag();
+                return pos.manhattan_mag();
             }
             visited.insert(pos);
         }
