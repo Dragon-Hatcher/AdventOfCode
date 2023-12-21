@@ -116,6 +116,6 @@ fn example() {
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
-    // assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 7705);
+    assert_eq!(part2(input), 50338344809230);
 }
