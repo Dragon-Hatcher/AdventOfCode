@@ -1,4 +1,7 @@
-use std::str::{Split, Lines};
+use std::{
+    collections::HashSet,
+    str::{Lines, Split}, hash::Hash,
+};
 
 pub trait IterExtension: Iterator {
     fn nu(&mut self) -> Self::Item {
@@ -112,3 +115,16 @@ macro_rules! impl_into_tup {
 }
 
 impl_into_tup!(X X X X X X X X X X X);
+
+pub trait PopEl<T> {
+    fn pop(&mut self) -> Option<T>;
+}
+
+impl<T: Hash + Eq> PopEl<T> for HashSet<T> {
+    fn pop(&mut self) -> Option<T> {
+        let el = self.iter().next()?;
+        // SAFETY: https://github.com/rust-lang/rust/issues/27804#issuecomment-406269067
+        let el = unsafe { &*(el as *const _) };
+        self.take(el)
+    }
+}
