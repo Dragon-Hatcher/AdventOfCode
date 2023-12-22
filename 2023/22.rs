@@ -112,7 +112,9 @@ fn part2(input: &str) -> i64 {
             let next: HashSet<usize> = fallen
                 .iter()
                 .copied()
-                .flat_map(|g| supporting.get(&g).cloned().unwrap_or_default())
+                .filter_map(|g| supporting.get(&g))
+                .flatten()
+                .copied()
                 .filter(|g| !fallen.contains(g))
                 .filter(|g| supported_by.get(g).unwrap().difference(&fallen).count() == 0)
                 .collect();
