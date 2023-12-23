@@ -452,3 +452,7 @@ path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/21.rs"
 [[bin]]
 name = "202322"
 path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/22.rs"
+
+[[bin]]
+name = "202323"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/23.rs"
