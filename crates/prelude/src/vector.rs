@@ -174,6 +174,10 @@ impl Vector2 {
         (self.x - rhs.x).abs() + (self.y - rhs.y).abs()
     }
 
+    pub fn is_scaling(&self, other: Vector2) -> bool {
+        self * other.x == other * self.x
+    }
+
     pub fn manhattan_mag(&self) -> i64 {
         self.manhattan_dist(Vector2::ZERO)
     }
@@ -376,6 +380,18 @@ impl Neg for &Vector3 {
 impl Vector3 {
     pub fn dot(&self, rhs: Vector3) -> i64 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
+
+    pub fn cross(&self, other: Vector3) -> Vector3 {
+        Vector3 {
+            x: self.y * other.z - self.z * other.y,
+            y: other.x * self.z - self.x * other.z,
+            z: self.x * other.y - other.x * self.y,
+        }
+    }
+
+    pub fn is_scaling(&self, other: Vector3) -> bool {
+        self * other.x == other * self.x
     }
 
     pub const ZERO: Self = Self::new(0, 0, 0);
