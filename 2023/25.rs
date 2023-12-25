@@ -1,5 +1,5 @@
-use rand::prelude::*;
 use advent::prelude::*;
+use rand::prelude::*;
 
 fn default_input() -> &'static str {
     include_input!(2023 / 25)
@@ -30,11 +30,8 @@ fn part1(input: &str) -> i64 {
     }
 
     let mut rng = rand::thread_rng();
-    let mut best = 100000;
 
-    for ii in 1.. {
-        // dbg!(ii);
-
+    loop {
         let mut ids = ids.clone();
         let mut edges = edges.clone();
 
@@ -63,19 +60,10 @@ fn part1(input: &str) -> i64 {
                     return seen.values().product();
                 }
 
-                if edges.len() < best {
-                    best = edges.len();
-                    eprintln!("Wrong weight {} searched {}", best, ii);
-                }
-
                 break;
             }
         }
-
-        // eprintln!("Didn't work");
     }
-
-    unreachable!();
 }
 
 fn main() {
@@ -104,5 +92,5 @@ frs: qnr lhk lsr";
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
+    assert_eq!(part1(input), 603368);
 }
