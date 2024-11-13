@@ -1,0 +1,9 @@
+[package]
+name = "advent-helper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.93"
+argh = "0.1.12"
+yansi = "1.0.1"
