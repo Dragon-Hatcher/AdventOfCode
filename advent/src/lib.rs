@@ -1,7 +1,9 @@
 use options::{Options, Part};
+use printers::print_run;
 use std::{fmt::Display, panic::UnwindSafe, time::Instant};
 
 mod options;
+mod printers;
 
 pub use prelude;
 
@@ -54,26 +56,29 @@ where
 
         let mut which_parts = Vec::new();
         if matches!(parts, Part::One | Part::Both) {
-            which_parts.push(self.part1);
+            which_parts.push(("Part 1", self.part1));
         }
         if matches!(parts, Part::Two | Part::Both) {
-            which_parts.push(self.part2);
+            which_parts.push(("Part 2", self.part2));
         }
 
-        for part in which_parts.into_iter().flatten() {
+        for (name, part_fn) in which_parts {
+            let Some(part_fn) = part_fn else { continue };
+
             let input = input.clone();
 
+            println!();
+
             let start = Instant::now();
-            let result = std::panic::catch_unwind(move || part(input));
+            let result = std::panic::catch_unwind(move || part_fn(input));
             let elapsed = start.elapsed();
 
-            let str = match result {
+            let output = match result {
                 Ok(res) => res.to_string(),
                 Err(_) => "<program panicked>".to_owned(),
             };
 
-            println!("{elapsed:?}");
-            println!("{str}");
+            print_run(name, &output, elapsed);
         }
     }
 

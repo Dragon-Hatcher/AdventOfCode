@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 prelude = { path = "../prelude" }
 argh = "0.1.12"
+yansi = "1.0.1"
