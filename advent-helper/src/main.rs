@@ -1,6 +1,7 @@
 mod options;
 mod printers;
 mod manage_inputs;
+mod manage_meta;
 mod helpers;
 mod run;
 mod new;

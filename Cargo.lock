@@ -41,6 +41,7 @@ dependencies = [
  "argh",
  "reqwest",
  "serde",
+ "serde_json",
  "toml",
  "yansi",
 ]

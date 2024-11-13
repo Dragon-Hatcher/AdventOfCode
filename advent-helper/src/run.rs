@@ -1,5 +1,5 @@
 use crate::{
-    helpers::get_binary_name, manage_inputs::ensure_input_fetched, options::{Part, RunOptions}, printers::print_message
+    helpers::get_bin_name, manage_inputs::ensure_input_fetched, options::{Part, RunOptions}, printers::print_message
 };
 use anyhow::Result;
 use std::process;
@@ -16,7 +16,7 @@ pub fn run_command(opts: RunOptions) -> Result<()> {
 fn run_single_day(year: u32, day: u32, parts: Part, args: &[String]) -> Result<()> {
     ensure_input_fetched(year, day)?;
 
-    let bin_name = get_binary_name(year, day);
+    let bin_name = get_bin_name(year, day);
 
     let (part_msg, part_flag) = match parts {
         Part::One => ("part 1", "one"),

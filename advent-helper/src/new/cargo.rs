@@ -1,4 +1,4 @@
-use crate::helpers::{get_bin_path, get_binary_name, get_manifest_path};
+use crate::helpers::{get_bin_path, get_bin_name, get_manifest_path};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -25,7 +25,7 @@ impl Binaries {
 
     pub fn ensure_has(&mut self, year: u32, day: u32) -> bool {
         let binary = Binary {
-            name: get_binary_name(year, day),
+            name: get_bin_name(year, day),
             path: get_bin_path(year, day),
         };
 

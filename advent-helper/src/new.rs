@@ -1,11 +1,15 @@
 use crate::{
-    helpers::{get_bin_path, get_binary_name, get_workspace_path},
+    helpers::{get_bin_name, get_bin_path, get_workspace_path},
+    manage_meta::{Metadata, Puzzle},
     options::NewOptions,
     printers::print_message,
 };
 use anyhow::Result;
 use cargo::Binaries;
-use std::{fs, process};
+use std::{
+    fs::{self},
+    process,
+};
 
 mod cargo;
 
@@ -15,11 +19,12 @@ pub fn new_command(opts: NewOptions) -> Result<()> {
 
     create_bin_file(year, day)?;
     update_manifest(year, day)?;
+    set_active_puzzle(year, day)?;
     open_bin_file(year, day);
 
     print_message(
         "Completed",
-        format!("Use cargo advent run -y {year} -d {day} to run"),
+        format!("use cargo advent run -y {year} -d {day} to run"),
     );
 
     Ok(())
@@ -31,7 +36,7 @@ fn create_bin_file(year: u32, day: u32) -> Result<()> {
     let bin_path = workspace_path.join(&relative_bin_path);
 
     if bin_path.exists() {
-        print_message("Verified", format!("{relative_bin_path} already exists."));
+        print_message("Verified", format!("{relative_bin_path} already exists"));
     } else {
         const TEMPLATE: &str = include_str!("solution_template.rs");
 
@@ -48,7 +53,7 @@ fn create_bin_file(year: u32, day: u32) -> Result<()> {
 }
 
 fn update_manifest(year: u32, day: u32) -> Result<()> {
-    let bin_name = get_binary_name(year, day);
+    let bin_name = get_bin_name(year, day);
 
     let mut binaries = Binaries::new_from_fs()?;
     let added = binaries.ensure_has(year, day);
@@ -69,4 +74,14 @@ fn open_bin_file(year: u32, day: u32) {
     let bin_path = workspace_path.join(&relative_bin_path);
 
     _ = process::Command::new("code").arg(bin_path).status();
+}
+
+fn set_active_puzzle(year: u32, day: u32) -> Result<()> {
+    let mut metadata = Metadata::new_from_fs();
+    metadata.active_puzzle = Some(Puzzle { year, day });
+    metadata.write_to_fs()?;
+
+    print_message("Updated", format!("set active puzzle to {year:04}-{day:02}"));
+
+    Ok(())
 }

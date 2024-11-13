@@ -13,3 +13,4 @@ advent = { path = "advent" }
 [[bin]]
 name = "2015-01"
 path = "solutions/2015/01.rs"
+
