@@ -1,15 +1,482 @@
 [workspace]
-members = ["advent", "advent-helper", "prelude"]
-resolver = "2"
+members = ["crates/*"]
+
+[workspace.dependencies]
+anyhow = "1.0.75"
+argh = "0.1.12"
+time = "0.3.30"
+yansi = "0.5.1"
+reqwest = "0.11.22"
+serde = "1.0.193"
+serde_json = "1.0.108"
+toml = "0.8.8"
+itertools = "0.12.0"
+regex-macro = "0.2.0"
+rustc-hash = "1.1.0"
 
 [package]
 name = "advent-bins"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-advent = { path = "advent" }
+advent = { path = "crates/advent" }
+maplit = "1.0.2"
+memoize = "0.4.1"
+rand = "0.8.5"
+rustc-hash = { workspace = true }
+
+[features]
+json = ["advent/json"]
 
 [[bin]]
-name = "2015-01"
-path = "solns/2015/01.rs"
+name = "201501"
+path = "2015/01.rs"
+
+[[bin]]
+name = "201502"
+path = "2015/02.rs"
+
+[[bin]]
+name = "201503"
+path = "2015/03.rs"
+
+[[bin]]
+name = "201504"
+path = "2015/04.rs"
+
+[[bin]]
+name = "201505"
+path = "2015/05.rs"
+
+[[bin]]
+name = "201506"
+path = "2015/06.rs"
+
+[[bin]]
+name = "201507"
+path = "2015/07.rs"
+
+[[bin]]
+name = "201508"
+path = "2015/08.rs"
+
+[[bin]]
+name = "201509"
+path = "2015/09.rs"
+
+[[bin]]
+name = "201510"
+path = "2015/10.rs"
+
+[[bin]]
+name = "201511"
+path = "2015/11.rs"
+
+[[bin]]
+name = "201512"
+path = "2015/12.rs"
+
+[[bin]]
+name = "201513"
+path = "2015/13.rs"
+
+[[bin]]
+name = "201514"
+path = "2015/14.rs"
+
+[[bin]]
+name = "201515"
+path = "2015/15.rs"
+
+[[bin]]
+name = "201516"
+path = "2015/16.rs"
+
+[[bin]]
+name = "201517"
+path = "2015/17.rs"
+
+[[bin]]
+name = "201518"
+path = "2015/18.rs"
+
+[[bin]]
+name = "201519"
+path = "2015/19.rs"
+
+[[bin]]
+name = "201520"
+path = "2015/20.rs"
+
+[[bin]]
+name = "201521"
+path = "2015/21.rs"
+
+[[bin]]
+name = "201522"
+path = "2015/22.rs"
+
+[[bin]]
+name = "201523"
+path = "2015/23.rs"
+
+[[bin]]
+name = "201524"
+path = "2015/24.rs"
+
+[[bin]]
+name = "201525"
+path = "2015/25.rs"
+
+[[bin]]
+name = "201601"
+path = "2016/01.rs"
+
+[[bin]]
+name = "201602"
+path = "2016/02.rs"
+
+[[bin]]
+name = "201603"
+path = "2016/03.rs"
+
+[[bin]]
+name = "201604"
+path = "2016/04.rs"
+
+[[bin]]
+name = "201605"
+path = "2016/05.rs"
+
+[[bin]]
+name = "201606"
+path = "2016/06.rs"
+
+[[bin]]
+name = "201607"
+path = "2016/07.rs"
+
+[[bin]]
+name = "201608"
+path = "2016/08.rs"
+
+[[bin]]
+name = "201609"
+path = "2016/09.rs"
+
+[[bin]]
+name = "201610"
+path = "2016/10.rs"
+
+[[bin]]
+name = "201611"
+path = "2016/11.rs"
+
+[[bin]]
+name = "201612"
+path = "2016/12.rs"
+
+[[bin]]
+name = "201613"
+path = "2016/13.rs"
+
+[[bin]]
+name = "201614"
+path = "2016/14.rs"
+
+[[bin]]
+name = "201615"
+path = "2016/15.rs"
+
+[[bin]]
+name = "201616"
+path = "2016/16.rs"
+
+[[bin]]
+name = "201617"
+path = "2016/17.rs"
+
+[[bin]]
+name = "201618"
+path = "2016/18.rs"
+
+[[bin]]
+name = "201619"
+path = "2016/19.rs"
+
+[[bin]]
+name = "201620"
+path = "2016/20.rs"
+
+[[bin]]
+name = "201621"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2016/21.rs"
+
+[[bin]]
+name = "201622"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2016/22.rs"
+
+[[bin]]
+name = "201623"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2016/23.rs"
+
+[[bin]]
+name = "201624"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2016/24.rs"
+
+[[bin]]
+name = "201625"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2016/25.rs"
+
+[[bin]]
+name = "201701"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/01.rs"
+
+[[bin]]
+name = "201702"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/02.rs"
+
+[[bin]]
+name = "201703"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/03.rs"
+
+[[bin]]
+name = "201704"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/04.rs"
+
+[[bin]]
+name = "201705"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/05.rs"
+
+[[bin]]
+name = "201706"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/06.rs"
+
+[[bin]]
+name = "201707"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/07.rs"
+
+[[bin]]
+name = "201708"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/08.rs"
+
+[[bin]]
+name = "201709"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/09.rs"
+
+[[bin]]
+name = "201710"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/10.rs"
+
+[[bin]]
+name = "201711"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/11.rs"
+
+[[bin]]
+name = "201712"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/12.rs"
+
+[[bin]]
+name = "201713"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/13.rs"
+
+[[bin]]
+name = "201714"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/14.rs"
+
+[[bin]]
+name = "201715"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/15.rs"
+
+[[bin]]
+name = "201716"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/16.rs"
+
+[[bin]]
+name = "201717"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2017/17.rs"
+
+[[bin]]
+name = "202201"
+path = "2022/01.rs"
+
+[[bin]]
+name = "202202"
+path = "2022/02.rs"
+
+[[bin]]
+name = "202203"
+path = "2022/03.rs"
+
+[[bin]]
+name = "202204"
+path = "2022/04.rs"
+
+[[bin]]
+name = "202205"
+path = "2022/05.rs"
+
+[[bin]]
+name = "202206"
+path = "2022/06.rs"
+
+[[bin]]
+name = "202207"
+path = "2022/07.rs"
+
+[[bin]]
+name = "202208"
+path = "2022/08.rs"
+
+[[bin]]
+name = "202209"
+path = "2022/09.rs"
+
+[[bin]]
+name = "202210"
+path = "2022/10.rs"
+
+[[bin]]
+name = "202211"
+path = "2022/11.rs"
+
+[[bin]]
+name = "202212"
+path = "2022/12.rs"
+
+[[bin]]
+name = "202213"
+path = "2022/13.rs"
+
+[[bin]]
+name = "202214"
+path = "2022/14.rs"
+
+[[bin]]
+name = "202215"
+path = "2022/15.rs"
+
+[[bin]]
+name = "202216"
+path = "2022/16.rs"
+
+[[bin]]
+name = "202217"
+path = "2022/17.rs"
+
+[[bin]]
+name = "202218"
+path = "2022/18.rs"
+
+[[bin]]
+name = "202219"
+path = "2022/19.rs"
+
+[[bin]]
+name = "202220"
+path = "2022/20.rs"
+
+[[bin]]
+name = "202221"
+path = "2022/21.rs"
+
+[[bin]]
+name = "202301"
+path = "2023/01.rs"
+
+[[bin]]
+name = "202302"
+path = "2023/02.rs"
+
+[[bin]]
+name = "202303"
+path = "2023/03.rs"
+
+[[bin]]
+name = "202304"
+path = "2023/04.rs"
+
+[[bin]]
+name = "202305"
+path = "2023/05.rs"
+
+[[bin]]
+name = "202306"
+path = "2023/06.rs"
+
+[[bin]]
+name = "202307"
+path = "2023/07.rs"
+
+[[bin]]
+name = "202308"
+path = "2023/08.rs"
+
+[[bin]]
+name = "202309"
+path = "2023/09.rs"
+
+[[bin]]
+name = "202310"
+path = "2023/10.rs"
+
+[[bin]]
+name = "202311"
+path = "2023/11.rs"
+
+[[bin]]
+name = "202312"
+path = "2023/12.rs"
+
+[[bin]]
+name = "202313"
+path = "2023/13.rs"
+
+[[bin]]
+name = "202314"
+path = "2023/14.rs"
+
+[[bin]]
+name = "202315"
+path = "2023/15.rs"
+
+[[bin]]
+name = "202316"
+path = "2023/16.rs"
+
+[[bin]]
+name = "202317"
+path = "2023/17.rs"
+
+[[bin]]
+name = "202318"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/18.rs"
+
+[[bin]]
+name = "202319"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/19.rs"
+
+[[bin]]
+name = "202320"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/20.rs"
+
+[[bin]]
+name = "202321"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/21.rs"
+
+[[bin]]
+name = "202322"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/22.rs"
+
+[[bin]]
+name = "202323"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/23.rs"
+
+[[bin]]
+name = "202324"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/24.rs"
+
+[[bin]]
+name = "202325"
+path = "/Users/daniel/Documents/Programming/AdventOfCode/2023/25.rs"

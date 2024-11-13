@@ -1,0 +1,16 @@
+[package]
+name = "advent-cli"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = { workspace = true }
+argh = { workspace = true }
+time = { workspace = true, features = ["macros"] }
+yansi = { workspace = true }
+reqwest = { workspace = true, features = ["blocking", "cookies"] }
+toml = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+regex-macro = { workspace = true }

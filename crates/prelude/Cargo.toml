@@ -1,0 +1,10 @@
+[package]
+name = "prelude"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+itertools = { workspace = true }
+regex-macro = { workspace = true }
+rustc-hash = { workspace = true }
