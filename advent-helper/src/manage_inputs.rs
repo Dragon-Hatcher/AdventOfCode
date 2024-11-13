@@ -48,9 +48,9 @@ pub fn ensure_input_fetched(year: u32, day: u32) -> Result<()> {
         } else {
             bail!("Can't fetch input for a future day.");
         }
-    }
 
-    print_message("Verified", format!("puzzle input `{relative_input_path}`"));
+        print_message("Verified", format!("puzzle input `{relative_input_path}`"));
+    }
 
     Ok(())
 }

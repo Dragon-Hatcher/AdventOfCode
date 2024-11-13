@@ -1,6 +1,6 @@
 use crate::{
     helpers::{get_bin_name, get_bin_path, get_workspace_path},
-    manage_meta::{Metadata, Puzzle},
+    manage_meta::{set_active_puzzle, Metadata, Puzzle},
     options::NewOptions,
     printers::print_message,
 };
@@ -76,12 +76,3 @@ fn open_bin_file(year: u32, day: u32) {
     _ = process::Command::new("code").arg(bin_path).status();
 }
 
-fn set_active_puzzle(year: u32, day: u32) -> Result<()> {
-    let mut metadata = Metadata::new_from_fs();
-    metadata.active_puzzle = Some(Puzzle { year, day });
-    metadata.write_to_fs()?;
-
-    print_message("Updated", format!("set active puzzle to {year:04}-{day:02}"));
-
-    Ok(())
-}

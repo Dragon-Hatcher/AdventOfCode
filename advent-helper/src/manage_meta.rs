@@ -3,7 +3,7 @@ use std::{fs, io::BufReader, path::PathBuf};
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::helpers::get_workspace_path;
+use crate::{helpers::get_workspace_path, printers::print_message};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct Puzzle {
@@ -42,12 +42,29 @@ impl Metadata {
     pub fn resolve_selected_puzzle(&self, year: Option<u32>, day: Option<u32>) -> Result<Puzzle> {
         match (year, day, self.active_puzzle) {
             (Some(year), Some(day), _) => Ok(Puzzle { year, day }),
-            (Some(year), None, Some(active)) if year == active.year => Ok(Puzzle {
-                year,
-                day: active.day,
+            (None, Some(day), Some(active)) => Ok(Puzzle {
+                year: active.year,
+                day,
             }),
             (None, None, Some(active)) => Ok(active),
             _ => bail!("You must specify a puzzle."),
         }
     }
+}
+
+pub fn set_active_puzzle(year: u32, day: u32) -> Result<()> {
+    let mut metadata = Metadata::new_from_fs();
+    let new = Some(Puzzle { year, day });
+
+    if metadata.active_puzzle != new {
+        metadata.active_puzzle = new;
+        metadata.write_to_fs()?;
+
+        print_message(
+            "Updated",
+            format!("set active puzzle to {year:04}-{day:02}"),
+        );
+    }
+
+    Ok(())
 }
