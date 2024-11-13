@@ -5,10 +5,12 @@ fn default_input() -> &'static str {
 }
 
 fn part1(input: &str) -> i64 {
+    _ = input;
     todo!("Part 1")
 }
 
 fn part2(input: &str) -> i64 {
+    _ = input;
     todo!("Part 2")
 }
 

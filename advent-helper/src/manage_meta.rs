@@ -1,6 +1,6 @@
 use std::{fs, io::BufReader, path::PathBuf};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::helpers::get_workspace_path;
@@ -39,4 +39,15 @@ impl Metadata {
         Ok(())
     }
 
+    pub fn resolve_selected_puzzle(&self, year: Option<u32>, day: Option<u32>) -> Result<Puzzle> {
+        match (year, day, self.active_puzzle) {
+            (Some(year), Some(day), _) => Ok(Puzzle { year, day }),
+            (Some(year), None, Some(active)) if year == active.year => Ok(Puzzle {
+                year,
+                day: active.day,
+            }),
+            (None, None, Some(active)) => Ok(active),
+            _ => bail!("You must specify a puzzle."),
+        }
+    }
 }

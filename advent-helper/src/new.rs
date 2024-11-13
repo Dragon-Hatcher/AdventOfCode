@@ -14,8 +14,8 @@ use std::{
 mod cargo;
 
 pub fn new_command(opts: NewOptions) -> Result<()> {
-    let year = opts.year.unwrap_or(2015);
-    let day = opts.day.unwrap_or(1);
+    let Puzzle { year, day } =
+        Metadata::new_from_fs().resolve_selected_puzzle(opts.year, opts.day)?;
 
     create_bin_file(year, day)?;
     update_manifest(year, day)?;

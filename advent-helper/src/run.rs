@@ -1,12 +1,16 @@
 use crate::{
-    helpers::get_bin_name, manage_inputs::ensure_input_fetched, options::{Part, RunOptions}, printers::print_message
+    helpers::get_bin_name,
+    manage_inputs::ensure_input_fetched,
+    manage_meta::{Metadata, Puzzle},
+    options::{Part, RunOptions},
+    printers::print_message,
 };
 use anyhow::Result;
 use std::process;
 
 pub fn run_command(opts: RunOptions) -> Result<()> {
-    let year = opts.year.unwrap_or(2015);
-    let day = opts.day.unwrap_or(1);
+    let Puzzle { year, day } =
+        Metadata::new_from_fs().resolve_selected_puzzle(opts.year, opts.day)?;
 
     run_single_day(year, day, opts.part, &opts.args)?;
 
