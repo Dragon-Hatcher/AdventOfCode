@@ -31,3 +31,16 @@ fn part2(input: &str) -> i64 {
 fn main() {
     advent::new(default_input).part1(part1).part2(part2).cli();
 }
+
+#[test]
+fn example() {
+    assert_eq!(part1(")())())"), -3);
+    assert_eq!(part2("()())"), 5);
+}
+
+#[test]
+fn default() {
+    let input = default_input();
+    assert_eq!(part1(input), 280);
+    assert_eq!(part2(input), 1797);
+}

@@ -1,15 +1,18 @@
 mod options;
 mod printers;
 mod manage_inputs;
+mod helpers;
 mod run;
+mod new;
 
 use anyhow::Result;
-use options::Options;
+use options::{Options, SubCommand};
 
 fn main() -> Result<()> {
     let opts: Options = argh::from_env();
 
     match opts.nested {
-        options::SubCommand::Run(opts) => run::run_command(opts),
+        SubCommand::Run(opts) => run::run_command(opts),
+        SubCommand::New(opts) => new::new_command(opts)
     }
 }

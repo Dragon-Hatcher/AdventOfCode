@@ -12,6 +12,7 @@ pub struct Options {
 #[argh(subcommand)]
 pub enum SubCommand {
     Run(RunOptions),
+    New(NewOptions),
 }
 
 /// run the solution for a specific day
@@ -50,4 +51,17 @@ impl FromArgValue for Part {
             _ => Err("invalid part".into()),
         }
     }
+}
+
+/// create a new solution file
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "new")]
+pub struct NewOptions {
+    /// the year of the solution to run
+    #[argh(option, short = 'y')]
+    pub year: Option<u32>,
+
+    /// the day of the solution to run
+    #[argh(option, short = 'd')]
+    pub day: Option<u32>,
 }

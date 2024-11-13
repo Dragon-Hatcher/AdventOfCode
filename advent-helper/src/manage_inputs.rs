@@ -1,8 +1,8 @@
 use anyhow::{bail, Context, Result};
 use reqwest::{cookie::Jar, Url};
-use std::{env, fs, path::PathBuf, sync::Arc};
+use std::{env, fs, sync::Arc};
 
-use crate::printers::print_message;
+use crate::{helpers::get_workspace_path, printers::print_message};
 
 fn download(url: &str) -> Result<String> {
     let url: Url = url.parse()?;
@@ -32,7 +32,7 @@ fn get_input_path(year: u32, day: u32) -> String {
 }
 
 pub fn ensure_input_fetched(year: u32, day: u32) -> Result<()> {
-    let workspace_path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
+    let workspace_path = get_workspace_path();
     let relative_input_path = get_input_path(year, day);
     let input_path = workspace_path.join(&relative_input_path);
 
