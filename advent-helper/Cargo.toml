@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.93"
 argh = "0.1.12"
+reqwest = { version = "0.11.22", features = ["blocking", "cookies"] }
 yansi = "1.0.1"

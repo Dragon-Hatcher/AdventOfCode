@@ -1,5 +1,6 @@
 mod options;
 mod printers;
+mod manage_inputs;
 mod run;
 
 use anyhow::Result;

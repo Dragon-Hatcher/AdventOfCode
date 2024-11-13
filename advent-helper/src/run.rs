@@ -1,4 +1,5 @@
 use crate::{
+    manage_inputs::ensure_input_fetched,
     options::{Part, RunOptions},
     printers::print_message,
 };
@@ -19,6 +20,8 @@ fn get_binary_name(year: u32, day: u32) -> String {
 }
 
 fn run_single_day(year: u32, day: u32, parts: Part, args: &[String]) -> Result<()> {
+    ensure_input_fetched(year, day)?;
+
     let bin_name = get_binary_name(year, day);
 
     let (part_msg, part_flag) = match parts {
