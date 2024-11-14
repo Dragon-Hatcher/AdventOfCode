@@ -4,7 +4,7 @@ function _tide_item_aoc_active_puz
         set day (jq .active_puzzle.day meta.json 2>/dev/null)
 
         if test "$year" -a "$day"
-           _tide_print_item aoc_active_puz $tide_aoc_active_puz_icon' ' "$year, $day"
+           _tide_print_item aoc_active_puz $tide_aoc_active_puz_icon' ' "$year day $day"
         end
     end
 end
