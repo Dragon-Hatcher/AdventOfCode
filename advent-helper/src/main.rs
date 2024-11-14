@@ -7,6 +7,7 @@ mod printers;
 mod run;
 mod submit;
 mod test;
+mod switch;
 
 use anyhow::Result;
 use options::{Options, SubCommand};
@@ -19,5 +20,6 @@ fn main() -> Result<()> {
         SubCommand::Test(opts) => test::test_command(opts),
         SubCommand::New(opts) => new::new_command(opts),
         SubCommand::Submit(opts) => submit::submit_command(opts, true),
+        SubCommand::Switch(opts) => switch::switch_command(opts)
     }
 }

@@ -15,6 +15,7 @@ pub enum SubCommand {
     Test(TestOptions),
     New(NewOptions),
     Submit(SubmitOptions),
+    Switch(SwitchOptions)
 }
 
 /// run the solution for a specific day
@@ -99,4 +100,17 @@ pub struct SubmitOptions {
     /// the value to submit
     #[argh(positional)]
     pub answer: Option<String>,
+}
+
+/// set the active day
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "switch")]
+pub struct SwitchOptions {
+    /// the year to switch to
+    #[argh(option, short = 'y')]
+    pub year: Option<u32>,
+
+    /// the day to switch to
+    #[argh(option, short = 'd')]
+    pub day: Option<u32>,
 }
