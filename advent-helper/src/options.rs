@@ -13,6 +13,7 @@ pub struct Options {
 pub enum SubCommand {
     Run(RunOptions),
     New(NewOptions),
+    Submit(SubmitOptions),
 }
 
 /// run the solution for a specific day
@@ -64,4 +65,21 @@ pub struct NewOptions {
     /// the day of the solution to run
     #[argh(option, short = 'd')]
     pub day: Option<u32>,
+}
+
+/// submit a solution
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "submit")]
+pub struct SubmitOptions {
+    /// the year of the solution to run
+    #[argh(option, short = 'y')]
+    pub year: Option<u32>,
+
+    /// the day of the solution to run
+    #[argh(option, short = 'd')]
+    pub day: Option<u32>,
+
+    /// the value to submit
+    #[argh(positional)]
+    pub answer: Option<String>,
 }

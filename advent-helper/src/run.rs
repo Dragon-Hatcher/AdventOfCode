@@ -1,7 +1,7 @@
 use crate::{
     helpers::get_bin_name,
     manage_inputs::ensure_input_fetched,
-    manage_meta::{set_active_puzzle, Metadata, Puzzle},
+    manage_meta::{Metadata, Puzzle},
     options::{Part, RunOptions},
     printers::print_message,
 };
@@ -18,7 +18,7 @@ pub fn run_command(opts: RunOptions) -> Result<()> {
 }
 
 fn run_single_day(year: u32, day: u32, parts: Part, args: &[String]) -> Result<()> {
-    set_active_puzzle(year, day)?;
+    Metadata::new_from_fs().set_active_puzzle(year, day)?;
     ensure_input_fetched(year, day)?;
 
     let bin_name = get_bin_name(year, day);

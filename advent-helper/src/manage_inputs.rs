@@ -1,18 +1,16 @@
-use anyhow::{bail, Context, Result};
-use reqwest::{cookie::Jar, Url};
-use std::{env, fs, sync::Arc};
+use anyhow::{bail, Result};
+use reqwest::Url;
+use std::{fs, sync::Arc};
 
-use crate::{helpers::get_workspace_path, printers::print_message};
+use crate::{
+    helpers::{get_cookie_jar, get_workspace_path},
+    printers::print_message,
+};
 
 fn download(url: &str) -> Result<String> {
     let url: Url = url.parse()?;
 
-    let cookie = format!(
-        "session={}",
-        env::var("AOC_SESSION_ID").context("`AOC_SESSION_ID` must be set")?
-    );
-    let jar = Jar::default();
-    jar.add_cookie_str(&cookie, &url);
+    let jar = get_cookie_jar(&url)?;
 
     Ok(reqwest::blocking::ClientBuilder::new()
         .cookie_provider(Arc::new(jar))

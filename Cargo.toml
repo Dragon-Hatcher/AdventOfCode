@@ -14,3 +14,6 @@ advent = { path = "advent" }
 name = "2015-01"
 path = "solutions/2015/01.rs"
 
+[[bin]]
+name = "2015-02"
+path = "solutions/2015/02.rs"

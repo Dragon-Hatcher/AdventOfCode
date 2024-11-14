@@ -1,6 +1,6 @@
 use crate::{
     helpers::{get_bin_name, get_bin_path, get_workspace_path},
-    manage_meta::{set_active_puzzle, Metadata, Puzzle},
+    manage_meta::{Metadata, Puzzle},
     options::NewOptions,
     printers::print_message,
 };
@@ -19,7 +19,7 @@ pub fn new_command(opts: NewOptions) -> Result<()> {
 
     create_bin_file(year, day)?;
     update_manifest(year, day)?;
-    set_active_puzzle(year, day)?;
+    Metadata::new_from_fs().set_active_puzzle(year, day)?;
     open_bin_file(year, day);
 
     print_message(
@@ -75,4 +75,3 @@ fn open_bin_file(year: u32, day: u32) {
 
     _ = process::Command::new("code").arg(bin_path).status();
 }
-
