@@ -5,13 +5,29 @@ fn default_input() -> &'static str {
 }
 
 fn part1(input: &str) -> i64 {
-    _ = input;
-    todo!("Part 1")
+    input
+        .lines()
+        .map(|line| {
+            let (l, w, h) = line.nums().tup();
+            let a = l * w;
+            let b = w * h;
+            let c = h * l;
+            2 * (a + b + c) + a.min(b).min(c)
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    _ = input;
-    todo!("Part 2")
+    input
+        .lines()
+        .map(|line| {
+            let (l, w, h) = line.nums().tup();
+            let volume = l * w * h;
+            let perimeter = (l * 2 + w * 2).min(l * 2 + h * 2).min(w * 2 + h * 2);
+
+            volume + perimeter
+        })
+        .sum()
 }
 
 fn main() {
@@ -31,6 +47,6 @@ fn example() {
 #[test]
 fn default() {
     let input = default_input();
-    assert_eq!(part1(input), 15863000);
+    assert_eq!(part1(input), 1586300);
     assert_eq!(part2(input), 3737498);
 }

@@ -1,3 +1,9 @@
+mod iterators;
+mod strings;
+
+pub use iterators::*;
+pub use strings::*;
+
 #[macro_export]
 macro_rules! include_input {
     ($extra:literal / $year:literal / $day:literal) => {{
