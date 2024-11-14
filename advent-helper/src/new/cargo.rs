@@ -1,4 +1,4 @@
-use crate::helpers::{get_bin_path, get_bin_name, get_manifest_path};
+use crate::helpers::{get_bin_name, get_bin_path, get_manifest_path};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;

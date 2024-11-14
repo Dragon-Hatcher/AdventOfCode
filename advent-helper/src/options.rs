@@ -12,6 +12,7 @@ pub struct Options {
 #[argh(subcommand)]
 pub enum SubCommand {
     Run(RunOptions),
+    Test(TestOptions),
     New(NewOptions),
     Submit(SubmitOptions),
 }
@@ -52,6 +53,22 @@ impl FromArgValue for Part {
             _ => Err("invalid part".into()),
         }
     }
+}
+
+/// test the solution for a specific day
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand, name = "test")]
+pub struct TestOptions {
+    /// the year of the solution to test
+    #[argh(option, short = 'y')]
+    pub year: Option<u32>,
+
+    /// the day of the solution to test
+    #[argh(option, short = 'd')]
+    pub day: Option<u32>,
+
+    #[argh(positional, greedy)]
+    pub args: Vec<String>,
 }
 
 /// create a new solution file

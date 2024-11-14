@@ -21,7 +21,6 @@ pub trait IntoTuple<T> {
     fn maybe_tup(&mut self) -> Option<T>;
 }
 
-
 macro_rules! convert_to_ident {
     ($count:ident, $replace:ident) => {
         $replace

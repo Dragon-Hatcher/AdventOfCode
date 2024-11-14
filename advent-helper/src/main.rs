@@ -6,6 +6,7 @@ mod options;
 mod printers;
 mod run;
 mod submit;
+mod test;
 
 use anyhow::Result;
 use options::{Options, SubCommand};
@@ -15,6 +16,7 @@ fn main() -> Result<()> {
 
     match opts.nested {
         SubCommand::Run(opts) => run::run_command(opts),
+        SubCommand::Test(opts) => test::test_command(opts),
         SubCommand::New(opts) => new::new_command(opts),
         SubCommand::Submit(opts) => submit::submit_command(opts, true),
     }
