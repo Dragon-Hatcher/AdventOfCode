@@ -1,10 +1,12 @@
 mod iterators;
 mod strings;
 mod vectors;
+mod crypto;
 
 pub use iterators::*;
 pub use strings::*;
 pub use vectors::*;
+pub use crypto::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use rustc_hash::FxHashMap as HashMap;
