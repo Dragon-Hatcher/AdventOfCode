@@ -59,3 +59,7 @@ path = "solutions/2015/11.rs"
 [[bin]]
 name = "2015-12"
 path = "solutions/2015/12.rs"
+
+[[bin]]
+name = "2015-13"
+path = "solutions/2015/13.rs"

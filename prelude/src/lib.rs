@@ -1,5 +1,6 @@
 mod crypto;
 mod grid;
+mod id_gen;
 mod iterators;
 mod range;
 mod strings;
@@ -7,6 +8,7 @@ mod vectors;
 
 pub use crypto::*;
 pub use grid::*;
+pub use id_gen::*;
 pub use iterators::*;
 pub use range::*;
 pub use strings::*;

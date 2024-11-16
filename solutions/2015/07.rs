@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use advent::prelude::*;
 
 fn parse(input: &str) -> HashMap<String, Instruction> {
