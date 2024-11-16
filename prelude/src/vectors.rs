@@ -190,10 +190,7 @@ impl Vec2 {
         self.manhattan_dist(Vec2::ZERO)
     }
 
-    pub fn neighbors_with_deltas<'a>(
-        &self,
-        deltas: &'a [Vec2],
-    ) -> impl Iterator<Item = Vec2> + 'a {
+    pub fn neighbors_with_deltas<'a>(&self, deltas: &'a [Vec2]) -> impl Iterator<Item = Vec2> + 'a {
         let s = *self;
         deltas.iter().map(move |delta| s + delta)
     }

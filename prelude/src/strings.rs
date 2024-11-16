@@ -35,7 +35,7 @@ impl<'a> Iterator for NumberIterator<'a> {
         let mut sign = 1i64;
         let mut mag = 0i64;
 
-        while let Some(c) = self.chars.next() {
+        for c in self.chars.by_ref() {
             if started && !c.is_ascii_digit() {
                 break;
             }

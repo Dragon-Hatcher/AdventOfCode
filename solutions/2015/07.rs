@@ -105,7 +105,7 @@ fn part2(mut circuit: HashMap<String, Instruction>) -> i64 {
 }
 
 fn main() {
-    advent::new(2015, 07, default_input)
+    advent::new(2015, 7, default_input)
         .part1(part1)
         .part2(part2)
         .cli();

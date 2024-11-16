@@ -50,7 +50,7 @@ impl Range {
     }
 
     pub fn height(&self) -> i64 {
-        self.width
+        self.height
     }
 
     pub fn contains(&self, p: Vec2) -> bool {

@@ -26,7 +26,7 @@ fn default_input() -> Input {
 
 fn all_distances((locs, distances): &Input) -> impl Iterator<Item = i64> + '_ {
     let count = locs.len();
-    locs.into_iter().permutations(count).map(|path| {
+    locs.iter().permutations(count).map(|path| {
         path.iter()
             .tuple_windows()
             .map(|(&from, &to)| distances[&(from.clone(), to.clone())])
@@ -43,7 +43,7 @@ fn part2(input: Input) -> i64 {
 }
 
 fn main() {
-    advent::new(2015, 09, default_input)
+    advent::new(2015, 9, default_input)
         .part1(part1)
         .part2(part2)
         .cli();

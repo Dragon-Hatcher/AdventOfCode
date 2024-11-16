@@ -15,7 +15,7 @@ pub enum SubCommand {
     Test(TestOptions),
     New(NewOptions),
     Submit(SubmitOptions),
-    Switch(SwitchOptions)
+    Switch(SwitchOptions),
 }
 
 /// run the solution for a specific day
