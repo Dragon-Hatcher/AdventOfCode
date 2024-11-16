@@ -2,11 +2,15 @@ mod iterators;
 mod strings;
 mod vectors;
 mod crypto;
+mod grid;
+mod range;
 
 pub use iterators::*;
 pub use strings::*;
 pub use vectors::*;
 pub use crypto::*;
+pub use grid::*;
+pub use range::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use rustc_hash::FxHashMap as HashMap;
