@@ -87,11 +87,7 @@ fn part2(input: &str) -> i64 {
         }
     }
 
-    reindeer
-        .iter()
-        .map(|r| r.points)
-        .max()
-        .unwrap_or_default()
+    reindeer.iter().map(|r| r.points).max().unwrap_or_default()
 }
 
 fn main() {
