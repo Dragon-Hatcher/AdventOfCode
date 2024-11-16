@@ -31,6 +31,8 @@ name = "advent-bins"
 version = "0.1.0"
 dependencies = [
  "advent",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

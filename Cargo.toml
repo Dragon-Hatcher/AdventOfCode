@@ -9,6 +9,8 @@ edition = "2021"
 
 [dependencies]
 advent = { path = "advent" }
+serde = "1.0.215"
+serde_json = "1.0.132"
 
 [[bin]]
 name = "2015-01"
@@ -53,3 +55,7 @@ path = "solutions/2015/10.rs"
 [[bin]]
 name = "2015-11"
 path = "solutions/2015/11.rs"
+
+[[bin]]
+name = "2015-12"
+path = "solutions/2015/12.rs"

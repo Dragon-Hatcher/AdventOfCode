@@ -36,18 +36,16 @@ impl<'a> Iterator for NumberIterator<'a> {
         let mut mag = 0i64;
 
         for c in self.chars.by_ref() {
+            if c.is_ascii_digit() {
+                started = true;
+            }
+
             if started && !c.is_ascii_digit() {
                 break;
             }
 
-            sign = if !started && c == '-' && !self.positive {
-                -1
-            } else {
-                1
-            };
-
-            if c.is_ascii_digit() {
-                started = true;
+            if !started {
+                sign = if c == '-' && !self.positive { -1 } else { 1 };
             }
 
             if started {
