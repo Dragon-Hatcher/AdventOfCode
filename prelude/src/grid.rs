@@ -1,6 +1,6 @@
 use itertools::iproduct;
 
-use crate::{IterExtensions, Range, Vec2};
+use crate::{v2, IterExtensions, Range, Vec2};
 use std::ops::{Index, IndexMut};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -58,6 +58,10 @@ impl<T> Grid<T> {
 
     pub fn points(&self) -> impl Iterator<Item = Vec2> {
         self.range().points()
+    }
+
+    pub fn row_points(&self, y: i64) -> impl Iterator<Item = Vec2> {
+        (0..self.width()).map(move |x| v2(x, y))
     }
 
     pub fn elements(&self) -> impl Iterator<Item = &T> {
