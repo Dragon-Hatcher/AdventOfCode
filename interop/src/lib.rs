@@ -85,6 +85,13 @@ impl Part {
             Part::Two => "two",
         }
     }
+
+    pub fn to_num_str(&self) -> &'static str {
+        match self {
+            Part::One => "1",
+            Part::Two => "2",
+        }
+    }
 }
 
 impl Display for Part {

@@ -67,39 +67,49 @@ impl Metadata {
         Ok(())
     }
 
+    pub fn refetch_puzzle(&mut self, puzzle: Puzzle, print: bool) -> Result<()> {
+        if print {
+            print_message("Fetching", format!("puzzle info for {puzzle}"));
+        }
+        
+        let puzzle_text = fetch_puzzle_text(puzzle)?;
+
+        if puzzle_text == include_str!("input_error.txt") {
+            bail!("trying to get info on puzzle before it is released.");
+        }
+
+        let puzzle_name_re = regex!("--- Day \\d+: (.*?) ---");
+        let answers_re = regex!("Your puzzle answer was <code>(\\w+)</code>");
+
+        let name = puzzle_name_re
+            .captures(&puzzle_text)
+            .context("Can't find puzzle name?")?[1]
+            .to_owned();
+        let name = clean_name(&name);
+
+        let mut answers = answers_re
+            .captures_iter(&puzzle_text)
+            .map(|c| c[1].to_owned());
+
+        let info = PuzzleInfo {
+            name,
+            part1_solution: answers.next(),
+            part2_solution: answers.next(),
+        };
+
+        let key = puzzle.get_bin_name();
+        self.puzzle_infos.insert(key, info);
+
+        self.write_to_fs()?;
+
+        Ok(())
+    }
+
     pub fn get_or_fetch_puzzle_info(&mut self, puzzle: Puzzle) -> Result<&PuzzleInfo> {
         let key = puzzle.get_bin_name();
 
         if !self.puzzle_infos.contains_key(&key) {
-            print_message("Fetching", format!("puzzle info for {puzzle}"));
-            let puzzle_text = fetch_puzzle_text(puzzle)?;
-
-            if puzzle_text == include_str!("input_error.txt") {
-                bail!("trying to get info on puzzle before it is released.");
-            }
-
-            let puzzle_name_re = regex!("--- Day \\d+: (.*?) ---");
-            let answers_re = regex!("Your puzzle answer was <code>(\\w+)</code>");
-
-            let name = puzzle_name_re
-                .captures(&puzzle_text)
-                .context("Can't find puzzle name?")?[1]
-                .to_owned();
-            let name = clean_name(&name);
-
-            let mut answers = answers_re
-                .captures_iter(&puzzle_text)
-                .map(|c| c[1].to_owned());
-
-            let info = PuzzleInfo {
-                name,
-                part1_solution: answers.next(),
-                part2_solution: answers.next(),
-            };
-
-            self.puzzle_infos.insert(key.clone(), info);
-
-            self.write_to_fs()?;
+            self.refetch_puzzle(puzzle, true)?;
         }
 
         Ok(self.puzzle_infos.get_mut(&key).unwrap())

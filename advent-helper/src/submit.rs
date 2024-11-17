@@ -59,7 +59,8 @@ pub fn submit_command(opts: SubmitOptions, confirm: bool) -> Result<()> {
             println!(
                 "{}",
                 Paint::yellow("You've already solved both parts of this puzzle.")
-            )
+            );
+            meta.refetch_puzzle(puzzle, false)?;
         }
         ResponseType::TooSoon { min, sec } => {
             countdown(min, sec);
@@ -69,7 +70,8 @@ pub fn submit_command(opts: SubmitOptions, confirm: bool) -> Result<()> {
             println!("{}", Paint::red("Incorrect solution."))
         }
         ResponseType::Correct => {
-            println!("🎄⭐🎄 {} 🎄⭐🎄", Paint::green("Correct!"))
+            println!("🎄⭐🎄 {} 🎄⭐🎄", Paint::green("Correct!"));
+            meta.refetch_puzzle(puzzle, false)?;
         }
     }
 
@@ -113,7 +115,7 @@ fn submit_data(puzzle: Puzzle, part: Part, answer: String) -> Result<String> {
     let jar = get_cookie_jar(&url)?;
 
     let mut form_data = HashMap::new();
-    form_data.insert("level", part.to_string());
+    form_data.insert("level", part.to_num_str().to_owned());
     form_data.insert("answer", answer);
 
     Ok(reqwest::blocking::ClientBuilder::new()
