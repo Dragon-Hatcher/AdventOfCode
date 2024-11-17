@@ -27,6 +27,10 @@ impl Range {
         )
     }
 
+    pub fn top_left(&self) -> Vec2 {
+        self.top_left
+    }
+
     pub fn left(&self) -> i64 {
         self.top_left.x
     }

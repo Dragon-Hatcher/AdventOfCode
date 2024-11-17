@@ -126,6 +126,45 @@ impl<T> Grid<T> {
 
         self.neighbors_with_deltas(p, DELTAS)
     }
+
+    pub fn mirror_vertical(&self) -> Grid<T>
+    where
+        T: Clone,
+    {
+        let height = self.height();
+        Grid::new_with(self.width(), self.height(), |p| {
+            self[v2(p.x, height - p.y - 1)].clone()
+        })
+    }
+
+    pub fn mirror_horizontal(&self) -> Grid<T>
+    where
+        T: Clone,
+    {
+        let width = self.width();
+        Grid::new_with(self.width(), self.height(), |p| {
+            self[v2(width - p.x - 1, p.y)].clone()
+        })
+    }
+
+    pub fn rotate_90(&self) -> Grid<T>
+    where
+        T: Clone,
+    {
+        let height = self.height();
+        Grid::new_with(self.height(), self.width(), |p| {
+            self[v2(height - p.y - 1, p.x)].clone()
+        })
+    }
+
+    pub fn sub_grid(&self, range: Range) -> Grid<T>
+    where
+        T: Clone,
+    {
+        Grid::new_with(range.width(), range.height(), |p| {
+            self[range.top_left() + p].clone()
+        })
+    }
 }
 
 impl<T> Index<Vec2> for Grid<T> {
