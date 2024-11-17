@@ -60,7 +60,7 @@ fn find_configs(packages: &[i64], weight_left: i64) -> PackageGroup {
     }
 
     let mut so_far = vec![];
-    helper(&packages, &mut so_far, weight_left).unwrap()
+    helper(packages, &mut so_far, weight_left).unwrap()
 }
 
 fn part1(input: &str) -> i64 {

@@ -30,7 +30,7 @@ fn part2(input: &str) -> i64 {
     (start_mol.chars().filter(char::is_ascii_uppercase).count()
         - start_mol.matches("Rn").count()
         - start_mol.matches("Ar").count()
-        - 2 * start_mol.matches("Y").count()
+        - 2 * start_mol.matches('Y').count()
         - 1) as i64
 }
 
