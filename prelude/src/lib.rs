@@ -22,6 +22,7 @@ pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
+pub use rustc_hash;
 
 #[macro_export]
 macro_rules! include_input {
@@ -46,4 +47,18 @@ macro_rules! include_input {
             ".txt"
         ))
     }};
+}
+
+#[macro_export]
+macro_rules! hashmap {
+    ($($key:expr => $value:expr,)+) => { hashmap!($($key => $value),+) };
+    ($($key:expr => $value:expr),*) => {
+        {
+            let mut _map = rustc_hash::FxHashMap::default();
+            $(
+                let _ = _map.insert($key, $value);
+            )*
+            _map
+        }
+    };
 }
