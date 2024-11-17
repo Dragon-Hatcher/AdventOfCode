@@ -11,7 +11,7 @@ use std::{
     process,
 };
 
-mod cargo;
+pub mod cargo;
 
 pub fn new_command(opts: NewOptions) -> Result<()> {
     let Puzzle { year, day } =

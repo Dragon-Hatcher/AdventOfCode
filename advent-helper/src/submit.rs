@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{get_cookie_jar, get_run_output_path, get_workspace_path},
+    helpers::{get_cookie_jar, get_last_run_output},
     manage_meta::{Metadata, Puzzle},
     options::SubmitOptions,
     printers::print_message,
@@ -9,7 +9,6 @@ use regex_macro::regex;
 use reqwest::Url;
 use std::{
     collections::HashMap,
-    fs,
     io::{stdin, stdout, Write},
     sync::Arc,
     thread,
@@ -73,13 +72,6 @@ pub fn submit_command(opts: SubmitOptions, confirm: bool) -> Result<()> {
     }
 
     Ok(())
-}
-
-fn get_last_run_output(year: u32, day: u32, part: u32) -> Option<String> {
-    let workspace_path = get_workspace_path();
-    let path = workspace_path.join(get_run_output_path(year, day, part));
-
-    fs::read_to_string(path).ok()
 }
 
 fn is_acceptable_answer(answer: &str) -> bool {

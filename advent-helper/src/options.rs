@@ -34,11 +34,15 @@ pub struct RunOptions {
     #[argh(option, short = 'p', default = "Part::Both")]
     pub part: Part,
 
+    /// which solution part to run
+    #[argh(switch)]
+    pub all: bool,
+    
     #[argh(positional, greedy)]
     pub args: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Part {
     One,
     Two,

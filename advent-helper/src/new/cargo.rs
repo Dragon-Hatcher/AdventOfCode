@@ -5,8 +5,8 @@ use std::fs;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct Binary {
-    name: String,
-    path: String,
+    pub name: String,
+    pub path: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -34,6 +34,10 @@ impl Binaries {
         self.bin.sort();
         self.bin.dedup();
         added
+    }
+
+    pub fn binaries(&self) -> &[Binary] {
+        &self.bin
     }
 
     pub fn write_to_fs(&self) -> Result<()> {

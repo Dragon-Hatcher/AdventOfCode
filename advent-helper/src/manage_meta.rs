@@ -102,6 +102,7 @@ impl Metadata {
                 .captures(&puzzle_text)
                 .context("Can't find puzzle name?")?[1]
                 .to_owned();
+            let name = clean_name(&name);
 
             let mut answers = answers_re
                 .captures_iter(&puzzle_text)
@@ -133,4 +134,8 @@ fn fetch_puzzle_text(year: u32, day: u32) -> Result<String> {
         .get(url)
         .send()?
         .text()?)
+}
+
+fn clean_name(name: &str) -> String {
+    name.replace("&apos;", "'")
 }

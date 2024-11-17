@@ -39,7 +39,7 @@ fn part1(input: &str) -> i64 {
             seats
                 .iter()
                 .circular_tuple_windows()
-                .map(|(&a, &b)| happiness[&(*a, *b)])
+                .map(|(&a, &b)| happiness[&(*a, *b)] + happiness[&(*b, *a)])
                 .sum()
         })
         .max()
@@ -57,7 +57,7 @@ fn part2(input: &str) -> i64 {
             seats
                 .iter()
                 .tuple_windows()
-                .map(|(&a, &b)| happiness[&(*a, *b)])
+                .map(|(&a, &b)| happiness[&(*a, *b)] + happiness[&(*b, *a)])
                 .sum()
         })
         .max()

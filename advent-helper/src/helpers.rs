@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use reqwest::{cookie::Jar, Url};
-use std::{env, path::PathBuf};
+use std::{env, fs, path::PathBuf};
 
 pub fn get_workspace_path() -> PathBuf {
     PathBuf::from(env!("CARGO_WORKSPACE_DIR"))
@@ -31,4 +31,11 @@ pub fn get_cookie_jar(url: &Url) -> Result<Jar> {
     jar.add_cookie_str(&cookie, url);
 
     Ok(jar)
+}
+
+pub fn get_last_run_output(year: u32, day: u32, part: u32) -> Option<String> {
+    let workspace_path = get_workspace_path();
+    let path = workspace_path.join(get_run_output_path(year, day, part));
+
+    fs::read_to_string(path).ok()
 }
