@@ -83,6 +83,45 @@ impl<T> Grid<T> {
     fn get_index(&self, cell: Vec2) -> usize {
         cell.y as usize * self.width + cell.x as usize
     }
+
+    pub fn neighbors_with_deltas<'a>(
+        &self,
+        p: Vec2,
+        deltas: &'a [Vec2],
+    ) -> impl Iterator<Item = Vec2> + 'a {
+        let range = self.range();
+
+        deltas
+            .iter()
+            .map(move |d| p + d)
+            .filter(move |&p| range.contains(p))
+    }
+
+    pub fn neighbors4(&self, p: Vec2) -> impl Iterator<Item = Vec2> {
+        const DELTAS: &[Vec2] = &[
+            Vec2::new(1, 0),
+            Vec2::new(-1, 0),
+            Vec2::new(0, 1),
+            Vec2::new(0, -1),
+        ];
+
+        self.neighbors_with_deltas(p, DELTAS)
+    }
+
+    pub fn neighbors8(&self, p: Vec2) -> impl Iterator<Item = Vec2> + '_ {
+        const DELTAS: &[Vec2] = &[
+            Vec2::new(1, -1),
+            Vec2::new(1, 0),
+            Vec2::new(1, 1),
+            Vec2::new(0, -1),
+            Vec2::new(0, 1),
+            Vec2::new(-1, -1),
+            Vec2::new(-1, 0),
+            Vec2::new(-1, 1),
+        ];
+
+        self.neighbors_with_deltas(p, DELTAS)
+    }
 }
 
 impl<T> Index<Vec2> for Grid<T> {
@@ -101,6 +140,10 @@ impl<T> IndexMut<Vec2> for Grid<T> {
 }
 
 impl Grid<bool> {
+    pub fn count_true(&self) -> i64 {
+        self.elements().filter(|e| **e).count() as i64
+    }
+
     pub fn pretty(&self) -> String {
         let mut out = "".to_owned();
 

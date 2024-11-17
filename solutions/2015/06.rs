@@ -43,7 +43,7 @@ fn part1(input: &str) -> i64 {
         }
     }
 
-    grid.elements().filter(|&&b| b).count() as i64
+    grid.count_true()
 }
 
 fn part2(input: &str) -> i64 {
