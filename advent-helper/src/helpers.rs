@@ -22,6 +22,7 @@ pub fn get_last_run_output(puzzle: Puzzle, part: Part) -> Option<String> {
 pub fn ellipsize(str: &str, max_width: usize) -> String {
     if str.len() > max_width {
         let mut str: String = str.chars().take(max_width - 1).collect();
+        str = str.trim_end().to_owned();
         str.push('…');
         str
     } else {

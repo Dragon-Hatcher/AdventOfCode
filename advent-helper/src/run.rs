@@ -89,8 +89,17 @@ fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
 
         let mut all = true;
 
+        let mut last_year = None;
+        let mut row_count = 0;
         for &puzzle in &puzzles {
             let info = meta.get_or_fetch_puzzle_info(puzzle)?;
+
+            if last_year.is_some() && Some(puzzle.year) != last_year {
+                print_separator();
+                row_count += 1;
+            }
+            last_year = Some(puzzle.year);
+            row_count += 1;
 
             let results1 = results.get(&(puzzle, Part::One));
             let part1 = draw_part(results1);
@@ -108,7 +117,7 @@ fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
             break;
         }
 
-        print!("\x1b[{}A\r", puzzles.len() + 4);
+        print!("\x1b[{}A\r", row_count + 4);
 
         let (puzzle, part, summary) = receiver.recv().unwrap();
         results.insert((puzzle, part), summary);
@@ -223,6 +232,15 @@ fn print_header() {
     );
     println!(
         "├────────────{pc:─^n_width$}─┼─{pc:─^width$}─┬───┼─{pc:─^width$}─┬───┤",
+        pc = "",
+        n_width = NAME_WIDTH,
+        width = PART_WIDTH
+    );
+}
+
+fn print_separator() {
+    println!(
+        "├────────────{pc:─^n_width$}─┼─{pc:─^width$}─┼───┼─{pc:─^width$}─┼───┤",
         pc = "",
         n_width = NAME_WIDTH,
         width = PART_WIDTH
