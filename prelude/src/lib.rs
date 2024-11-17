@@ -5,6 +5,7 @@ mod iterators;
 mod range;
 mod strings;
 mod vectors;
+mod math;
 
 pub use crypto::*;
 pub use grid::*;
@@ -13,6 +14,7 @@ pub use iterators::*;
 pub use range::*;
 pub use strings::*;
 pub use vectors::*;
+pub use math::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
