@@ -18,3 +18,13 @@ pub fn get_last_run_output(puzzle: Puzzle, part: Part) -> Option<String> {
     let path = puzzle.get_run_output_path(part);
     fs::read_to_string(path).ok()
 }
+
+pub fn ellipsize(str: &str, max_width: usize) -> String {
+    if str.len() > max_width {
+        let mut str: String = str.chars().take(max_width - 1).collect();
+        str.push('…');
+        str
+    } else {
+        str.to_owned()
+    }
+}

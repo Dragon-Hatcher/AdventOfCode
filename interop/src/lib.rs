@@ -3,7 +3,7 @@ pub mod files;
 use argh::FromArgValue;
 use files::get_workspace_path;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 
 pub const FIRST_YEAR: u32 = 2015;
 
@@ -47,11 +47,28 @@ impl Puzzle {
         let rel = self.get_input_rel_path();
         workspace.join(rel)
     }
+
+    pub fn could_have_part_2(self) -> bool {
+        self.day != 25
+    }
 }
 
 impl Display for Puzzle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:04}-{:02}", self.year, self.day)
+    }
+}
+
+impl FromStr for Puzzle {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (year, day) = s
+            .split_once("-")
+            .ok_or(anyhow::Error::msg("Must contain year and day."))?;
+        let year = year.parse()?;
+        let day = day.parse()?;
+        Ok(Puzzle { year, day })
     }
 }
 

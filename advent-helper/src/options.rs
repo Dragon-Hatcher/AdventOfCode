@@ -32,7 +32,7 @@ pub struct RunOptions {
     pub day: Option<u32>,
 
     /// which solution part to run
-    #[argh(option, short = 'p')]
+    #[argh(option, short = 'p', default = "PartChoice::Both")]
     pub part: PartChoice,
 
     /// which solution part to run
