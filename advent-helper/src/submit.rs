@@ -1,10 +1,11 @@
 use crate::{
     helpers::{get_cookie_jar, get_last_run_output},
-    manage_meta::{Metadata, Puzzle},
+    manage_meta::Metadata,
     options::SubmitOptions,
     printers::print_message,
 };
 use anyhow::{bail, Context, Result};
+use interop::{Part, Puzzle};
 use regex_macro::regex;
 use reqwest::Url;
 use std::{
@@ -18,22 +19,23 @@ use yansi::Paint;
 
 pub fn submit_command(opts: SubmitOptions, confirm: bool) -> Result<()> {
     let mut meta = Metadata::new_from_fs();
+    let puzzle = meta.resolve_selected_puzzle(opts.year, opts.day)?;
 
-    let Puzzle { year, day } = meta.resolve_selected_puzzle(opts.year, opts.day)?;
-    meta.set_active_puzzle(year, day)?;
+    meta.set_active_puzzle(puzzle)?;
 
     let response_type = 'get_resp: {
-        let puzzle_info = meta.get_or_fetch_puzzle_info(year, day)?;
-        let part = match (&puzzle_info.part1_solution, &puzzle_info.part2_solution) {
-            (None, None) => 1,
-            (Some(_), None) => 2,
+        let puzzle_info = meta.get_or_fetch_puzzle_info(puzzle)?;
+
+        let next_part = match (&puzzle_info.part1_solution, &puzzle_info.part2_solution) {
+            (None, None) => Part::One,
+            (Some(_), None) => Part::Two,
             _ => break 'get_resp ResponseType::AlreadySolved,
         };
 
         let answer = opts
             .answer
             .clone()
-            .or(get_last_run_output(year, day, part))
+            .or(get_last_run_output(puzzle, next_part))
             .context("No answer provided.")?;
 
         if !is_acceptable_answer(&answer) {
@@ -46,7 +48,7 @@ pub fn submit_command(opts: SubmitOptions, confirm: bool) -> Result<()> {
 
         print_message("Submitting", "submitting answer");
 
-        let response = submit_data(year, day, part, answer)?;
+        let response = submit_data(puzzle, next_part, answer)?;
         let response_type = analyze_response(&response);
 
         response_type?
@@ -100,14 +102,14 @@ fn confirm_submit(answer: &str) -> bool {
     }
 }
 
-fn get_submit_url(year: u32, day: u32) -> Url {
+fn get_submit_url(Puzzle { year, day }: Puzzle) -> Url {
     format!("https://adventofcode.com/{year}/day/{day}/answer")
         .parse()
         .unwrap()
 }
 
-fn submit_data(year: u32, day: u32, part: u32, answer: String) -> Result<String> {
-    let url = get_submit_url(year, day);
+fn submit_data(puzzle: Puzzle, part: Part, answer: String) -> Result<String> {
+    let url = get_submit_url(puzzle);
     let jar = get_cookie_jar(&url)?;
 
     let mut form_data = HashMap::new();

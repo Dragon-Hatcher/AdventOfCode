@@ -1,30 +1,27 @@
 use crate::{
-    helpers::get_bin_name,
-    manage_inputs::ensure_input_fetched,
-    manage_meta::{Metadata, Puzzle},
-    options::TestOptions,
+    manage_inputs::ensure_input_fetched, manage_meta::Metadata, options::TestOptions,
     printers::print_message,
 };
 use anyhow::Result;
+use interop::Puzzle;
 use std::process;
 
 pub fn test_command(opts: TestOptions) -> Result<()> {
-    let Puzzle { year, day } =
-        Metadata::new_from_fs().resolve_selected_puzzle(opts.year, opts.day)?;
+    let mut meta = Metadata::new_from_fs();
+    let puzzle = meta.resolve_selected_puzzle(opts.year, opts.day)?;
 
-    test_single_day(year, day, &opts.args)?;
+    test_single_day(puzzle, &opts.args)?;
+    meta.set_active_puzzle(puzzle)?;
 
     Ok(())
 }
 
-fn test_single_day(year: u32, day: u32, args: &[String]) -> Result<()> {
-    Metadata::new_from_fs().set_active_puzzle(year, day)?;
-    ensure_input_fetched(year, day)?;
+fn test_single_day(puzzle: Puzzle, args: &[String]) -> Result<()> {
+    ensure_input_fetched(puzzle)?;
 
-    let bin_name = get_bin_name(year, day);
+    print_message("Testing", format!("puzzle solution {puzzle}"));
 
-    print_message("Testing", format!("puzzle solution {bin_name}"));
-
+    let bin_name = puzzle.get_bin_name();
     let status = process::Command::new(env!("CARGO"))
         .args(["test", "--release", "--bin", &bin_name, "--"])
         .args(args)

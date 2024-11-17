@@ -1,5 +1,5 @@
-use crate::helpers::{get_bin_name, get_bin_path, get_manifest_path};
 use anyhow::Result;
+use interop::{files::get_manifest_path, Puzzle};
 use serde::{Deserialize, Serialize};
 use std::fs;
 
@@ -23,10 +23,10 @@ impl Binaries {
         Ok(binaries)
     }
 
-    pub fn ensure_has(&mut self, year: u32, day: u32) -> bool {
+    pub fn ensure_has(&mut self, puzzle: Puzzle) -> bool {
         let binary = Binary {
-            name: get_bin_name(year, day),
-            path: get_bin_path(year, day),
+            name: puzzle.get_bin_name(),
+            path: puzzle.get_bin_rel_path(),
         };
 
         let added = !self.bin.contains(&binary);

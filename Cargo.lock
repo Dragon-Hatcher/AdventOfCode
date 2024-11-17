@@ -22,6 +22,7 @@ name = "advent"
 version = "0.1.0"
 dependencies = [
  "argh",
+ "interop",
  "prelude",
  "yansi",
 ]
@@ -41,6 +42,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "argh",
+ "interop",
  "regex-macro",
  "reqwest",
  "serde",
@@ -636,6 +638,14 @@ checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
 dependencies = [
  "equivalent",
  "hashbrown 0.15.1",
+]
+
+[[package]]
+name = "interop"
+version = "0.1.0"
+dependencies = [
+ "argh",
+ "serde",
 ]
 
 [[package]]

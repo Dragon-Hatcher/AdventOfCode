@@ -1,20 +1,10 @@
-use std::{collections::HashMap, fs, io::BufReader, path::PathBuf, sync::Arc};
-
+use crate::{helpers::get_cookie_jar, printers::print_message};
 use anyhow::{bail, Context, Result};
+use interop::{files::get_workspace_path, Puzzle};
 use regex_macro::regex;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    helpers::{get_cookie_jar, get_workspace_path},
-    printers::print_message,
-};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
-pub struct Puzzle {
-    pub year: u32,
-    pub day: u32,
-}
+use std::{collections::HashMap, fs, io::BufReader, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize, Default)]
 pub struct PuzzleInfo {
@@ -64,32 +54,25 @@ impl Metadata {
         }
     }
 
-    pub fn set_active_puzzle(&mut self, year: u32, day: u32) -> Result<()> {
-        let new = Some(Puzzle { year, day });
+    pub fn set_active_puzzle(&mut self, puzzle: Puzzle) -> Result<()> {
+        let new = Some(puzzle);
 
         if self.active_puzzle != new {
             self.active_puzzle = new;
             self.write_to_fs()?;
 
-            print_message(
-                "Updated",
-                format!("set active puzzle to {year:04}-{day:02}"),
-            );
+            print_message("Updated", format!("set active puzzle to {puzzle}"));
         }
 
         Ok(())
     }
 
-    fn puzzle_info_key(year: u32, day: u32) -> String {
-        format!("{year:04}-{day:02}")
-    }
-
-    pub fn get_or_fetch_puzzle_info(&mut self, year: u32, day: u32) -> Result<&PuzzleInfo> {
-        let key = Self::puzzle_info_key(year, day);
+    pub fn get_or_fetch_puzzle_info(&mut self, puzzle: Puzzle) -> Result<&PuzzleInfo> {
+        let key = puzzle.get_bin_name();
 
         if !self.puzzle_infos.contains_key(&key) {
-            print_message("Fetching", format!("puzzle info for {year:04}-{day:02}"));
-            let puzzle_text = fetch_puzzle_text(year, day)?;
+            print_message("Fetching", format!("puzzle info for {puzzle}"));
+            let puzzle_text = fetch_puzzle_text(puzzle)?;
 
             if puzzle_text == include_str!("input_error.txt") {
                 bail!("trying to get info on puzzle before it is released.");
@@ -123,7 +106,7 @@ impl Metadata {
     }
 }
 
-fn fetch_puzzle_text(year: u32, day: u32) -> Result<String> {
+fn fetch_puzzle_text(Puzzle { year, day }: Puzzle) -> Result<String> {
     let url: Url = format!("https://adventofcode.com/{year}/day/{day}").parse()?;
     let jar = get_cookie_jar(&url)?;
 

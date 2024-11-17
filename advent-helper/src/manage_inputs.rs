@@ -1,11 +1,8 @@
+use crate::{helpers::get_cookie_jar, printers::print_message};
 use anyhow::{bail, Result};
+use interop::Puzzle;
 use reqwest::Url;
 use std::{fs, sync::Arc};
-
-use crate::{
-    helpers::{get_cookie_jar, get_workspace_path},
-    printers::print_message,
-};
 
 fn download(url: &str) -> Result<String> {
     let url: Url = url.parse()?;
@@ -21,23 +18,17 @@ fn download(url: &str) -> Result<String> {
         .text()?)
 }
 
-fn get_input_url(year: u32, day: u32) -> String {
+fn get_input_url(Puzzle { year, day }: Puzzle) -> String {
     format!("https://adventofcode.com/{year}/day/{day}/input")
 }
 
-fn get_input_path(year: u32, day: u32) -> String {
-    format!("input/{year:04}/{day:02}.txt")
-}
-
-pub fn ensure_input_fetched(year: u32, day: u32) -> Result<()> {
-    let workspace_path = get_workspace_path();
-    let relative_input_path = get_input_path(year, day);
-    let input_path = workspace_path.join(&relative_input_path);
+pub fn ensure_input_fetched(puzzle: Puzzle) -> Result<()> {
+    let input_path = puzzle.get_input_path();
 
     if !input_path.exists() {
-        print_message("Downloading", format!("puzzle input {year:04}-{day:02}"));
+        print_message("Downloading", format!("puzzle input {puzzle}"));
 
-        let url = get_input_url(year, day);
+        let url = get_input_url(puzzle);
         let input_text = download(&url)?;
 
         if input_text != include_str!("input_error.txt") {
@@ -47,7 +38,7 @@ pub fn ensure_input_fetched(year: u32, day: u32) -> Result<()> {
             bail!("Can't fetch input for a future day.");
         }
 
-        print_message("Verified", format!("puzzle input `{relative_input_path}`"));
+        print_message("Written", format!("puzzle input {puzzle}"));
     }
 
     Ok(())

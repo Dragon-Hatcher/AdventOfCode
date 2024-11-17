@@ -1,26 +1,7 @@
 use anyhow::{Context, Result};
+use interop::{Part, Puzzle};
 use reqwest::{cookie::Jar, Url};
-use std::{env, fs, path::PathBuf};
-
-pub fn get_workspace_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_WORKSPACE_DIR"))
-}
-
-pub fn get_manifest_path() -> PathBuf {
-    get_workspace_path().join("Cargo.toml")
-}
-
-pub fn get_bin_name(year: u32, day: u32) -> String {
-    format!("{year:04}-{day:02}")
-}
-
-pub fn get_bin_path(year: u32, day: u32) -> String {
-    format!("solutions/{year:04}/{day:02}.rs")
-}
-
-pub fn get_run_output_path(year: u32, day: u32, part: u32) -> String {
-    format!("input/{year:04}/{day:02}_{part}_output.txt")
-}
+use std::{env, fs};
 
 pub fn get_cookie_jar(url: &Url) -> Result<Jar> {
     let cookie = format!(
@@ -33,9 +14,7 @@ pub fn get_cookie_jar(url: &Url) -> Result<Jar> {
     Ok(jar)
 }
 
-pub fn get_last_run_output(year: u32, day: u32, part: u32) -> Option<String> {
-    let workspace_path = get_workspace_path();
-    let path = workspace_path.join(get_run_output_path(year, day, part));
-
+pub fn get_last_run_output(puzzle: Puzzle, part: Part) -> Option<String> {
+    let path = puzzle.get_run_output_path(part);
     fs::read_to_string(path).ok()
 }

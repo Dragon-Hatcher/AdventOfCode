@@ -1,11 +1,7 @@
-use crate::{
-    helpers::{get_bin_name, get_bin_path, get_workspace_path},
-    manage_meta::{Metadata, Puzzle},
-    options::NewOptions,
-    printers::print_message,
-};
+use crate::{manage_meta::Metadata, options::NewOptions, printers::print_message};
 use anyhow::Result;
 use cargo::Binaries;
+use interop::Puzzle;
 use std::{
     fs::{self},
     process,
@@ -14,49 +10,51 @@ use std::{
 pub mod cargo;
 
 pub fn new_command(opts: NewOptions) -> Result<()> {
-    let Puzzle { year, day } =
-        Metadata::new_from_fs().resolve_selected_puzzle(opts.year, opts.day)?;
+    let mut meta = Metadata::new_from_fs();
+    let puzzle = meta.resolve_selected_puzzle(opts.year, opts.day)?;
 
-    create_bin_file(year, day)?;
-    update_manifest(year, day)?;
-    Metadata::new_from_fs().set_active_puzzle(year, day)?;
-    open_bin_file(year, day);
+    create_bin_file(puzzle)?;
+    update_manifest(puzzle)?;
+    meta.set_active_puzzle(puzzle)?;
+    open_bin_file(puzzle);
 
     print_message(
         "Completed",
-        format!("use cargo advent run -y {year} -d {day} to run"),
+        format!(
+            "use cargo advent run -y {} -d {} to run",
+            puzzle.year, puzzle.day
+        ),
     );
 
     Ok(())
 }
 
-fn create_bin_file(year: u32, day: u32) -> Result<()> {
-    let workspace_path = get_workspace_path();
-    let relative_bin_path = get_bin_path(year, day);
-    let bin_path = workspace_path.join(&relative_bin_path);
+fn create_bin_file(puzzle: Puzzle) -> Result<()> {
+    let bin_rel_path = puzzle.get_bin_rel_path();
+    let bin_path = puzzle.get_bin_path();
 
     if bin_path.exists() {
-        print_message("Verified", format!("{relative_bin_path} already exists"));
+        print_message("Verified", format!("{} already exists", bin_rel_path));
     } else {
         const TEMPLATE: &str = include_str!("solution_template.rs");
 
         let rendered = TEMPLATE
-            .replace("{ year }", &format!("{year:04}"))
-            .replace("{ day }", &format!("{day:02}"));
+            .replace("{ year }", &format!("{:04}", puzzle.year))
+            .replace("{ day }", &format!("{:02}", puzzle.day));
 
         fs::create_dir_all(bin_path.parent().unwrap())?;
         fs::write(&bin_path, rendered)?;
-        print_message("Created", relative_bin_path);
+        print_message("Created", bin_rel_path);
     }
 
     Ok(())
 }
 
-fn update_manifest(year: u32, day: u32) -> Result<()> {
-    let bin_name = get_bin_name(year, day);
+fn update_manifest(puzzle: Puzzle) -> Result<()> {
+    let bin_name = puzzle.get_bin_name();
 
     let mut binaries = Binaries::new_from_fs()?;
-    let added = binaries.ensure_has(year, day);
+    let added = binaries.ensure_has(puzzle);
 
     if added {
         binaries.write_to_fs()?;
@@ -68,10 +66,8 @@ fn update_manifest(year: u32, day: u32) -> Result<()> {
     Ok(())
 }
 
-fn open_bin_file(year: u32, day: u32) {
-    let workspace_path = get_workspace_path();
-    let relative_bin_path = get_bin_path(year, day);
-    let bin_path = workspace_path.join(&relative_bin_path);
-
-    _ = process::Command::new("code").arg(bin_path).status();
+fn open_bin_file(puzzle: Puzzle) {
+    _ = process::Command::new("code")
+        .arg(puzzle.get_bin_path())
+        .status();
 }

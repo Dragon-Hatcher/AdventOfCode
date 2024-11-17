@@ -1,5 +1,5 @@
 [workspace]
-members = ["advent", "advent-helper", "prelude"]
+members = ["advent", "advent-helper", "interop", "prelude"]
 resolver = "2"
 
 [package]

@@ -1,4 +1,5 @@
-use argh::{FromArgValue, FromArgs};
+use argh::FromArgs;
+use interop::PartChoice;
 
 /// 🎄 Advent of Code solution management modified from rossmacarthur/advent 🎄
 #[derive(Debug, FromArgs)]
@@ -31,33 +32,15 @@ pub struct RunOptions {
     pub day: Option<u32>,
 
     /// which solution part to run
-    #[argh(option, short = 'p', default = "Part::Both")]
-    pub part: Part,
+    #[argh(option, short = 'p')]
+    pub part: PartChoice,
 
     /// which solution part to run
     #[argh(switch)]
     pub all: bool,
-    
+
     #[argh(positional, greedy)]
     pub args: Vec<String>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Part {
-    One,
-    Two,
-    Both,
-}
-
-impl FromArgValue for Part {
-    fn from_arg_value(value: &str) -> Result<Self, String> {
-        match value {
-            "1" | "one" => Ok(Part::One),
-            "2" | "two" => Ok(Part::Two),
-            "b" | "both" => Ok(Part::Both),
-            _ => Err("invalid part".into()),
-        }
-    }
 }
 
 /// test the solution for a specific day

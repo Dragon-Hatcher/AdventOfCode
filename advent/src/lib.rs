@@ -1,6 +1,7 @@
-use options::{Options, Part};
+use interop::{Part, PartChoice, Puzzle};
+use options::Options;
 use printers::print_run;
-use std::{fmt::Display, fs, panic::UnwindSafe, path::PathBuf, time::Instant};
+use std::{fmt::Display, fs, panic::UnwindSafe, time::Instant};
 
 mod options;
 mod printers;
@@ -12,8 +13,7 @@ where
     F: Fn() -> I + UnwindSafe + 'a,
 {
     Solution {
-        year,
-        day,
+        puzzle: Puzzle { year, day },
         parse: Box::new(parse),
         part1: None,
         part2: None,
@@ -24,8 +24,7 @@ type ParseFn<'a, I> = Box<dyn Fn() -> I + 'a>;
 type PartFn<'a, I> = Box<dyn Fn(I) -> Box<dyn Display + 'a> + UnwindSafe + 'a>;
 
 pub struct Solution<'a, I> {
-    year: u32,
-    day: u32,
+    puzzle: Puzzle,
     parse: ParseFn<'a, I>,
     part1: Option<PartFn<'a, I>>,
     part2: Option<PartFn<'a, I>>,
@@ -55,18 +54,18 @@ impl<'a, I> Solution<'a, I>
 where
     I: Clone + UnwindSafe,
 {
-    fn run(self, parts: Part) {
+    fn run(self, part_choice: PartChoice) {
         let input = (self.parse)();
 
         let mut which_parts = Vec::new();
-        if matches!(parts, Part::One | Part::Both) {
-            which_parts.push(("Part 1", self.part1));
+        if part_choice.has_part_1() {
+            which_parts.push((Part::One, "Part 1", self.part1));
         }
-        if matches!(parts, Part::Two | Part::Both) {
-            which_parts.push(("Part 2", self.part2));
+        if part_choice.has_part_2() {
+            which_parts.push((Part::Two, "Part 2", self.part2));
         }
 
-        for (part, (name, part_fn)) in which_parts.into_iter().enumerate() {
+        for (part, name, part_fn) in which_parts {
             let Some(part_fn) = part_fn else { continue };
 
             let input = input.clone();
@@ -83,7 +82,7 @@ where
             };
 
             print_run(name, &output, elapsed);
-            save_output(self.year, self.day, part as u32 + 1, &output);
+            save_output(self.puzzle, part, &output);
         }
     }
 
@@ -93,11 +92,9 @@ where
     }
 }
 
-fn save_output(year: u32, day: u32, part_name: u32, output: &str) {
+fn save_output(puzzle: Puzzle, part: Part, output: &str) {
     let output = output.trim();
-
-    let workspace_path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
-    let path = workspace_path.join(format!("input/{year:04}/{day:02}_{part_name}_output.txt"));
+    let path = puzzle.get_run_output_path(part);
 
     _ = fs::create_dir_all(path.parent().unwrap());
     _ = fs::write(&path, output);
