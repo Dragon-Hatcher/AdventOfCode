@@ -1,6 +1,20 @@
+use rustc_hash::FxHashMap;
+use std::hash::Hash;
+
 pub trait IterExtensions: Iterator {
     fn nu(&mut self) -> Self::Item {
         self.next().unwrap()
+    }
+
+    fn count_occurrences(&mut self) -> FxHashMap<Self::Item, i64>
+    where
+        Self::Item: Eq + Hash,
+    {
+        let mut map = FxHashMap::default();
+        for item in self {
+            *map.entry(item).or_default() += 1;
+        }
+        map
     }
 }
 
