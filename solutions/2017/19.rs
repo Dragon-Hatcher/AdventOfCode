@@ -41,8 +41,8 @@ fn part1(input: &str) -> String {
     solve(input).0
 }
 
-fn part2(input: &str) -> String {
-    solve(input).1.to_string()
+fn part2(input: &str) -> i64 {
+    solve(input).1
 }
 
 fn main() {
@@ -62,12 +62,12 @@ fn example() {
      +B-+  +--+ 
 ";
     assert_eq!(part1(input), "ABCDEF");
-    assert_eq!(part2(input), "38");
+    assert_eq!(part2(input), 38);
 }
 
 #[test]
 fn default() {
     let input = default_input();
     assert_eq!(part1(input), "PVBSCMEQHY");
-    assert_eq!(part2(input), "17736");
+    assert_eq!(part2(input), 17736);
 }
