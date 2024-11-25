@@ -8,7 +8,7 @@ fn solve(input: &str) -> (String, i64) {
     let grid = Grid::new_by_char(input, |c| c);
 
     let mut seen = String::new();
-    let mut pos = grid.row_points(0).find(|&p| grid[p] == '|').unwrap();
+    let mut pos = grid.row_range(0).points().find(|&p| grid[p] == '|').unwrap();
     let mut direction = Direction::Down;
 
     let mut steps = 0;

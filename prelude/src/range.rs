@@ -10,6 +10,10 @@ pub struct Range {
 }
 
 impl Range {
+    pub fn new_size(width: i64, height: i64) -> Self {
+        Self::new_tl(Vec2::ZERO, width, height)
+    }
+
     pub fn new_tl(top_left: Vec2, width: i64, height: i64) -> Self {
         Range {
             top_left,

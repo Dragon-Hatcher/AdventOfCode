@@ -1,6 +1,6 @@
 use itertools::iproduct;
 
-use crate::{v2, IterExtensions, Range, Vec2};
+use crate::{hashmap, v2, IterExtensions, Range, Vec2};
 use std::ops::{Index, IndexMut};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -60,8 +60,14 @@ impl<T> Grid<T> {
         self.range().points()
     }
 
-    pub fn row_points(&self, y: i64) -> impl Iterator<Item = Vec2> {
-        (0..self.width()).map(move |x| v2(x, y))
+    pub fn row_range(&self, y: i64) -> Range {
+        assert!(0 <= y && y < self.height());
+        Range::new_tl(Vec2::new(0, y), self.width(), 1)
+    }
+
+    pub fn col_range(&self, x: i64) -> Range {
+        assert!(0 <= x && x < self.width());
+        Range::new_tl(Vec2::new(x, 0), 1, self.height())
     }
 
     pub fn elements(&self) -> impl Iterator<Item = &T> {
@@ -165,6 +171,50 @@ impl<T> Grid<T> {
             self[range.top_left() + p].clone()
         })
     }
+
+    pub fn rotate_range_by_delta(&mut self, range: Range, delta: Vec2)
+    where
+        T: Clone,
+    {
+        let new = Grid::new_with(range.width(), range.height(), |p| {
+            let mut raw = p - delta;
+            raw.x = raw.x.rem_euclid(range.width());
+            raw.y = raw.y.rem_euclid(range.height());
+            self[range.top_left() + raw].clone()
+        });
+
+        for p in new.points() {
+            self[range.top_left() + p] = new[p].clone();
+        }
+    }
+
+    pub fn rotate_right(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, Vec2::E1 * dist)
+    }
+
+    pub fn rotate_left(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, -Vec2::E1 * dist)
+    }
+
+    pub fn rotate_up(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, -Vec2::E2 * dist)
+    }
+
+    pub fn rotate_down(&mut self, r: Range, dist: i64)
+    where
+        T: Clone,
+    {
+        self.rotate_range_by_delta(r, Vec2::E2 * dist)
+    }
 }
 
 impl<T> Index<Vec2> for Grid<T> {
@@ -193,12 +243,45 @@ impl Grid<bool> {
         for y in self.range().ys() {
             for x in self.range().xs() {
                 let p = Vec2 { x, y };
-                let c = if self[p] { '█' } else { '.' };
-                out.push(c);
+                let c = if self[p] { "⬤ " } else { "＊" };
+                out.push_str(c);
             }
             out.push('\n');
         }
 
         out
+    }
+
+    pub fn parse_char(&self, col: i64) -> Option<char> {
+        let font = hashmap!(
+            0b01100_10010_10010_11110_10010_10010 => 'A',
+            0b11100_10010_11100_10010_10010_11100 => 'B',
+            0b11110_10000_11100_10000_10000_10000 => 'F',
+            0b00110_00010_00010_00010_10010_01100 => 'J',
+            0b11100_10010_10010_11100_10000_10000 => 'P',
+            0b01110_10000_10000_01100_00010_11100 => 'S',
+            0b10010_10010_10010_10010_10010_01100 => 'U',
+            0b11110_00010_00100_01000_10000_11110 => 'Z',
+        );
+
+        let mut key = 0;
+        for y in 0..6 {
+            for x in col..col + 5 {
+                key <<= 1;
+                key |= self[v2(x, y)] as i32;
+            }
+        }
+
+        font.get(&key).copied()
+    }
+
+    pub fn parse_str(&self) -> String {
+        let mut parsed = String::new();
+        let mut col = 0;
+        while col + 4 < self.width() {
+            parsed.push(self.parse_char(col).unwrap_or('?'));
+            col += 5;            
+        }
+        parsed
     }
 }
