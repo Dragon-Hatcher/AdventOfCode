@@ -128,10 +128,10 @@ impl State {
 
     fn canonical(self) -> (u64, usize) {
         // We want to filter out states that aren't identical but *will* take an equivalent number
-        // of steps. To do that we use the insight that any two microchip-generator pairs with 
-        // identical positions are equivalent. We don't, however, store this representation because 
+        // of steps. To do that we use the insight that any two microchip-generator pairs with
+        // identical positions are equivalent. We don't, however, store this representation because
         // it makes it annoying to generate the adjacent states.
-        // 
+        //
         // The idea for this optimization comes from this reddit comment: https://www.reddit.com/r/adventofcode/comments/5hoia9/comment/db1v1ws/
         // though I did not look at this until after I had solved the puzzle.
 
@@ -241,25 +241,13 @@ fn parse_state(input: &str) -> State {
 }
 
 fn solve(state: State) -> i64 {
-    let mut steps = 0;
-    let mut seen: HashSet<State> = HashSet::default();
-    let mut edge = HashSet::default();
-    edge.insert(state);
-    seen.insert(state);
+    let bfs = BFS::builder()
+        .start(state)
+        .next(|s| s.next_states())
+        .is_goal(State::is_win)
+        .build();
 
-    loop {
-        if edge.iter().any(State::is_win) {
-            return steps;
-        }
-
-        edge = edge
-            .iter()
-            .flat_map(|state| state.next_states().filter(|s| !seen.contains(s)))
-            .collect();
-
-        seen.extend(&edge);
-        steps += 1;
-    }
+    bfs.solve().steps
 }
 
 fn part1(input: &str) -> i64 {

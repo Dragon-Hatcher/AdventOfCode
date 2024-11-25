@@ -7,6 +7,7 @@ mod strings;
 mod vectors;
 mod rotations;
 mod math;
+mod search;
 
 pub use crypto::*;
 pub use grid::*;
@@ -17,6 +18,7 @@ pub use strings::*;
 pub use vectors::*;
 pub use rotations::*;
 pub use math::*;
+pub use search::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
