@@ -141,7 +141,7 @@ fn analyze_response(response: &str) -> Result<ResponseType> {
         Ok(ResponseType::AlreadySolved)
     } else if response.contains("You gave an answer too recently") {
         let to_wait_re = regex!("You have ((\\d+)m )?(\\d+)s left to wait");
-        let captures = to_wait_re.captures(&response).unwrap();
+        let captures = to_wait_re.captures(response).unwrap();
 
         let min: u32 = captures
             .get(2)

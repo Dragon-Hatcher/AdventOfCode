@@ -7,8 +7,8 @@ fn default_input() -> &'static str {
 fn parse_rule(rule: &str) -> (Grid<bool>, Grid<bool>) {
     let (from, to) = rule.split_once(" => ").unwrap();
     (
-        Grid::new_by_char(&from.replace("/", "\n"), |c| c == '#'),
-        Grid::new_by_char(&to.replace("/", "\n"), |c| c == '#'),
+        Grid::new_by_char(&from.replace('/', "\n"), |c| c == '#'),
+        Grid::new_by_char(&to.replace('/', "\n"), |c| c == '#'),
     )
 }
 
@@ -54,12 +54,12 @@ fn iterate(grid: Grid<bool>, rules: &[(Grid<bool>, Grid<bool>)]) -> Grid<bool> {
     new_grid
 }
 
-const START: &'static str = ".#.
+const START: &str = ".#.
 ..#
 ###";
 
 fn solve(input: &str, times: i64) -> i64 {
-    let mut grid = Grid::new_by_char(&START, |c| c == '#');
+    let mut grid = Grid::new_by_char(START, |c| c == '#');
     let rules = gen_all_rules(input);
 
     for _ in 0..times {

@@ -64,7 +64,7 @@ impl FromStr for Puzzle {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (year, day) = s
-            .split_once("-")
+            .split_once('-')
             .ok_or(anyhow::Error::msg("Must contain year and day."))?;
         let year = year.parse()?;
         let day = day.parse()?;

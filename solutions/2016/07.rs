@@ -60,7 +60,7 @@ fn part2(input: &str) -> i64 {
 }
 
 fn main() {
-    advent::new(2016, 07, default_input)
+    advent::new(2016, 7, default_input)
         .part1(part1)
         .part2(part2)
         .cli();
@@ -72,13 +72,13 @@ fn example() {
 abcd[bddb]xyyx
 aaaa[qwer]tyui
 ioxxoj[asdfgh]zxcvbn";
-    assert_eq!(part1(&input1), 2);
+    assert_eq!(part1(input1), 2);
 
     let input2 = "aba[bab]xyz
 xyx[xyx]xyx
 aaa[kek]eke
 zazbz[bzb]cdb";
-    assert_eq!(part2(&input2), 3);
+    assert_eq!(part2(input2), 3);
 }
 
 #[test]

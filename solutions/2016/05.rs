@@ -50,7 +50,7 @@ fn part2(input: &str) -> String {
 }
 
 fn main() {
-    advent::new(2016, 05, default_input)
+    advent::new(2016, 5, default_input)
         .part1(part1)
         .part2(part2)
         .cli();

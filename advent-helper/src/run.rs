@@ -182,7 +182,7 @@ fn draw_part(run: Option<&RunSummary>) -> String {
         return format!("{:>width$} │  ", "", width = PART_WIDTH);
     };
 
-    let output = output.replace("\n", "↩");
+    let output = output.replace('\n', "↩");
     let trimmed_output = ellipsize(&output, PART_WIDTH - 11);
 
     let correct_char = match correct_output {

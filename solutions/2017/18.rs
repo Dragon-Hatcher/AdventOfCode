@@ -34,21 +34,21 @@ fn parse_instruction(instr: &str) -> Instruction {
     if let Some(reg) = instr.strip_prefix("snd ") {
         Instruction::Send(reg.chars().nu())
     } else if let Some(rest) = instr.strip_prefix("set ") {
-        let (reg, val) = rest.split_once(" ").unwrap();
+        let (reg, val) = rest.split_once(' ').unwrap();
         Instruction::Set(reg.chars().nu(), parse_value(val))
     } else if let Some(rest) = instr.strip_prefix("add ") {
-        let (reg, val) = rest.split_once(" ").unwrap();
+        let (reg, val) = rest.split_once(' ').unwrap();
         Instruction::Add(reg.chars().nu(), parse_value(val))
     } else if let Some(rest) = instr.strip_prefix("mul ") {
-        let (reg, val) = rest.split_once(" ").unwrap();
+        let (reg, val) = rest.split_once(' ').unwrap();
         Instruction::Mul(reg.chars().nu(), parse_value(val))
     } else if let Some(rest) = instr.strip_prefix("mod ") {
-        let (reg, val) = rest.split_once(" ").unwrap();
+        let (reg, val) = rest.split_once(' ').unwrap();
         Instruction::Mod(reg.chars().nu(), parse_value(val))
     } else if let Some(reg) = instr.strip_prefix("rcv ") {
         Instruction::Recover(reg.chars().nu())
     } else if let Some(val) = instr.strip_prefix("jgz ") {
-        let (x, y) = val.split_once(" ").unwrap();
+        let (x, y) = val.split_once(' ').unwrap();
         Instruction::Jgz(parse_value(x), parse_value(y))
     } else {
         panic!()

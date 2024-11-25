@@ -35,7 +35,7 @@ fn part2(input: &str) -> i64 {
 }
 
 fn main() {
-    advent::new(2016, 03, default_input)
+    advent::new(2016, 3, default_input)
         .part1(part1)
         .part2(part2)
         .cli();
