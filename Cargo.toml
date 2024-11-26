@@ -173,6 +173,14 @@ name = "2016-15"
 path = "solutions/2016/15.rs"
 
 [[bin]]
+name = "2016-16"
+path = "solutions/2016/16.rs"
+
+[[bin]]
+name = "2016-17"
+path = "solutions/2016/17.rs"
+
+[[bin]]
 name = "2017-18"
 path = "solutions/2017/18.rs"
 

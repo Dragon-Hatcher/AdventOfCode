@@ -30,7 +30,7 @@ fn part2(input: &str) -> i64 {
         .is_goal(|_| false)
         .max_iters(50);
 
-    bfs.finish().total_visited
+    bfs.finish().visited.len() as i64
 }
 
 fn main() {
