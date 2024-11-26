@@ -15,8 +15,8 @@ fn part1(input: &str) -> i64 {
 
     let bfs = bfs()
         .start(Vec2::new(1, 1))
-        .is_goal(|&n| n == Vec2::new(x, y))
-        .next(|p| p.neighbors4().filter(|&p| is_open(p, key)));
+        .next(|p| p.neighbors4().filter(|&p| is_open(p, key)))
+        .is_goal(|&n| n == Vec2::new(x, y));
 
     bfs.solve().steps
 }
@@ -26,8 +26,8 @@ fn part2(input: &str) -> i64 {
 
     let bfs = bfs()
         .start(Vec2::new(1, 1))
-        .is_goal(|_| false)
         .next(|p| p.neighbors4().filter(|&p| is_open(p, key)))
+        .is_goal(|_| false)
         .max_iters(50);
 
     bfs.finish().total_visited

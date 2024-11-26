@@ -41,7 +41,7 @@ where
             });
         }
 
-        if (is_goal)(&node) {
+        if is_goal(&node) {
             return Ok(BFSResult {
                 node,
                 steps,
