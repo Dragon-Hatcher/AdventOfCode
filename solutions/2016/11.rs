@@ -241,12 +241,11 @@ fn parse_state(input: &str) -> State {
 }
 
 fn solve(state: State) -> i64 {
-    let bfs = BFS::builder()
+    let bfs = bfs()
         .start(state)
         .next(|s| s.next_states())
-        .is_goal(State::is_win)
-        .build();
-
+        .is_goal(State::is_win);
+    
     bfs.solve().steps
 }
 
