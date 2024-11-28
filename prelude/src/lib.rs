@@ -2,29 +2,29 @@ mod crypto;
 mod grid;
 mod id_gen;
 mod iterators;
+mod math;
 mod range;
+mod rotations;
+mod search;
 mod strings;
 mod vectors;
-mod rotations;
-mod math;
-mod search;
 
 pub use crypto::*;
 pub use grid::*;
 pub use id_gen::*;
 pub use iterators::*;
+pub use math::*;
 pub use range::*;
+pub use rotations::*;
+pub use search::*;
 pub use strings::*;
 pub use vectors::*;
-pub use rotations::*;
-pub use math::*;
-pub use search::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
+pub use rustc_hash;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
-pub use rustc_hash;
 
 #[macro_export]
 macro_rules! include_input {

@@ -116,7 +116,7 @@ where
         visited.insert(self.start, 0);
 
         while let Some((node, steps)) = queue.pop_front() {
-            if steps >=self.max_iters {
+            if steps >= self.max_iters {
                 return Err(BFSNoResult { visited });
             }
 

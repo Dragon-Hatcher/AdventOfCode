@@ -133,7 +133,6 @@ fn part2(input: &str) -> i64 {
     computer.b
 }
 
-
 fn main() {
     advent::new(2015, 23, default_input)
         .part1(part1)

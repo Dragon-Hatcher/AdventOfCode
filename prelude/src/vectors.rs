@@ -233,7 +233,7 @@ impl Vec3 {
     pub const fn new(x: i64, y: i64, z: i64) -> Self {
         Self { x, y, z }
     }
-    
+
     pub fn manhattan_dist(&self, rhs: Vec3) -> i64 {
         (self.x - rhs.x).abs() + (self.y - rhs.y).abs() + (self.z - rhs.z).abs()
     }

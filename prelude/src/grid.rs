@@ -280,7 +280,7 @@ impl Grid<bool> {
         let mut col = 0;
         while col + 4 < self.width() {
             parsed.push(self.parse_char(col).unwrap_or('?'));
-            col += 5;            
+            col += 5;
         }
         parsed
     }

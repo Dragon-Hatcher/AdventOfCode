@@ -69,14 +69,10 @@ fn parse_instruction(inst: &str) -> Instruction {
             off: parse_val(off),
         }
     }
-
 }
 
 fn parse_machine(input: &str) -> Machine {
-    let instructions = input
-        .lines()
-        .map(parse_instruction)
-        .collect();
+    let instructions = input.lines().map(parse_instruction).collect();
 
     Machine {
         a: 0,

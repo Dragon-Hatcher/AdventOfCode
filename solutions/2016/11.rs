@@ -245,7 +245,7 @@ fn solve(state: State) -> i64 {
         .start(state)
         .next(|s| s.next_states())
         .is_goal(State::is_win);
-    
+
     bfs.solve().steps
 }
 

@@ -71,7 +71,7 @@ impl Metadata {
         if print {
             print_message("Fetching", format!("puzzle info for {puzzle}"));
         }
-        
+
         let puzzle_text = fetch_puzzle_text(puzzle)?;
 
         if puzzle_text == include_str!("input_error.txt") {
