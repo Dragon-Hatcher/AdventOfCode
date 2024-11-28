@@ -215,6 +215,13 @@ impl<T> Grid<T> {
     {
         self.rotate_range_by_delta(r, Vec2::E2 * dist)
     }
+
+    pub fn map<U, F>(&self, f: F) -> Grid<U>
+    where
+        F: Fn(&T) -> U,
+    {
+        Grid::new_with(self.width(), self.height(), |p| f(&self[p]))
+    }
 }
 
 impl<T> Index<Vec2> for Grid<T> {
