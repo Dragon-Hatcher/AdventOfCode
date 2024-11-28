@@ -1,5 +1,3 @@
-use std::iter::empty;
-
 use advent::prelude::*;
 
 fn default_input() -> &'static str {
@@ -56,7 +54,7 @@ fn part2(input: &str) -> i64 {
 
     let bfs = bfs()
         .start((Vec2::ZERO, "".to_owned()))
-        .is_goal(|_| false)
+        .no_goal()
         .next(|(pos, path)| next(key, *pos, path));
 
     bfs.finish()

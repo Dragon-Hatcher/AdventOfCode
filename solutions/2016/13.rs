@@ -15,8 +15,8 @@ fn part1(input: &str) -> i64 {
 
     let bfs = bfs()
         .start(Vec2::new(1, 1))
-        .next(|p| p.neighbors4().filter(|&p| is_open(p, key)))
-        .is_goal(|&n| n == Vec2::new(x, y));
+        .goal(Vec2::new(x, y))
+        .next(|p| p.neighbors4().filter(|&p| is_open(p, key)));
 
     bfs.solve().steps
 }

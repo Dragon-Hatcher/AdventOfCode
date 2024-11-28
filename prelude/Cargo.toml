@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bon = "3.1.0"
 itertools = "0.13.0"
 memoize = "0.4.2"
 rustc-hash = "2.0.0"
