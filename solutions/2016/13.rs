@@ -18,7 +18,7 @@ fn part1(input: &str) -> i64 {
         .goal(Vec2::new(x, y))
         .next(|p| p.neighbors4().filter(|&p| is_open(p, key)));
 
-    bfs.solve().steps
+    bfs.shortest().steps
 }
 
 fn part2(input: &str) -> i64 {
@@ -30,7 +30,7 @@ fn part2(input: &str) -> i64 {
         .is_goal(|_| false)
         .max_iters(50);
 
-    bfs.finish().visited.len() as i64
+    bfs.find_all().visited.len() as i64
 }
 
 fn main() {

@@ -108,7 +108,7 @@ where
     NextNodesIter: IntoIterator<Item = Node>,
     IsGoalFn: Fn(&Node) -> bool,
 {
-    pub fn try_solve(self) -> Result<BFSResult<Node>, BFSNoResult<Node>> {
+    pub fn try_shortest(self) -> Result<BFSResult<Node>, BFSNoResult<Node>> {
         let mut queue = VecDeque::new();
         let mut visited = FxHashMap::default();
 
@@ -139,15 +139,15 @@ where
         Err(BFSNoResult { visited })
     }
 
-    pub fn solve(self) -> BFSResult<Node> {
-        match self.try_solve() {
+    pub fn shortest(self) -> BFSResult<Node> {
+        match self.try_shortest() {
             Ok(info) => info,
             Err(_) => panic!("Expected bfs solution"),
         }
     }
 
-    pub fn finish(self) -> BFSNoResult<Node> {
-        match self.try_solve() {
+    pub fn find_all(self) -> BFSNoResult<Node> {
+        match self.try_shortest() {
             Ok(_) => panic!("Expected bfs not to finish"),
             Err(info) => info,
         }

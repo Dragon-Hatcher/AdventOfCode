@@ -45,7 +45,7 @@ fn part1(input: &str) -> String {
         .is_goal(|n| n.0 == Vec2::new(3, 3))
         .next(|(pos, path)| next(key, *pos, path));
 
-    bfs.solve().node.1
+    bfs.shortest().node.1
 }
 
 fn part2(input: &str) -> i64 {
@@ -55,9 +55,16 @@ fn part2(input: &str) -> i64 {
     let bfs = bfs()
         .start((Vec2::ZERO, "".to_owned()))
         .no_goal()
-        .next(|(pos, path)| next(key, *pos, path));
+        .next(|(pos, path)| {
+            if pos == &goal {
+                // We stop as soon as we reach the goal
+                Vec::new()
+            } else {
+                next(key, *pos, path)
+            }
+        });
 
-    bfs.finish()
+    bfs.find_all()
         .visited
         .into_iter()
         .filter(|((pos, _), _)| pos == &goal)
