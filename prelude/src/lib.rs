@@ -22,10 +22,10 @@ pub use vectors::*;
 
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
+pub use regex_macro::regex;
 pub use rustc_hash;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
-pub use regex_macro::regex;
 
 #[macro_export]
 macro_rules! include_input {
