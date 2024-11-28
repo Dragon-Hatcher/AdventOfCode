@@ -25,6 +25,7 @@ pub use memoize::memoize;
 pub use rustc_hash;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
+pub use regex_macro::regex;
 
 #[macro_export]
 macro_rules! include_input {
