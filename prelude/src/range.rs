@@ -76,4 +76,13 @@ impl Range {
     pub fn ys(&self) -> impl Iterator<Item = i64> {
         self.top()..self.bottom()
     }
+
+    pub fn overlaps(&self, other: &Range) -> bool {
+        let x_min = self.left().max(other.left());
+        let x_max = self.right().min(other.right());
+        let y_min = self.top().max(other.top());
+        let y_max = self.bottom().min(other.bottom());
+
+        x_min < x_max && y_min < y_max
+    }
 }
