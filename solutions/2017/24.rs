@@ -4,28 +4,35 @@ fn default_input() -> &'static str {
     include_input!(2017 / 24)
 }
 
-fn part1(input: &str) -> i64 {
+fn parse(input: &str) -> UnGraph<i64, i64> {
     let mut graph = UnGraph::new();
     for (a, b) in input.lines().map(|l| l.nums().tup()) {
         let ai = graph.ni_or_insert(a);
         let bi = graph.ni_or_insert(b);
         graph.new_edge(ai, bi, a + b);
     }
+    graph
+}
 
-    fn max_dist(graph: &UnGraph<i64, i64>, at: NodeIndex, used: &mut HashSet<EdgeIndex>) -> i64 {
-        let mut d = 0;
+fn part1(input: &str) -> i64 {
+    let graph = parse(input);
+
+    fn max_dist(graph: &UnGraph<i64, i64>, at: NodeIndex, visited: &mut HashSet<EdgeIndex>) -> i64 {
+        let mut dist = 0;
 
         for edge in graph
             .outgoing(at)
-            .filter(|e| !used.contains(&e.index()))
+            .filter(|e| !visited.contains(&e.index()))
             .collect_vec()
         {
-            used.insert(edge.index());
-            d = d.max(edge.weight() + max_dist(graph, edge.other_end(at), used));
-            used.remove(&edge.index());
+            visited.insert(edge.index());
+            let new_dist = edge.weight() + max_dist(graph, edge.other_end(at), visited);
+            visited.remove(&edge.index());
+
+            dist = dist.max(new_dist);
         }
 
-        d
+        dist
     }
 
     let start = graph.node_index(&0);
@@ -34,64 +41,41 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2(input: &str) -> i64 {
-    let mut graph = UnGraph::new();
-    for (a, b) in input.lines().map(|l| l.nums().tup()) {
-        let ai = graph.ni_or_insert(a);
-        let bi = graph.ni_or_insert(b);
-        graph.new_edge(ai, bi, a + b);
-    }
-
-    fn max_path_length(
-        graph: &UnGraph<i64, i64>,
-        at: NodeIndex,
-        used: &mut HashSet<EdgeIndex>,
-    ) -> i64 {
-        let mut l = 0;
-
-        for edge in graph
-            .outgoing(at)
-            .filter(|e| !used.contains(&e.index()))
-            .collect_vec()
-        {
-            used.insert(edge.index());
-            l = l.max(1 + max_path_length(graph, edge.other_end(at), used));
-            used.remove(&edge.index());
-        }
-
-        l
-    }
+    let graph = parse(input);
 
     fn max_dist(
         graph: &UnGraph<i64, i64>,
         at: NodeIndex,
-        used: &mut HashSet<EdgeIndex>,
-        so_far: i64,
-        length: i64,
-    ) -> i64 {
-        let mut d = 0;
+        visited: &mut HashSet<EdgeIndex>,
+        so_far: (i64, i64),
+    ) -> (i64, i64) {
+        let mut dist = so_far;
 
         for edge in graph
             .outgoing(at)
-            .filter(|e| !used.contains(&e.index()))
+            .filter(|e| !visited.contains(&e.index()))
             .collect_vec()
         {
-            used.insert(edge.index());
-            d = d.max(max_dist(graph, edge.other_end(at), used, so_far + edge.weight(), length - 1));
-            used.remove(&edge.index());
+            visited.insert(edge.index());
+            let new_dist = max_dist(
+                graph,
+                edge.other_end(at),
+                visited,
+                (so_far.0 + 1, so_far.1 + edge.weight()),
+            );
+            visited.remove(&edge.index());
+
+            dist = dist.max(new_dist);
         }
 
-        if d == 0 && length == 0 {
-            return so_far
-        }
-
-        d
+        dist
     }
 
     let start = graph.node_index(&0);
     let mut visited = HashSet::default();
-    let length = max_path_length(&graph, start, &mut visited);
-    visited.clear();
-    max_dist(&graph, start, &mut visited, 0, length)
+    let (_length, strength) = max_dist(&graph, start, &mut visited, (0, 0));
+
+    strength
 }
 
 fn main() {
