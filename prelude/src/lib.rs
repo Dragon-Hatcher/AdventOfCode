@@ -1,5 +1,6 @@
 mod crypto;
 mod grid;
+mod graph;
 mod id_gen;
 mod iterators;
 mod math;
@@ -11,6 +12,7 @@ mod vectors;
 
 pub use crypto::*;
 pub use grid::*;
+pub use graph::*;
 pub use id_gen::*;
 pub use iterators::*;
 pub use math::*;
