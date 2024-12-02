@@ -4,35 +4,46 @@ fn default_input() -> &'static str {
     include_input!(2024 / 02)
 }
 
-fn part1(input: &str) -> i64 {
-    input
-        .lines()
-        .filter(|l| {
-            l.nums().tuple_windows().all(|(a, b)| a < b && (a - b).abs() >= 1 && (a - b).abs() <= 3) ||
-            l.nums().tuple_windows().all(|(a, b)| a > b && (a - b).abs() >= 1 && (a - b).abs() <= 3)
+fn parse(input: &str) -> impl Iterator<Item = Vec<i64>> + '_ {
+    input.lines().map(|l| l.nums().collect_vec())
+}
+
+fn is_valid(vals: &[i64]) -> bool {
+    fn is_monotonic(vals: &[i64]) -> bool {
+        vals.iter()
+            .tuple_windows()
+            .map(|(a, b)| a.cmp(b))
+            .all_equal()
+    }
+
+    fn are_close(vals: &[i64]) -> bool {
+        vals.iter().tuple_windows().all(|(a, b)| {
+            let diff = (a - b).abs();
+            1 <= diff && diff <= 3
         })
-        .count() as i64
+    }
+
+    is_monotonic(vals) && are_close(vals)
+}
+
+fn part1(input: &str) -> i64 {
+    parse(input).filter(|nums| is_valid(&nums)).count() as i64
 }
 
 fn part2(input: &str) -> i64 {
-    input
-        .lines()
-        .filter(|l| {
-            let nums = l.nums().collect_vec();
-
-            if l.nums().tuple_windows().all(|(a, b)| a < b && (a - b).abs() >= 1 && (a - b).abs() <= 3) ||
-            l.nums().tuple_windows().all(|(a, b)| a > b && (a - b).abs() >= 1 && (a - b).abs() <= 3) {
-                return true
+    parse(input)
+        .filter(|nums| {
+            if is_valid(&nums) {
+                return true;
             }
 
             for i in 0..nums.len() {
                 let mut nums = nums.clone();
                 nums.remove(i);
 
-                if nums.clone().into_iter().tuple_windows().all(|(a, b)| a < b && (a - b).abs() >= 1 && (a - b).abs() <= 3) ||
-                nums.clone().into_iter().tuple_windows().all(|(a, b)| a > b && (a - b).abs() >= 1 && (a - b).abs() <= 3) {
-                return true
-            }
+                if is_valid(&nums) {
+                    return true;
+                }
             }
 
             false
