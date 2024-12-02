@@ -48,8 +48,8 @@ impl Puzzle {
         workspace.join(rel)
     }
 
-    pub fn could_have_part_2(self) -> bool {
-        self.day != 25
+    pub fn no_part_2(self) -> bool {
+        self.day == 25
     }
 }
 

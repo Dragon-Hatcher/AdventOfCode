@@ -70,6 +70,7 @@ fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
 
     for &puzzle in &puzzles {
         let info = meta.get_or_fetch_puzzle_info(puzzle)?;
+        ensure_input_fetched(puzzle)?;
 
         let args1 = args.to_owned();
         let sender1 = sender.clone();
@@ -107,7 +108,7 @@ fn run_all(year: Option<u32>, args: &[String]) -> Result<()> {
 
             let results2 = results.get(&(puzzle, Part::Two));
             let part2 = draw_part(results2);
-            all = all && (results2.is_some() || !puzzle.could_have_part_2());
+            all = all && (results2.is_some() || puzzle.no_part_2());
 
             print_row(puzzle.year, puzzle.day, &info.name, &part1, &part2);
         }
