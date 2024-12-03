@@ -5,22 +5,21 @@ fn default_input() -> &'static str {
 }
 
 fn part1(input: &str) -> i64 {
-    let r = regex!("mul\\([0-9]+,[0-9]+\\)");
-    r.find_iter(input).map(|m| m.as_str().nums().product::<i64>()).sum()
+    regex!(r#"mul\(\d+,\d+\)"#)
+        .find_iter(input)
+        .map(|m| m.as_str().nums().product::<i64>())
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let r = regex!("mul\\([0-9]+,[0-9]+\\)|do\\(\\)|don't\\(\\)");
-
     let mut d = true;
     let mut sum = 0;
 
-    for m in r.find_iter(input) {
-        let s = m.as_str();
-        match s {
+    for m in regex!(r#"mul\(\d+,\d+\)|do\(\)|don't\(\)"#).find_iter(input) {
+        match m.as_str() {
             "do()" => d = true,
             "don't()" => d = false,
-            _ => if d { sum += s.nums().product::<i64>()}
+            _ => sum += m.as_str().nums().product::<i64>() * d as i64,
         }
     }
 
@@ -36,8 +35,14 @@ fn main() {
 
 #[test]
 fn example() {
-    assert_eq!(part1("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"), 161);
-    assert_eq!(part2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"), 48);
+    assert_eq!(
+        part1("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"),
+        161
+    );
+    assert_eq!(
+        part2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"),
+        48
+    );
 }
 
 #[test]
