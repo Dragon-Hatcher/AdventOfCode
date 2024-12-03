@@ -4,28 +4,18 @@ fn default_input() -> &'static str {
     include_input!(2018 / 04)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-struct Date(i64, i64);
-
 #[derive(Debug, Clone, Default)]
-struct Guard(HashMap<Date, HashSet<i64>>);
+struct Guard(HashMap<i64, i64>);
 
 impl Guard {
     fn hours_asleep(&self) -> i64 {
-        self.0.values().map(|a| a.len() as i64).sum()
+        self.0.values().sum()
     }
 
-    fn sleepiest_min(&self) -> (i64, usize) {
-        let (hour, count) = self
-            .0
-            .values()
-            .flat_map(|v| v.iter())
-            .counts()
-            .into_iter()
-            .max_by_key(|(_, c)| *c)
-            .unwrap();
+    fn sleepiest_min(&self) -> (i64, i64) {
+        let (hour, count) = self.0.iter().max_by_key(|(_, c)| *c).unwrap();
 
-        (*hour, count)            
+        (*hour, *count)
     }
 }
 
@@ -36,16 +26,12 @@ fn find_guard_patterns(input: &str) -> HashMap<i64, Guard> {
 
     for action in input.lines().sorted() {
         if action.contains("wakes up") {
-            let (_, month, day, _, min) = action.nums().tup();
+            let (_, _, _, _, min) = action.nums().tup();
             if let Some(fell_asleep) = fell_asleep {
-                let date = Date(month, day);
-                let asleep = guards
-                    .entry(active_guard)
-                    .or_default()
-                    .0
-                    .entry(date)
-                    .or_default();
-                asleep.extend(fell_asleep..min);
+                let guard = guards.entry(active_guard).or_default();
+                for min in fell_asleep..min {
+                    *guard.0.entry(min).or_default() += 1;
+                }
             }
         } else if action.contains("falls asleep") {
             let (_, _, _, _, min) = action.nums().tup();
@@ -61,22 +47,22 @@ fn find_guard_patterns(input: &str) -> HashMap<i64, Guard> {
 }
 
 fn part1(input: &str) -> i64 {
-    let sleepiest_guard = find_guard_patterns(input)
+    let (id, guard) = find_guard_patterns(input)
         .into_iter()
         .max_by_key(|(_, g)| g.hours_asleep())
         .unwrap();
 
-    sleepiest_guard.0 * sleepiest_guard.1.sleepiest_min().0
+    id * guard.sleepiest_min().0
 }
 
 fn part2(input: &str) -> i64 {
-    let sleepiest_time = find_guard_patterns(input)
+    let (id, (min, _count)) = find_guard_patterns(input)
         .into_iter()
         .map(|(id, guard)| (id, guard.sleepiest_min()))
-        .max_by_key(|(_, hour)| hour.1)
+        .max_by_key(|(_, (_min, count))| *count)
         .unwrap();
 
-    sleepiest_time.0 * sleepiest_time.1.0
+    id * min
 }
 
 fn main() {
