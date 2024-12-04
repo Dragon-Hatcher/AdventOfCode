@@ -10,7 +10,7 @@ fn reduce(molecule: &str) -> Option<String> {
 
     for c in molecule.chars() {
         if let Some(p) = prev {
-            if p.is_ascii_lowercase() != c.is_ascii_lowercase() && p.to_ascii_uppercase() == c.to_ascii_uppercase() {
+            if p != c && p.to_ascii_uppercase() == c.to_ascii_uppercase() {
                 new.pop();
                 prev = None;
                 continue;
@@ -24,17 +24,22 @@ fn reduce(molecule: &str) -> Option<String> {
     (molecule != new).then_some(new)
 }
 
-fn part1(input: &str) -> i64 {
+fn fully_reduce(input: &str) -> String {
     let mut molecule = input.trim().to_owned();
     while let Some(next) = reduce(&molecule) {
         molecule = next;
     }
+    molecule
+}
 
-    molecule.len() as i64
+fn part1(input: &str) -> i64 {
+    fully_reduce(input).len() as i64
 }
 
 fn part2(input: &str) -> i64 {
+    let input = fully_reduce(input);
     let types = input.chars().map(|c| c.to_ascii_lowercase()).unique();
+
     types
         .map(|c| {
             let removed = input.replace([c, c.to_ascii_uppercase()], "");
