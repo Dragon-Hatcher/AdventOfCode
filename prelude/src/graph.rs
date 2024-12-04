@@ -1,6 +1,6 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 use slotmap::{new_key_type, SlotMap};
-use std::{hash::Hash, ops::Index};
+use std::{fmt::Debug, hash::Hash, ops::Index};
 
 // new_key_type! { pub struct NodeIndex; }
 // new_key_type! { pub struct EdgeIndex; }
@@ -153,10 +153,10 @@ where
         Self::new_with_default(Default::default())
     }
 
-    pub fn get(&mut self, a: Node, b: Node) -> &Info {
+    pub fn get(&mut self, a: Node, b: Node) -> &Info where  Node: Debug, Info: Debug {
         let key = (a, b);
         if self.infos.contains_key(&key) {
-            self.infos.get(&key).unwrap();
+            return self.infos.get(&key).unwrap();
         }
 
         let key = (key.1, key.0);
@@ -168,7 +168,7 @@ where
     pub fn get_mut(&mut self, a: Node, b: Node) -> &mut Info {
         let key = (a, b);
         if self.infos.contains_key(&key) {
-            self.infos.get_mut(&key).unwrap();
+            return self.infos.get_mut(&key).unwrap();
         }
 
         let key = (key.1, key.0);

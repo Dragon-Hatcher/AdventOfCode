@@ -91,12 +91,12 @@ fn example() {
 10/1
 9/10";
     assert_eq!(part1(input), 31);
-    // assert_eq!(part2(input), 19);
+    assert_eq!(part2(input), 19);
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 1859);
-    // assert_eq!(part2(input), 1799);
+    assert_eq!(part1(input), 1859);
+    assert_eq!(part2(input), 1799);
 }
