@@ -1,6 +1,5 @@
-use itertools::iproduct;
-
 use crate::{hashmap, v2, IterExtensions, Range, Vec2};
+use itertools::iproduct;
 use std::ops::{Index, IndexMut};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -92,6 +91,11 @@ impl<T> Grid<T> {
 
     fn get_index(&self, cell: Vec2) -> usize {
         cell.y as usize * self.width + cell.x as usize
+    }
+
+    pub fn get(&self, cell: Vec2) -> Option<&T> {
+        self.in_bounds(cell)
+            .then(|| &self.elements[self.get_index(cell)])
     }
 
     pub fn neighbors_with_deltas<'a>(

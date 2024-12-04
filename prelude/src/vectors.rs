@@ -1,10 +1,10 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-pub fn v2(x: i64, y: i64) -> Vec2 {
+pub const fn v2(x: i64, y: i64) -> Vec2 {
     Vec2 { x, y }
 }
 
-pub fn v3(x: i64, y: i64, z: i64) -> Vec3 {
+pub const fn v3(x: i64, y: i64, z: i64) -> Vec3 {
     Vec3 { x, y, z }
 }
 
