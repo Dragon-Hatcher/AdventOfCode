@@ -15,11 +15,14 @@ fn part2(input: &str) -> i64 {
     let mut d = true;
     let mut sum = 0;
 
-    for m in regex!(r#"mul\(\d+,\d+\)|do\(\)|don't\(\)"#).find_iter(input) {
-        match m.as_str() {
+    for s in regex!(r#"mul\(\d+,\d+\)|do\(\)|don't\(\)"#)
+        .find_iter(input)
+        .map(|m| m.as_str())
+    {
+        match s {
             "do()" => d = true,
             "don't()" => d = false,
-            _ => sum += m.as_str().nums().product::<i64>() * d as i64,
+            _ => sum += s.nums().product::<i64>() * d as i64,
         }
     }
 
