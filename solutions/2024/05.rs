@@ -12,21 +12,21 @@ fn parse(input: &str) -> (impl Iterator<Item = Vec<i64>> + '_, Vec<(i64, i64)>) 
     (updates, rules)
 }
 
-fn is_valid(update: &[i64], rules: &[(i64, i64)]) -> bool {
-    for (less, greater) in rules {
-        let Some(less_pos) = update.iter().find_position(|x| *x == less) else {
-            continue;
-        };
-        let Some(greater_pos) = update.iter().find_position(|x| *x == greater) else {
-            continue;
-        };
-
-        if less_pos > greater_pos {
-            return false;
-        }
+fn cmp_by_rules(a: i64, b: i64, rules: &[(i64, i64)]) -> Ordering {
+    if rules.contains(&(a, b)) {
+        Ordering::Less
+    } else if rules.contains(&(b, a)) {
+        Ordering::Greater
+    } else {
+        Ordering::Equal
     }
+}
 
-    true
+fn is_valid(update: &[i64], rules: &[(i64, i64)]) -> bool {
+    update
+        .iter()
+        .tuple_windows()
+        .all(|(&a, &b)| cmp_by_rules(a, b, rules).is_le())
 }
 
 fn part1(input: &str) -> i64 {
@@ -40,16 +40,6 @@ fn part1(input: &str) -> i64 {
 
 fn part2(input: &str) -> i64 {
     let (updates, rules) = parse(input);
-
-    fn cmp_by_rules(a: i64, b: i64, rules: &[(i64, i64)]) -> Ordering {
-        if rules.contains(&(a, b)) {
-            Ordering::Less
-        } else if rules.contains(&(b, a)) {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
-    }
 
     updates
         .filter(|update| !is_valid(update, &rules))
