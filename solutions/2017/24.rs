@@ -20,7 +20,7 @@ fn part1(input: &str) -> i64 {
     fn max_dist(
         graph: &UnGraph<Port, i64>,
         at: Port,
-        visited: &mut ExtraEdgeInfo<Port, bool>,
+        visited: &mut UnExtraEdgeInfo<Port, bool>,
     ) -> i64 {
         let mut dist = 0;
 
@@ -39,7 +39,7 @@ fn part1(input: &str) -> i64 {
         dist
     }
 
-    max_dist(&graph, 0, &mut ExtraEdgeInfo::new())
+    max_dist(&graph, 0, &mut UnExtraEdgeInfo::new())
 }
 
 fn part2(input: &str) -> i64 {
@@ -48,7 +48,7 @@ fn part2(input: &str) -> i64 {
     fn max_dist(
         graph: &UnGraph<Port, i64>,
         at: Port,
-        visited: &mut ExtraEdgeInfo<Port, bool>,
+        visited: &mut UnExtraEdgeInfo<Port, bool>,
         so_far: (i64, i64),
     ) -> (i64, i64) {
         let mut dist = so_far;
@@ -68,7 +68,7 @@ fn part2(input: &str) -> i64 {
         dist
     }
 
-    let (_length, strength) = max_dist(&graph, 0, &mut ExtraEdgeInfo::new(), (0, 0));
+    let (_length, strength) = max_dist(&graph, 0, &mut UnExtraEdgeInfo::new(), (0, 0));
 
     strength
 }
