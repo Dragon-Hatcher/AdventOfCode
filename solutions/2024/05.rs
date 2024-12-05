@@ -1,74 +1,63 @@
-use std::cmp::Ordering;
-
 use advent::prelude::*;
+use std::cmp::Ordering;
 
 fn default_input() -> &'static str {
     include_input!(2024 / 05)
 }
 
-fn part1(input: &str) -> i64 {
+fn parse(input: &str) -> (impl Iterator<Item = Vec<i64>> + '_, Vec<(i64, i64)>) {
     let (rules, updates) = input.sections().tup();
-    let rules: Vec<(i64, i64)> = rules.lines().map(|r| r.nums().tup()).collect_vec();
+    let rules = rules.lines().map(|r| r.nums().tup()).collect_vec();
+    let updates = updates.lines().map(|l| l.nums().collect_vec());
+    (updates, rules)
+}
 
-    let mut s = 0;
-    'outer: for update in updates.lines() {
-        let n = update.nums().collect_vec();
-        for (l, r) in rules.iter() {
-            if let Some(rp) = n.iter().find_position(|x| *x == r) {
-                if let Some(lp) = n.iter().find_position(|x| *x == l) {
-                    if lp > rp {
-                        // dbg!(r, l);
-                        continue 'outer;
-                    }
-                }
-    
-            }
+fn is_valid(update: &[i64], rules: &[(i64, i64)]) -> bool {
+    for (less, greater) in rules {
+        let Some(less_pos) = update.iter().find_position(|x| *x == less) else {
+            continue;
+        };
+        let Some(greater_pos) = update.iter().find_position(|x| *x == greater) else {
+            continue;
+        };
+
+        if less_pos > greater_pos {
+            return false;
         }
-        // dbg!(update);
-        s += n[n.len() / 2];
     }
-    s
+
+    true
+}
+
+fn part1(input: &str) -> i64 {
+    let (updates, rules) = parse(input);
+
+    updates
+        .filter(|update| is_valid(update, &rules))
+        .map(|update| update[update.len() / 2])
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let (rules, updates) = input.sections().tup();
-    let rules: Vec<(i64, i64)> = rules.lines().map(|r| r.nums().tup()).collect_vec();
+    let (updates, rules) = parse(input);
 
-    let mut s = 0;
-    'outer: for update in updates.lines() {
-        let mut invalid = false;
-
-        let mut n = update.nums().collect_vec();
-        for (l, r) in rules.iter() {
-            if let Some(rp) = n.iter().find_position(|x| *x == r) {
-                if let Some(lp) = n.iter().find_position(|x| *x == l) {
-                    if lp > rp {
-                        // dbg!(r, l);
-                        invalid = true;
-                    }
-                }
-    
-            }
+    fn cmp_by_rules(a: i64, b: i64, rules: &[(i64, i64)]) -> Ordering {
+        if rules.contains(&(a, b)) {
+            Ordering::Less
+        } else if rules.contains(&(b, a)) {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
         }
-
-        if !invalid { 
-            continue;
-        }
-
-        n.sort_by(|x, y| {
-            if rules.contains(&(*x, *y)) {
-                Ordering::Less
-            } else if rules.contains(&(*y, *x)) {
-                Ordering::Greater
-            } else {
-                Ordering::Equal
-            }
-        });
-
-        // dbg!(update);
-        s += n[n.len() / 2];
     }
-    s
+
+    updates
+        .filter(|update| !is_valid(update, &rules))
+        .map(|mut update| {
+            update.sort_by(|&a, &b| cmp_by_rules(a, b, &rules));
+            update[update.len() / 2]
+        })
+        .sum()
 }
 
 fn main() {
