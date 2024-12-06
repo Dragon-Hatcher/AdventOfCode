@@ -52,10 +52,7 @@ fn part2(input: &str) -> i64 {
     let (mut grid, start_pos) = parse(input);
 
     let (path, _) = trace_path(&grid, start_pos, Direction::Up);
-    let all_points = path
-        .into_iter()
-        .flat_map(|(p, d)| [p, p + d.vector()])
-        .unique();
+    let all_points = path.into_iter().map(|(p, _)| p).unique();
 
     let mut count = 0;
     for p in all_points {
