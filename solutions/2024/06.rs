@@ -51,9 +51,15 @@ fn part1(input: &str) -> i64 {
 fn part2(input: &str) -> i64 {
     let (mut grid, start_pos) = parse(input);
 
+    let (path, _) = trace_path(&grid, start_pos, Direction::Up);
+    let all_points = path
+        .into_iter()
+        .flat_map(|(p, d)| [p, p + d.vector()])
+        .unique();
+
     let mut count = 0;
-    for p in grid.points() {
-        if grid[p] || p == start_pos {
+    for p in all_points {
+        if !grid.in_bounds(p) || grid[p] || p == start_pos {
             continue;
         }
 
