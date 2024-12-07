@@ -9,52 +9,37 @@ fn parse(l: &str) -> (i64, Vec<i64>) {
     (target.nums().nu(), nums.nums().collect())
 }
 
-fn solve(working: i64, nums: &[i64], all: &mut HashSet<i64>) {
+fn concat(a: i64, b: i64) -> i64 {
+    let log = (b as f64).log(10.0).ceil().max(1.0) as u32;
+    a * 10i64.pow(log) + b
+}
+
+fn works(target: i64, working: i64, nums: &[i64], extra_op: bool) -> bool {
     if nums.is_empty() {
-        all.insert(working);
-        return;
+        return working == target;
     }
 
-    let next = nums[0];
-    solve(working + next, &nums[1..], all);
-    solve(working * next, &nums[1..], all);
+    let (next, rest) = (nums[0], &nums[1..]);
+    works(target, working + next, rest, extra_op)
+        || works(target, working * next, rest, extra_op)
+        || (extra_op && works(target, concat(working, next), rest, extra_op))
+}
+
+fn solve(input: &str, extra_op: bool) -> i64 {
+    input
+        .lines()
+        .map(parse)
+        .filter(|(target, nums)| works(*target, nums[0], &nums[1..], extra_op))
+        .map(|(target, _)| target)
+        .sum()
 }
 
 fn part1(input: &str) -> i64 {
-    let mut c = 0;
-    for (target, nums) in input.lines().map(parse) {
-        let mut all = HashSet::default();
-        solve(nums[0], &nums[1..], &mut all);
-        if all.into_iter().any(|n| n == target) {
-            c += target;
-        }
-    }
-    c
+    solve(input, false)
 }
 
 fn part2(input: &str) -> i64 {
-    let mut c = 0;
-    for (target, nums) in input.lines().map(parse) {
-        let mut all = HashSet::default();
-        solve2(nums[0], &nums[1..], &mut all);
-        if all.into_iter().any(|n| n == target) {
-            c += target;
-        }
-    }
-    c
-}
-
-fn solve2(working: i64, nums: &[i64], all: &mut HashSet<i64>) {
-    if nums.is_empty() {
-        all.insert(working);
-        return;
-    }
-
-    let next = nums[0];
-    solve2(working + next, &nums[1..], all);
-    solve2(working * next, &nums[1..], all);
-    solve2(format!("{working}{next}").parse().unwrap(), &nums[1..], all);
-
+    solve(input, true)
 }
 
 fn main() {
