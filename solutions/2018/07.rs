@@ -1,5 +1,5 @@
 use advent::prelude::*;
-use std::{cmp::Reverse, collections::BinaryHeap};
+use std::cmp::Reverse;
 
 fn default_input() -> &'static str {
     include_input!("wait=60, workers=5\n\n" / 2018 / 07)
@@ -60,40 +60,39 @@ fn part2(input: &str) -> i64 {
         *in_degree.get_mut(node) = graph.in_degree(node);
     }
 
-    let mut tasks_to_do: BinaryHeap<Reverse<char>> = graph
+    let mut tasks_to_do: BinaryHeap<char> = graph
         .nodes()
         .copied()
         .filter(|n| *in_degree.get(n) == 0)
-        .map(Reverse)
         .collect();
-    let mut completion_times = BinaryHeap::new();
+    let mut completion_times = BinaryHeap::new_min();
 
     let mut workers_left = max_workers;
     let mut current_min = 0;
 
     while !(tasks_to_do.is_empty() && completion_times.is_empty()) {
-        if completion_times.peek().map(|Reverse((t, _))| t) == Some(&current_min) {
+        if completion_times.peek().map(|(t, _)| t) == Some(&current_min) {
             // A task is now completed.
-            let Reverse((_, complete)) = completion_times.pop().unwrap();
+            let (_, complete) = completion_times.pop().unwrap();
             workers_left += 1;
 
             for (neighbor, _) in graph.outgoing(complete) {
                 *in_degree.get_mut(neighbor) -= 1;
                 if *in_degree.get(&neighbor) == 0 {
-                    tasks_to_do.push(Reverse(neighbor));
+                    tasks_to_do.push(neighbor);
                 }
             }
         } else if workers_left > 0 && !tasks_to_do.is_empty() {
             // Assign the next task in the queue to a worker.
             workers_left -= 1;
-            let Reverse(todo) = tasks_to_do.pop().unwrap();
-            completion_times.push(Reverse((
+            let todo = tasks_to_do.pop().unwrap();
+            completion_times.push((
                 current_min + wait_time + (todo as i64 - 'A' as i64) + 1,
                 todo,
-            )));
+            ));
         } else {
             // Jump forward to the next minute
-            current_min = completion_times.peek().unwrap().0 .0;
+            current_min = completion_times.peek().unwrap().0;
         }
     }
 

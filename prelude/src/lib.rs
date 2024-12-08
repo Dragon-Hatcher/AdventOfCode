@@ -28,6 +28,10 @@ pub use regex_macro::regex;
 pub use rustc_hash;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
+pub use binary_heap_plus::BinaryHeap;
+
+use binary_heap_plus::MinComparator;
+pub type MinBinaryHeap<T> = BinaryHeap<T, MinComparator>;
 
 #[macro_export]
 macro_rules! include_input {
