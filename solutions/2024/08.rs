@@ -4,55 +4,43 @@ fn default_input() -> &'static str {
     include_input!(2024 / 08)
 }
 
-fn part1(input: &str) -> i64 {
+fn parse(input: &str) -> (Grid<char>, Vec<Vec<Vec2>>) {
     let grid = Grid::new_by_char(input, |c| c);
-    let loc_pairs = grid.points().map(|p| (p, grid[p])).filter(|(_, c)| *c != '.').collect_vec();
-    let mut locs: HashMap<char, HashSet<Vec2>> = HashMap::default();
+    let antenna_groups = grid
+        .points()
+        .map(|p| (grid[p], p))
+        .filter(|(freq, _)| *freq != '.')
+        .into_group_map()
+        .into_values()
+        .collect();
 
-    for (p, c) in loc_pairs {
-        locs.entry(c).or_default().insert(p);
-    }
+    (grid, antenna_groups)
+}
 
-    let mut sum = 0;
-    'outer: for p in grid.points() {
-        for (_, ps) in locs.iter() {
-            for (p1, p2) in ps.iter().tuple_combinations() {
-                let diff = p2 - p1;
-                if p == p2 + diff || p == p1 - diff {
-                    sum += 1;
-                    continue 'outer;
-                }
-            }
-        }
+fn solve<F>(input: &str, is_match: F) -> i64
+where
+    F: Fn(Vec2, Vec2, Vec2) -> bool,
+{
+    let (grid, antenna_groups) = parse(input);
 
-    }   
-    sum
+    grid.points()
+        .filter(|&p| {
+            antenna_groups.iter().any(|group| {
+                group
+                    .iter()
+                    .tuple_combinations()
+                    .any(|(&p1, &p2)| is_match(p, p1, p2))
+            })
+        })
+        .count() as i64
+}
+
+fn part1(input: &str) -> i64 {
+    solve(input, |p, p1, p2| p == p2 * 2 - p1 || p == p1 * 2 - p2)
 }
 
 fn part2(input: &str) -> i64 {
-    let grid = Grid::new_by_char(input, |c| c);
-    let loc_pairs = grid.points().map(|p| (p, grid[p])).filter(|(_, c)| *c != '.').collect_vec();
-    let mut locs: HashMap<char, HashSet<Vec2>> = HashMap::default();
-
-    for (p, c) in loc_pairs {
-        locs.entry(c).or_default().insert(p);
-    }
-
-    let mut sum = 0;
-    'outer: for p in grid.points() {
-        for (_, ps) in locs.iter() {
-            for (p1, p2) in ps.iter().tuple_combinations() {
-                let diff = p2 - p1;
-                let diff_i = p - p1;
-                if diff.is_scaling(diff_i) || diff_i.is_scaling(diff) {
-                    sum += 1;
-                    continue 'outer;
-                }
-            }
-        }
-
-    }   
-    sum
+    solve(input, |p, p1, p2| (p2 - p1).is_scaling(p - p1))
 }
 
 fn main() {
@@ -76,8 +64,8 @@ fn example() {
 .........A..
 ............
 ............";
-    assert_eq!(part1(input), 398);
-    assert_eq!(part2(input), 1333);
+    assert_eq!(part1(input), 14);
+    assert_eq!(part2(input), 34);
 }
 
 #[test]
