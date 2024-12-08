@@ -4,12 +4,12 @@ fn default_input() -> &'static str {
     include_input!(2017 / 24)
 }
 
-fn parse(input: &str) -> UnGraph<i64, i64> {
+type Port = i64;
+
+fn parse(input: &str) -> UnGraph<Port, i64> {
     let mut graph = UnGraph::new();
     for (a, b) in input.lines().map(|l| l.nums().tup()) {
-        let ai = graph.ni_or_insert(a);
-        let bi = graph.ni_or_insert(b);
-        graph.new_edge(ai, bi, a + b);
+        graph.add_edge(a, b, a + b);
     }
     graph
 }
@@ -17,17 +17,21 @@ fn parse(input: &str) -> UnGraph<i64, i64> {
 fn part1(input: &str) -> i64 {
     let graph = parse(input);
 
-    fn max_dist(graph: &UnGraph<i64, i64>, at: NodeIndex, visited: &mut HashSet<EdgeIndex>) -> i64 {
+    fn max_dist(
+        graph: &UnGraph<Port, i64>,
+        at: Port,
+        visited: &mut UnExtraEdgeInfo<Port, bool>,
+    ) -> i64 {
         let mut dist = 0;
 
-        for edge in graph
-            .outgoing(at)
-            .filter(|e| !visited.contains(&e.index()))
-            .collect_vec()
-        {
-            visited.insert(edge.index());
-            let new_dist = edge.weight() + max_dist(graph, edge.other_end(at), visited);
-            visited.remove(&edge.index());
+        for (to, weight) in graph.outgoing(at) {
+            if *visited.get(at, to) {
+                continue;
+            }
+
+            *visited.get_mut(at, to) = true;
+            let new_dist = weight + max_dist(graph, to, visited);
+            *visited.get_mut(at, to) = false;
 
             dist = dist.max(new_dist);
         }
@@ -35,35 +39,28 @@ fn part1(input: &str) -> i64 {
         dist
     }
 
-    let start = graph.node_index(&0);
-    let mut visited = HashSet::default();
-    max_dist(&graph, start, &mut visited)
+    max_dist(&graph, 0, &mut UnExtraEdgeInfo::new())
 }
 
 fn part2(input: &str) -> i64 {
     let graph = parse(input);
 
     fn max_dist(
-        graph: &UnGraph<i64, i64>,
-        at: NodeIndex,
-        visited: &mut HashSet<EdgeIndex>,
+        graph: &UnGraph<Port, i64>,
+        at: Port,
+        visited: &mut UnExtraEdgeInfo<Port, bool>,
         so_far: (i64, i64),
     ) -> (i64, i64) {
         let mut dist = so_far;
 
-        for edge in graph
-            .outgoing(at)
-            .filter(|e| !visited.contains(&e.index()))
-            .collect_vec()
-        {
-            visited.insert(edge.index());
-            let new_dist = max_dist(
-                graph,
-                edge.other_end(at),
-                visited,
-                (so_far.0 + 1, so_far.1 + edge.weight()),
-            );
-            visited.remove(&edge.index());
+        for (to, weight) in graph.outgoing(at) {
+            if *visited.get(at, to) {
+                continue;
+            }
+
+            *visited.get_mut(at, to) = true;
+            let new_dist = max_dist(graph, to, visited, (so_far.0 + 1, so_far.1 + weight));
+            *visited.get_mut(at, to) = false;
 
             dist = dist.max(new_dist);
         }
@@ -71,9 +68,7 @@ fn part2(input: &str) -> i64 {
         dist
     }
 
-    let start = graph.node_index(&0);
-    let mut visited = HashSet::default();
-    let (_length, strength) = max_dist(&graph, start, &mut visited, (0, 0));
+    let (_length, strength) = max_dist(&graph, 0, &mut UnExtraEdgeInfo::new(), (0, 0));
 
     strength
 }
