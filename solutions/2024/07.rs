@@ -9,28 +9,26 @@ fn parse(l: &str) -> (i64, Vec<i64>) {
     (target.nums().nu(), nums.nums().collect())
 }
 
-fn concat(a: i64, b: i64) -> i64 {
-    let log = (b as f64).log(10.0).ceil().max(1.0) as u32;
-    a * 10i64.pow(log) + b
-}
-
-fn works(target: i64, working: i64, nums: &[i64], extra_op: bool) -> bool {
-    if nums.is_empty() {
-        return working == target;
+fn works(target: i64, nums: &[i64], extra_op: bool) -> bool {
+    if nums.len() == 1 {
+        return target == nums[0];
     }
-
-    let (next, rest) = (nums[0], &nums[1..]);
-    works(target, working + next, rest, extra_op)
-        || works(target, working * next, rest, extra_op)
-        || (extra_op && works(target, concat(working, next), rest, extra_op))
+    
+    let (last, rest) = (nums[0], &nums[1..]);
+    let mask = 10i64.pow((last as f64).log(10.0).ceil().max(1.0) as u32);
+    works(target - last, rest, extra_op)
+        || (target % last == 0) && works(target / last, rest, extra_op)
+        || extra_op && target % mask == last && works(target / mask, rest, extra_op)
 }
 
 fn solve(input: &str, extra_op: bool) -> i64 {
     input
         .lines()
         .map(parse)
-        .filter(|(target, nums)| works(*target, nums[0], &nums[1..], extra_op))
-        .map(|(target, _)| target)
+        .filter_map(|(target, mut nums)| {
+            nums.reverse();
+            works(target, &nums, extra_op).then_some(target)
+        })
         .sum()
 }
 
