@@ -17,10 +17,10 @@ fn part1(input: &str) -> i64 {
     let (x_min, x_max) = points.iter().map(|p| p.x).minmax().into_option().unwrap();
     let (y_min, y_max) = points.iter().map(|p| p.y).minmax().into_option().unwrap();
     let least = Vec2::new(x_min, y_min);
-    let range = Vec2::new(x_max - x_min, y_max - y_min);
-    let points = points.into_iter().map(|p| p - least + range).collect_vec();
+    let range = Vec2::new(x_max - x_min + 1, y_max - y_min + 1);
+    let points = points.into_iter().map(|p| p - least).collect_vec();
 
-    let range = Range::new_size(range.x * 3, range.y * 3);
+    let range = Range::new_size(range.x, range.y);
     let mut sizes: HashMap<usize, i64> = HashMap::default();
     let mut infinite = HashSet::default();
 
@@ -39,6 +39,8 @@ fn part1(input: &str) -> i64 {
             infinite.insert(first);
         }
     }
+
+    dbg!(&infinite);
 
     sizes
         .into_iter()
