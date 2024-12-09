@@ -62,7 +62,7 @@ fn part2(input: &str) -> i64 {
     let x_min = points.iter().map(|p| p.x).min().unwrap();
     let y_min = points.iter().map(|p| p.y).min().unwrap();
     let least = Vec2::new(x_min, y_min);
-    let range = Vec2::new(dist, dist);
+    let range = Vec2::new(dist / points.len() as i64, dist / points.len() as i64);
     let points = points.into_iter().map(|p| p - least + range).collect_vec();
 
     let range = Range::new_size(range.x * 3, range.y * 3);
@@ -102,6 +102,6 @@ fn example() {
 #[test]
 fn default() {
     let input = default_input();
-    assert_eq!(part1(input), 48155);
-    assert_eq!(part2(input), 40292);
+    assert_eq!(part1(input), 4186);
+    assert_eq!(part2(input), 45509);
 }
