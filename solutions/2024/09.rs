@@ -1,44 +1,24 @@
 use advent::prelude::*;
+use std::iter::repeat;
 
 fn default_input() -> &'static str {
     include_input!(2024 / 09)
 }
 
-fn part1(input: &str) -> i64 {
-    let mut nums = input.trim().chars().map(|c| c.to_digit(10).unwrap());
+fn parse(input: &str) -> (Vec<Option<usize>>, usize) {
+    let mut id = 0;
     let mut blocks = vec![];
 
-    let mut id = 0;
-    while let Some(file) = nums.next() {
-        for _ in 0..file {
-            blocks.push(Some(id));
-        }
-        id += 1;
-        if let Some(space) = nums.next() {
-            for _ in 0..space {
-                blocks.push(None);
-            }
-        }
+    for (i, cnt) in input.chars().filter_map(|c| c.to_digit(10)).enumerate() {
+        let val = if i % 2 == 0 { Some(id) } else { None };
+        id += val.is_some() as usize;
+        blocks.extend(repeat(val).take(cnt as usize));
     }
 
-    let mut back = blocks.len() - 1;
-    let mut free = 0;
+    (blocks, id)
+}
 
-    while free < back {
-        while blocks[free].is_some() && free < back {
-            free += 1;
-        }
-        if free >= back {
-            break;
-        }
-        blocks[free] = blocks[back];
-        blocks[back] = None;
-        while blocks[back].is_none() && back > free {
-            back -= 1;
-        }
-    }
-
-    // dbg!(blocks);
+fn checksum(blocks: Vec<Option<usize>>) -> i64 {
     blocks
         .into_iter()
         .enumerate()
@@ -46,51 +26,61 @@ fn part1(input: &str) -> i64 {
         .sum::<usize>() as i64
 }
 
-fn part2(input: &str) -> i64 {
-    let mut nums = input.trim().chars().map(|c| c.to_digit(10).unwrap());
-    let mut blocks = vec![];
+fn part1(input: &str) -> i64 {
+    let (mut blocks, _) = parse(input);
 
-    let mut id = 0;
-    while let Some(file) = nums.next() {
-        for _ in 0..file {
-            blocks.push(Some(id));
+    let mut file = blocks.len() - 1;
+    let mut free = 0;
+
+    loop {
+        while blocks[free].is_some() && free < file {
+            free += 1;
         }
-        id += 1;
-        if let Some(space) = nums.next() {
-            for _ in 0..space {
-                blocks.push(None);
-            }
+        while blocks[file].is_none() && free < file {
+            file -= 1;
         }
+        if free >= file {
+            break;
+        }
+        blocks[free] = blocks[file];
+        blocks[file] = None;
     }
 
-    for id in (0..id).rev() {
-        let mut start = 0;
-        while blocks[start] != Some(id) {
-            start += 1;
-        }
-        let mut end = start;
-        while end < blocks.len() && blocks[end] == Some(id) {
-            end += 1;
-        }
-        let len = end - start;
+    checksum(blocks)
+}
 
-        let mut s_start = 0;
-        while s_start + len < end {
-            s_start += 1;
 
-            if s_start + len < end && blocks[s_start..s_start + len].iter().all(|b| b.is_none()) {
-                blocks[s_start..s_start + len].fill(Some(id));
-                blocks[start..end].fill(None);
+fn part2(input: &str) -> i64 {
+    let (mut blocks, max_id) = parse(input);
+    let mut file_end = blocks.len();
+
+    for id in (0..max_id).rev() {
+        while blocks[file_end - 1] != Some(id) {
+            file_end -= 1;
+        }
+        let mut file_start = file_end - 1;
+        while file_start > 0 && blocks[file_start - 1] == Some(id) {
+            file_start -= 1;
+        }
+        let len = file_end - file_start;
+
+        let mut gap_start = 0;
+        let mut gap_end = 0;
+        while gap_end < file_end {
+            if gap_end - gap_start == len {
+                blocks[gap_start..gap_end].fill(Some(id));
+                blocks[file_start..file_end].fill(None);
                 break;
             }
+
+            if blocks[gap_end].is_some() {
+                gap_start = gap_end + 1;
+            }
+            gap_end += 1;
         }
     }
 
-    blocks
-        .into_iter()
-        .enumerate()
-        .filter_map(|(i, a)| a.map(|a| i * a))
-        .sum::<usize>() as i64
+    checksum(blocks)
 }
 
 fn main() {
