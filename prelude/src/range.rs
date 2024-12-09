@@ -85,4 +85,8 @@ impl Range {
 
         x_min < x_max && y_min < y_max
     }
+
+    pub fn area(&self) -> i64 {
+        self.width() * self.height()
+    }
 }
