@@ -4,57 +4,38 @@ fn default_input() -> &'static str {
     include_input!(2024 / 10)
 }
 
-fn part1(input: &str) -> i64 {
+fn search(input: &str) -> (i64, i64) {
     let grid = Grid::new_by_char(input, |c| c.to_digit(10).unwrap());
 
-    let mut sum = 0;
-    for p in grid.points() {
-        if grid[p] != 0 {
-            continue;
+    fn count_nines(pos: Vec2, grid: &Grid<u32>, nines: &mut HashSet<Vec2>) -> i64 {
+        if grid[pos] == 9 {
+            nines.insert(pos);
+            return 1;
         }
 
-        let visited = bfs()
-            .start(p)
-            .no_goal()
-            .next(|p| {
-                let grid = &grid;
-                let p = *p;
-                grid.neighbors4(p)
-                    .filter(move |pp| grid[*pp] == grid[p] + 1)
-            })
-            .find_all()
-            .visited;
-
-        sum += visited.into_values().filter(|v| *v == 9).count() as i64;
+        grid.neighbors4(pos)
+            .filter(|n| grid[*n] == grid[pos] + 1)
+            .map(|n| count_nines(n, grid, nines))
+            .sum()
     }
 
-    sum
+    grid.points()
+        .filter(|&p| grid[p] == 0)
+        .map(|p| {
+            let mut nines = HashSet::default();
+            let trail_score = count_nines(p, &grid, &mut nines);
+            (nines.len() as i64, trail_score)
+        })
+        .reduce(|a, b| (a.0 + b.0, a.1 + b.1))
+        .unwrap()
+}
+
+fn part1(input: &str) -> i64 {
+    search(input).0
 }
 
 fn part2(input: &str) -> i64 {
-    let grid = Grid::new_by_char(input, |c| c.to_digit(10).unwrap());
-
-    let mut sum = 0;
-    for p in grid.points() {
-        if grid[p] != 0 {
-            continue;
-        }
-
-        fn find(pos: Vec2, grid: &Grid<u32>) -> i64 {
-            if grid[pos] == 9 {
-                return 1;
-            }
-
-            grid.neighbors4(pos)
-                .filter(|pp| grid[*pp] == grid[pos] + 1)
-                .map(|pp| find(pp, grid))
-                .sum()
-        }
-
-        sum += find(p, &grid)
-    }
-
-    sum
+    search(input).1
 }
 
 fn main() {
