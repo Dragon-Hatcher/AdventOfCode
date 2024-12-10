@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{fmt::Display, ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign}};
 
 pub const fn v2(x: i64, y: i64) -> Vec2 {
     Vec2 { x, y }
@@ -222,6 +222,12 @@ impl Vec2 {
     }
 }
 
+impl Display for Vec2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{}", self.x, self.y)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Vec3 {
     pub x: i64,
@@ -411,4 +417,10 @@ impl Vec3 {
     pub const E1: Self = Self::new(1, 0, 0);
     pub const E2: Self = Self::new(0, 1, 0);
     pub const E3: Self = Self::new(0, 0, 1);
+}
+
+impl Display for Vec3 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{},{}", self.x, self.y, self.z)
+    }
 }
