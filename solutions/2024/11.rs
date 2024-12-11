@@ -4,37 +4,43 @@ fn default_input() -> &'static str {
     include_input!(2024 / 11)
 }
 
-fn solve(input: &str, iters: i64) -> i64 {
-    let stones_list = input.nums().collect_vec();
-    let mut table = HashMap::default();
+fn dig_count(n: i64) -> u32 {
+    (n as f64).log10().floor() as u32 + 1
+}
 
-    for stone in stones_list {
-        *table.entry(stone).or_default() += 1;
-    }
+fn split_num(n: i64) -> (i64, i64) {
+    let mask = 10i64.pow(dig_count(n) / 2);
+    (n / mask, n % mask)
+}
+
+fn solve(input: &str, iters: i64) -> i64 {
+    let mut stones: HashMap<i64, i64> = input.nums().map(|n| (n, 1)).collect();
 
     for _ in 0..iters {
-        let mut new = HashMap::default();
+        let mut new_stones = HashMap::default();
 
-        for (stone, count) in table {
+        for (stone, count) in stones {
+            let mut add_stone = |n| *new_stones.entry(n).or_default() += count;
+
             if stone == 0 {
-                *new.entry(1).or_default() += count;
-            } else if stone.to_string().len() % 2 == 0 {
-                let len = stone.to_string().len() / 2;
-                *new.entry(stone.to_string().chars().take(len).collect::<String>().nums().nu()).or_default() += count;
-                *new.entry(stone.to_string().chars().skip(len).collect::<String>().nums().nu()).or_default() += count;
+                add_stone(1);
+            } else if dig_count(stone) % 2 == 0 {
+                let (l, r) = split_num(stone);
+                add_stone(l);
+                add_stone(r);
             } else {
-                *new.entry(stone * 2024).or_default() += count;
+                add_stone(stone * 2024);
             }
         }
 
-        table = new;   
+        stones = new_stones;
     }
 
-    table.values().sum::<i64>()
+    stones.values().sum()
 }
 
 fn part1(input: &str) -> i64 {
-    solve(input, 25)    
+    solve(input, 25)
 }
 
 fn part2(input: &str) -> i64 {
