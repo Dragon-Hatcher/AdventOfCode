@@ -15,7 +15,7 @@ fn works(target: i64, nums: &[i64], extra_op: bool) -> bool {
     }
     
     let (last, rest) = (nums[0], &nums[1..]);
-    let mask = 10i64.pow((last as f64).log(10.0).ceil().max(1.0) as u32);
+    let mask = 10i64.pow(last.ilog10() + 1);
     works(target - last, rest, extra_op)
         || (target % last == 0) && works(target / last, rest, extra_op)
         || extra_op && target % mask == last && works(target / mask, rest, extra_op)

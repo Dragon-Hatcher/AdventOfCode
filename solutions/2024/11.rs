@@ -5,7 +5,7 @@ fn default_input() -> &'static str {
 }
 
 fn dig_count(n: i64) -> u32 {
-    (n as f64).log10().floor() as u32 + 1
+    n.ilog10() + 1
 }
 
 fn split_num(n: i64) -> (i64, i64) {
