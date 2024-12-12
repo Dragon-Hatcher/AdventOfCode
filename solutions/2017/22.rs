@@ -15,10 +15,10 @@ fn part1(input: &str) -> i64 {
 
     for _ in 0..10_000 {
         if infected.contains(&pos) {
-            facing = facing.turn(Turn::Right);
+            facing = facing.turn_right();
             infected.remove(&pos);
         } else {
-            facing = facing.turn(Turn::Left);
+            facing = facing.turn_left();
             infected.insert(pos);
             infections += 1;
         }
@@ -41,9 +41,9 @@ fn part2(input: &str) -> i64 {
 
     for _ in 0..10_000_000 {
         facing = match state.get(&pos) {
-            None => facing.turn(Turn::Left),
+            None => facing.turn_left(),
             Some(1) => facing,
-            Some(2) => facing.turn(Turn::Right),
+            Some(2) => facing.turn_right(),
             _ => facing.reverse(),
         };
 

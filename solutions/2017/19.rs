@@ -27,8 +27,8 @@ fn solve(input: &str) -> (String, i64) {
         pos += direction.vector();
 
         if grid[pos] == '+' {
-            let left = direction.turn(Turn::Left);
-            let right = direction.turn(Turn::Right);
+            let left = direction.turn_left();
+            let right = direction.turn_right();
 
             let left_pos = pos + left.vector();
             let use_left = grid.in_bounds(left_pos) && grid[left_pos] != ' ';

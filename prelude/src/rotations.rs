@@ -9,6 +9,13 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub const ALL: [Direction; 4] = [
+        Direction::Up,
+        Direction::Right,
+        Direction::Down,
+        Direction::Left,
+    ];
+
     pub fn from_char(char: char) -> Direction {
         match char {
             'U' => Direction::Up,
@@ -42,6 +49,14 @@ impl Direction {
             (D::Left, T::Left) => D::Down,
             (D::Left, T::Right) => D::Up,
         }
+    }
+
+    pub fn turn_left(self) -> Direction {
+        self.turn(Turn::Left)
+    }
+
+    pub fn turn_right(self) -> Direction {
+        self.turn(Turn::Right)
     }
 
     pub fn reverse(self) -> Direction {

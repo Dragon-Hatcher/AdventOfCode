@@ -10,39 +10,36 @@ fn part1(input: &str) -> i64 {
 
     fn claim(
         p: Vec2,
+        group: char,
         grid: &Grid<char>,
         visited: &mut HashSet<Vec2>,
-        perim: &mut i64,
+        perimeter: &mut i64,
         area: &mut i64,
     ) {
-        *area += 1;
-        for n in p.neighbors4() {
-            if !(grid.in_bounds(n) && grid[n] == grid[p]) {
-                *perim += 1;
-            }
+        if visited.contains(&p) || grid[p] != group {
+            return;
         }
+
         visited.insert(p);
+        *area += 1;
+        *perimeter += p
+            .neighbors4()
+            .filter(|n| grid.get(*n) != Some(&group))
+            .count() as i64;
 
         for n in grid.neighbors4(p) {
-            if !visited.contains(&n) && grid[n] == grid[p] {
-                claim(n, grid, visited, perim, area);
-            }
+            claim(n, group, grid, visited, perimeter, area);
         }
     }
 
-    let mut sum = 0;
-    for p in grid.points() {
-        if visited.contains(&p) {
-            continue;
-        }
-
-        let mut area = 0;
-        let mut perim = 0;
-        claim(p, &grid, &mut visited, &mut perim, &mut area);
-        sum += area * perim;
-    }
-
-    sum
+    grid.points()
+        .map(|p| {
+            let mut area = 0;
+            let mut perimeter = 0;
+            claim(p, grid[p], &grid, &mut visited, &mut perimeter, &mut area);
+            area * perimeter
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
@@ -51,49 +48,49 @@ fn part2(input: &str) -> i64 {
 
     fn claim(
         p: Vec2,
+        group: char,
         grid: &Grid<char>,
         visited: &mut HashSet<Vec2>,
-        perim: &mut i64,
+        sides: &mut i64,
         area: &mut i64,
     ) {
-        *area += 1;
-
-        for d in [
-            Direction::Up,
-            Direction::Right,
-            Direction::Down,
-            Direction::Left,
-        ] {
-            if grid.get(p + d.vector()) != Some(&grid[p])
-                && (grid.get(p + d.turn(Turn::Left).vector()) != Some(&grid[p])
-                    || grid.get(p + d.vector() + d.turn(Turn::Left).vector()) == Some(&grid[p]))
-            {
-                *perim += 1;
-            }
+        if visited.contains(&p) || grid[p] != group {
+            return;
         }
+
+        visited.insert(p);
+        *area += 1;
+        *sides += Direction::ALL
+            .into_iter()
+            // If the grid has a member of the same group in the direction we
+            // are checking then this isn't an edge at all let alone a unique side.
+            .filter(|d| grid.get(p + d.vector()) != Some(&group))
+            // If this is an edge we want to count each edge only once. We check
+            // if this is the left-most square on this edge. This is the case if
+            // either there is no square in the same group to the left, or there
+            // is such a square but it has another square above it so the edge
+            // still ends here.
+            .filter(|d| {
+                grid.get(p + d.turn_left().vector()) != Some(&group)
+                    || grid.get(p + d.vector() + d.turn_left().vector()) == Some(&group)
+            })
+            .count() as i64;
 
         visited.insert(p);
 
         for n in grid.neighbors4(p) {
-            if !visited.contains(&n) && grid[n] == grid[p] {
-                claim(n, grid, visited, perim, area);
-            }
+            claim(n, group, grid, visited, sides, area);
         }
     }
 
-    let mut sum = 0;
-    for p in grid.points() {
-        if visited.contains(&p) {
-            continue;
-        }
-
-        let mut area = 0;
-        let mut perim = 0;
-        claim(p, &grid, &mut visited, &mut perim, &mut area);
-        sum += area * perim;
-    }
-
-    sum
+    grid.points()
+        .map(|p| {
+            let mut area = 0;
+            let mut perimeter = 0;
+            claim(p, grid[p], &grid, &mut visited, &mut perimeter, &mut area);
+            area * perimeter
+        })
+        .sum()
 }
 
 fn main() {

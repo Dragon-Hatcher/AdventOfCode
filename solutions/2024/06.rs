@@ -33,7 +33,7 @@ fn trace_path(
         visited.insert((pos, facing));
 
         while grid.get(pos + facing.vector()) == Some(&true) {
-            facing = facing.turn(Turn::Right);
+            facing = facing.turn_right();
         }
         pos += facing.vector();
     }
