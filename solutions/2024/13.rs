@@ -4,69 +4,51 @@ fn default_input() -> &'static str {
     include_input!(2024 / 13)
 }
 
-fn part1(input: &str) -> i64 {
-    let mut vec = vec![];
-
-    for sec in input.sections() {
+fn parse(input: &str) -> impl Iterator<Item = (Vec2, Vec2, Vec2)> + '_ {
+    input.sections().map(|sec| {
         let (ax, ay, bx, by, px, py) = sec.nums().tup();
-        vec.push((v2(ax, ay), v2(bx, by), v2(px, py)));
+        (v2(ax, ay), v2(bx, by), v2(px, py))
+    })
+}
+
+fn solve(a: Vec2, b: Vec2, goal: Vec2) -> Option<i64> {
+    let delta_x = a.x - b.x;
+    let delta_y = a.y - b.y;
+
+    let num = goal.y * delta_x - goal.x * delta_y;
+    let denom = delta_x * b.y - delta_y * b.x;
+
+    if num % denom != 0 {
+        return None;
     }
 
-    let mut sum = 0;
+    let t = num / denom;
 
-    'outer: for (a, b, p) in vec {
-        // dbg!(a, b, p);
-        for t in 1..=200 {
-            for ap in 0..=t {
-                let bp = t - ap;
-                if p == a * ap + b * bp {
-                    sum += 3 * ap + bp;
-                    continue 'outer;
-                }
-            }
-        }
-    }
+    let (goal, b, delta) = if a.x != b.x {
+        (goal.x, b.x, delta_x)
+    } else {
+        (goal.y, b.y, delta_y)
+    };
 
-    sum
+    let ap = (goal - t * b) / delta;
+    let bp = t - ap;
+
+    Some(3 * ap + bp)
+}
+
+fn part1(input: &str) -> i64 {
+    parse(input)
+        .filter_map(|(a, b, goal)| solve(a, b, goal))
+        .sum()
 }
 
 fn part2(input: &str) -> i64 {
-    let mut vec = vec![];
+    const OFFSET: Vec2 = Vec2::new(10000000000000, 10000000000000);
 
-    for sec in input.sections() {
-        let (ax, ay, bx, by, px, py) = sec.nums().tup();
-        vec.push((
-            v2(ax, ay),
-            v2(bx, by),
-            v2(px + 10000000000000, py + 10000000000000),
-        ));
-    }
-
-    let mut sum = 0;
-
-    for (a, b, p) in vec {
-        let delta_x = a.x - b.x;
-        let delta_y = a.y - b.y;
-
-        let num = p.y * delta_x - p.x * delta_y;
-        let denom = delta_x * b.y - delta_y * b.x;
-
-        if num % denom != 0 {
-            continue;
-        }
-
-        let t = num / denom;
-
-        let diff = p.x - t * b.x;
-        let div = a.x - b.x;
-
-        let ap = diff / div;
-        let bp = t - ap;
-
-        sum += 3 * ap + bp;
-    }
-
-    sum
+    parse(input)
+        .map(|(a, b, goal)| (a, b, goal + OFFSET))
+        .filter_map(|(a, b, goal)| solve(a, b, goal))
+        .sum()
 }
 
 fn main() {
