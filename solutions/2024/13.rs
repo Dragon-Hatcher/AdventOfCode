@@ -12,28 +12,10 @@ fn parse(input: &str) -> impl Iterator<Item = (Vec2, Vec2, Vec2)> + '_ {
 }
 
 fn solve(a: Vec2, b: Vec2, goal: Vec2) -> Option<i64> {
-    let delta_x = a.x - b.x;
-    let delta_y = a.y - b.y;
+    let ap = (b.x * goal.y - b.y * goal.x) / (b.x * a.y - a.x * b.y);
+    let bp = (a.y * goal.x - a.x * goal.y) / (b.x * a.y - a.x * b.y);
 
-    let num = goal.y * delta_x - goal.x * delta_y;
-    let denom = delta_x * b.y - delta_y * b.x;
-
-    if num % denom != 0 {
-        return None;
-    }
-
-    let t = num / denom;
-
-    let (goal, b, delta) = if a.x != b.x {
-        (goal.x, b.x, delta_x)
-    } else {
-        (goal.y, b.y, delta_y)
-    };
-
-    let ap = (goal - t * b) / delta;
-    let bp = t - ap;
-
-    Some(3 * ap + bp)
+    (goal == a * ap + b * bp).then_some(3 * ap + bp)
 }
 
 fn part1(input: &str) -> i64 {
