@@ -1,6 +1,6 @@
-mod undirected;
-mod directed;
 pub mod algos;
+mod directed;
+mod undirected;
 
-pub use undirected::*;
 pub use directed::*;
+pub use undirected::*;

@@ -13,7 +13,7 @@ fn works(target: i64, nums: &[i64], extra_op: bool) -> bool {
     if nums.len() == 1 {
         return target == nums[0];
     }
-    
+
     let (last, rest) = (nums[0], &nums[1..]);
     let mask = 10i64.pow(last.ilog10() + 1);
     works(target - last, rest, extra_op)

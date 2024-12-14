@@ -49,7 +49,6 @@ fn part1(input: &str) -> i64 {
     checksum(blocks)
 }
 
-
 fn part2(input: &str) -> i64 {
     let (mut blocks, max_id) = parse(input);
     let mut file_end = blocks.len();

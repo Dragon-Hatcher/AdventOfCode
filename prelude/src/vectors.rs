@@ -1,4 +1,7 @@
-use std::{fmt::Display, ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign}};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 pub const fn v2(x: i64, y: i64) -> Vec2 {
     Vec2 { x, y }

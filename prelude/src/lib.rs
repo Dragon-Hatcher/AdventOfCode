@@ -1,6 +1,6 @@
 mod crypto;
-mod grid;
 mod graph;
+mod grid;
 mod id_gen;
 mod iterators;
 mod math;
@@ -11,8 +11,8 @@ mod strings;
 mod vectors;
 
 pub use crypto::*;
-pub use grid::*;
 pub use graph::*;
+pub use grid::*;
 pub use id_gen::*;
 pub use iterators::*;
 pub use math::*;
@@ -22,13 +22,13 @@ pub use search::*;
 pub use strings::*;
 pub use vectors::*;
 
+pub use binary_heap_plus::BinaryHeap;
 pub use itertools::{chain, iproduct, Itertools as _};
 pub use memoize::memoize;
 pub use regex_macro::regex;
 pub use rustc_hash;
 pub use rustc_hash::FxHashMap as HashMap;
 pub use rustc_hash::FxHashSet as HashSet;
-pub use binary_heap_plus::BinaryHeap;
 
 use binary_heap_plus::MinComparator;
 pub type MinBinaryHeap<T> = BinaryHeap<T, MinComparator>;

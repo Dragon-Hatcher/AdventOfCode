@@ -5,10 +5,7 @@ fn default_input() -> &'static str {
 }
 
 fn part1(input: &str) -> i64 {
-    let (mut l, mut r): (Vec<_>, Vec<_>) = input
-        .nums()
-        .tuples::<(i64, i64)>()
-        .unzip();
+    let (mut l, mut r): (Vec<_>, Vec<_>) = input.nums().tuples::<(i64, i64)>().unzip();
 
     l.sort();
     r.sort();
@@ -17,13 +14,12 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2(input: &str) -> i64 {
-    let (l, r): (Vec<_>, Vec<_>) = input
-        .nums()
-        .tuples::<(i64, i64)>()
-        .unzip();
+    let (l, r): (Vec<_>, Vec<_>) = input.nums().tuples::<(i64, i64)>().unzip();
 
     let counts = r.into_iter().counts();
-    l.iter().map(|x| x * counts.get(x).copied().unwrap_or_default() as i64).sum()
+    l.iter()
+        .map(|x| x * counts.get(x).copied().unwrap_or_default() as i64)
+        .sum()
 }
 
 fn main() {

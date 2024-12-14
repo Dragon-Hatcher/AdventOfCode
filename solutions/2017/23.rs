@@ -56,7 +56,7 @@ fn parse_computer(input: &str) -> Computer {
         pc: 0,
         instructions: input.lines().map(parse_instruction).collect(),
         registers: Default::default(),
-        muls: 0
+        muls: 0,
     }
 }
 
@@ -108,7 +108,7 @@ fn part1(input: &str) -> i64 {
 
 fn part2(_input: &str) -> i64 {
     fn is_composite(b: &i64) -> bool {
-        (2..b/2).any(|n| b % n == 0)
+        (2..b / 2).any(|n| b % n == 0)
     }
 
     (106500..=123500).step_by(17).filter(is_composite).count() as i64
@@ -120,7 +120,7 @@ fn part2(_input: &str) -> i64 {
     //     d := 2
     //     while d != b {
     //         e := 2
-    //         while e != b {            
+    //         while e != b {
     //             if d * e == b {
     //                 f := 0
     //             }

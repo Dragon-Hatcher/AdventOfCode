@@ -6,7 +6,7 @@ fn default_input() -> &'static str {
 
 fn reduce(molecule: &str) -> Option<String> {
     let mut new = String::new();
-    let mut prev: Option<char>  = None;
+    let mut prev: Option<char> = None;
 
     for c in molecule.chars() {
         if let Some(p) = prev {

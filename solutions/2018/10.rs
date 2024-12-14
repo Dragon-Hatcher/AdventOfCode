@@ -9,7 +9,7 @@ fn default_input() -> &'static str {
 #[derive(Debug, Clone, Copy)]
 struct Light {
     pos: Vec2,
-    vel: Vec2
+    vel: Vec2,
 }
 
 impl Light {
@@ -27,14 +27,27 @@ fn parse_lights(input: &str) -> Vec<Light> {
         .lines()
         .map(|l| {
             let (x, y, dx, dy) = l.nums().tup();
-            Light { pos: Vec2::new(x, y), vel: Vec2::new(dx, dy) }
+            Light {
+                pos: Vec2::new(x, y),
+                vel: Vec2::new(dx, dy),
+            }
         })
         .collect()
 }
 
 fn bounding_box(lights: &[Light]) -> Range {
-    let (x_min, x_max) = lights.iter().map(|l| l.pos.x).minmax().into_option().unwrap();
-    let (y_min, y_max) = lights.iter().map(|l| l.pos.y).minmax().into_option().unwrap();
+    let (x_min, x_max) = lights
+        .iter()
+        .map(|l| l.pos.x)
+        .minmax()
+        .into_option()
+        .unwrap();
+    let (y_min, y_max) = lights
+        .iter()
+        .map(|l| l.pos.y)
+        .minmax()
+        .into_option()
+        .unwrap();
     Range::new_tl_br(Vec2::new(x_min, y_min), Vec2::new(x_max, y_max))
 }
 
