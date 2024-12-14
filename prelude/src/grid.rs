@@ -69,6 +69,14 @@ impl<T> Grid<T> {
         Range::new_tl(Vec2::new(x, 0), 1, self.height())
     }
 
+    pub fn rows(&self) -> impl Iterator<Item = Range> + '_ {
+        (0..self.height()).map(|y| self.row_range(y))
+    }
+
+    pub fn cols(&self) -> impl Iterator<Item = Range> + '_ {
+        (0..self.width()).map(|x| self.col_range(x))
+    }
+
     pub fn elements(&self) -> impl Iterator<Item = &T> {
         self.elements.iter()
     }
