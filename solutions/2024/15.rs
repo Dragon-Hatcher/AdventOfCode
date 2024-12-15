@@ -11,62 +11,73 @@ enum Type {
     Box,
 }
 
+fn parse(input: &str) -> (Grid<Type>, impl Iterator<Item = Direction> + '_, Vec2) {
+    let (grid, moves) = input.sections().tup();
+
+    let moves = moves
+        .chars()
+        .filter(|c| !c.is_ascii_whitespace())
+        .map(Direction::from_char);
+
+    let robot_grid = Grid::new_by_char(grid, |c| c == '@');
+    let pos = robot_grid.points().find(|&p| robot_grid[p]).unwrap();
+
+    fn parse_cell(c: char) -> Type {
+        match c {
+            '#' => Type::Wall,
+            'O' => Type::Box,
+            _ => Type::Empty,
+        }
+    }
+
+    let grid = Grid::new_by_char(grid, parse_cell);
+
+    (grid, moves, pos)
+}
+
+fn gps_coord(p: Vec2) -> i64 {
+    p.x + 100 * p.y
+}
+
 fn part1(input: &str) -> i64 {
-    let (grid_str, moves) = input.sections().tup();
-    let mut grid = Grid::new_by_char(grid_str, |c| match c {
-        '#' => Type::Wall,
-        'O' => Type::Box,
-        _ => Type::Empty,
-    });
-    let moves = moves.trim().chars().filter(|c| !c.is_ascii_whitespace()).map(Direction::from_char).collect_vec();
+    let (mut grid, moves, mut pos) = parse(input);
 
-    let robo_grid = Grid::new_by_char(grid_str, |c| c == '@');
+    'moves: for m in moves {
+        let delta = m.vector();
 
-    let mut pos = robo_grid.points().find(|p| robo_grid[*p]).unwrap();
-    'outer: for m in moves {
-        let mut box_shift = vec![];
+        let mut check_cell = pos + delta;
+        let mut move_boxes = vec![];
 
-        let mut check = pos + m.vector();
-        loop {
-            if grid[check] == Type::Wall {
-                println!("no move");
-                continue 'outer;
-            } else if grid[check] == Type::Box {
-                box_shift.push(check);
-            } else {
-                break;
+        while grid[check_cell] != Type::Empty {
+            match grid[check_cell] {
+                Type::Empty => {}
+                Type::Wall => {
+                    continue 'moves;
+                }
+                Type::Box => {
+                    move_boxes.push(check_cell);
+                }
             }
-            check += m.vector();
+
+            check_cell += delta;
         }
 
-        println!("move shifting: {:?}", &box_shift);
-
-        pos += m.vector();
-
-        for b in box_shift.iter() {
-            grid[*b] = Type::Empty;
-        }
-        for b in box_shift.iter() {
-            grid[*b + m.vector()] = Type::Box;
+        for b in move_boxes.into_iter().rev() {
+            grid[b] = Type::Empty;
+            grid[b + delta] = Type::Box;
         }
 
-
+        pos += delta;
     }
 
-    let mut sum = 0;
-    for p in grid.points() {
-        if grid[p] == Type::Box {
-            sum += p.x + p.y * 100
-
-        }
-    }
-
-    sum
-
+    grid.points()
+        .filter(|&p| grid[p] == Type::Box)
+        .map(gps_coord)
+        .sum()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Type2 {
+enum WideType {
     Empty,
     Wall,
     BoxL,
@@ -74,123 +85,71 @@ enum Type2 {
 }
 
 fn part2(input: &str) -> i64 {
-//     let input = "##########
-// #..O..O.O#
-// #......O.#
-// #.OO..O.O#
-// #..O@..O.#
-// #O#..O...#
-// #O..O..O.#
-// #.OO.O.OO#
-// #....O...#
-// ##########
+    let (grid, moves, mut pos) = parse(input);
 
-// <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
-// vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
-// ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
-// <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
-// ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
-// ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
-// >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
-// <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
-// ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-// v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
-
-    let (grid_str, moves) = input.sections().tup();
-    let grid_sm = Grid::new_by_char(grid_str, |c| match c {
-        '#' => Type::Wall,
-        'O' => Type::Box,
-        _ => Type::Empty,
-    });
-    let mut grid = Grid::new_with(grid_sm.width() * 2, grid_sm.height(), |p| {
-        let old_coord = v2(p.x / 2, p.y);
-
-        match (grid_sm[old_coord], p.x % 2) {
-            (Type::Empty, _) => Type2::Empty,
-            (Type::Wall, _) => Type2::Wall,
-            (Type::Box, 0) => Type2::BoxL,
-            (Type::Box, _) => Type2::BoxR,
+    let mut grid = Grid::new_with(grid.width() * 2, grid.height(), |p| {
+        match grid[v2(p.x / 2, p.y)] {
+            Type::Empty => WideType::Empty,
+            Type::Wall => WideType::Wall,
+            Type::Box if p.x % 2 == 0 => WideType::BoxL,
+            Type::Box => WideType::BoxR,
         }
     });
 
-    let moves = moves.trim().chars().filter(|c| !c.is_ascii_whitespace()).map(Direction::from_char).collect_vec();
-
-    let robo_grid = Grid::new_by_char(grid_str, |c| c == '@');
-
-    let mut pos = robo_grid.points().find(|p| robo_grid[*p]).unwrap();
     pos.x *= 2;
 
+    'moves: for m in moves {
+        let delta = m.vector();
 
-    'outer: for m in moves {
-        let mut box_shift_l = vec![];
-        let mut box_shift_r = vec![];
+        let mut move_boxes = vec![];
+        let mut check_from = vec![pos + delta];
 
-        let mut check_from = vec![pos + m.vector()];
-        loop {
+        while !check_from.is_empty() {
             let mut new_check_from = vec![];
 
             for check in check_from {
-                if grid[check] == Type2::Wall {
-                    println!("no move");
-                    continue 'outer;
-                } else if grid[check] == Type2::BoxL {
-                    box_shift_l.push(check);
-                    box_shift_r.push(check + v2(1, 0));
-                    new_check_from.push(check + m.vector());
-                    if m.vertical() {
-                        new_check_from.push(check + m.vector() + v2(1, 0));
-
+                match grid[check] {
+                    WideType::Empty => {}
+                    WideType::Wall => {
+                        continue 'moves;
                     }
-                } else if grid[check] == Type2::BoxR {
-                    box_shift_r.push(check);
-                    box_shift_l.push(check - v2(1, 0));
-                    new_check_from.push(check + m.vector());
-                    if m.vertical() {
-                        new_check_from.push(check + m.vector() - v2(1, 0));
+                    ty @ (WideType::BoxL | WideType::BoxR) => {
+                        let origin_off = if ty == WideType::BoxL {
+                            Vec2::ZERO
+                        } else {
+                            -v2(1, 0)
+                        };
+                        let origin = check + origin_off;
 
+                        move_boxes.push(origin);
+                        if m.vertical() {
+                            new_check_from.push(origin + delta);
+                            new_check_from.push(origin + delta + v2(1, 0));
+                        } else {
+                            new_check_from.push(check + delta);
+                        }
                     }
-                } else {
-                    // break;
-                }    
+                }
             }
 
-            if new_check_from.is_empty() {
-                break;
-            }
-            new_check_from.dedup();
             check_from = new_check_from;
+            check_from.dedup();
         }
 
-        // println!("move shifting: {:?}", &box_shift);
+        pos += delta;
 
-        pos += m.vector();
-
-        println!("{:?} + {:?}", box_shift_l, box_shift_r);
-        for b in box_shift_l.iter() {
-            grid[*b] = Type2::Empty;
-        }
-        for b in box_shift_r.iter() {
-            grid[*b] = Type2::Empty;
-        }
-        for b in box_shift_l.iter() {
-            grid[*b + m.vector()] = Type2::BoxL;
-        }
-        for b in box_shift_r.iter() {
-            grid[*b + m.vector()] = Type2::BoxR;
-        }
-
-
-    }
-
-    let mut sum = 0;
-    for p in grid.points() {
-        if grid[p] == Type2::BoxL {
-            sum += p.x + p.y * 100
-
+        for b in move_boxes.into_iter().rev() {
+            grid[b + v2(0, 0)] = WideType::Empty;
+            grid[b + v2(1, 0)] = WideType::Empty;
+            grid[b + v2(0, 0) + delta] = WideType::BoxL;
+            grid[b + v2(1, 0) + delta] = WideType::BoxR;
         }
     }
 
-    sum
+    grid.points()
+        .filter(|&p| grid[p] == WideType::BoxL)
+        .map(gps_coord)
+        .sum()
 }
 
 fn main() {
@@ -202,18 +161,7 @@ fn main() {
 
 #[test]
 fn example() {
-    let input = "########
-#..O.O.#
-##@.O..#
-#...O..#
-#.#.O..#
-#...O..#
-#......#
-########
-
-<^^>>>vv<v>>v<<";
-    assert_eq!(part1(input), 2028);
-    assert_eq!(part2("##########
+    let input = "##########
 #..O..O.O#
 #......O.#
 #.OO..O.O#
@@ -233,12 +181,14 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
 <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
 ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"), 0);
+v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
+    assert_eq!(part1(input), 10092);
+    assert_eq!(part2(input), 9021);
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
-    // assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 1485257);
+    assert_eq!(part2(input), 1475512);
 }
