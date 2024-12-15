@@ -18,10 +18,10 @@ impl Direction {
 
     pub fn from_char(char: char) -> Direction {
         match char {
-            'U' => Direction::Up,
-            'R' => Direction::Right,
-            'D' => Direction::Down,
-            'L' => Direction::Left,
+            'U' | '^' => Direction::Up,
+            'R' | '>' => Direction::Right,
+            'D' | 'v' => Direction::Down,
+            'L' | '<' => Direction::Left,
             _ => panic!("Invalid direction char {char}."),
         }
     }
