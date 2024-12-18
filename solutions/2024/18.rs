@@ -15,13 +15,14 @@ fn parse(input: &str) -> (Vec<Vec2>, i64, i64) {
     (bytes, width, take)
 }
 
-fn find_path(grid: &Grid<bool>) -> Option<BFSResult<Vec2>> {
+fn path_len(grid: &Grid<bool>) -> Option<i64> {
     bfs()
         .start(Vec2::ZERO)
         .goal(Vec2::new(grid.width() - 1, grid.height() - 1))
         .next(|&p| grid.neighbors4(p).filter(|&p| !grid[p]))
         .try_shortest()
         .ok()
+        .map(|r| r.steps)
 }
 
 fn part1(input: &str) -> i64 {
@@ -32,30 +33,23 @@ fn part1(input: &str) -> i64 {
         grid[p] = true;
     }
 
-    find_path(&grid).unwrap().steps
+    path_len(&grid).unwrap()
 }
 
 fn part2(input: &str) -> Vec2 {
     let (bytes, width, _) = parse(input);
+    let bytes = bytes.into_iter().enumerate().collect_vec();
 
-    let mut grid = Grid::new_homogenous(width, width, false);
-    let mut last_path = find_path(&grid).unwrap();
-    for p in bytes {
-        grid[p] = true;
+    let idx = bytes.partition_point(|(i, _)| {
+        let mut grid = Grid::new_homogenous(width, width, false);
+        for (_, p) in bytes.iter().take(*i + 1) {
+            grid[*p] = true;
+        } 
 
-        // This didn't disturb our last path so no need to check again.
-        if !last_path.visited.contains_key(&p) {
-            continue;
-        }
+        path_len(&grid).is_some()
+    });
 
-        if let Some(path) = find_path(&grid) {
-            last_path = path;
-        } else {
-            return p;
-        }
-    }
-
-    unreachable!()
+    bytes[idx].1
 }
 
 fn main() {
