@@ -4,133 +4,74 @@ fn default_input() -> &'static str {
     include_input!(2024 / 20)
 }
 
-fn part1(input: &str) -> i64 {
+fn parse(input: &str) -> (Grid<bool>, Vec2, Vec2) {
     let grid = Grid::new_by_char(input, |c| c == '#');
+
     let cs = Grid::new_by_char(input, |c| c);
-    let start = cs.points().find(|p| cs[*p] == 'S').unwrap();
-    let end = cs.points().find(|p| cs[*p] == 'E').unwrap();
+    let start = cs.points().find(|&p| cs[p] == 'S').unwrap();
+    let end = cs.points().find(|&p| cs[p] == 'E').unwrap();
 
-    let time = bfs()
-        .start(start)
-        .goal(end)
-        .next(|p| grid.neighbors4(*p).filter(|p| !grid[*p]))
-        .shortest()
-        .steps;
-
-    fn solve(
-        grid: &Grid<bool>,
-        at: Vec2,
-        cheat: Option<(Vec2, Vec2)>,
-        goal: Vec2,
-        steps_saved: i64,
-        visited: &mut HashSet<Vec2>,
-        found_cheats: &mut HashSet<(Vec2, Vec2)>, // memo: &mut HashMap<(Vec2, bool), i64>,
-    ) {
-        if at == goal {
-            if steps_saved > 0 {
-                dbg!(steps_saved);
-            }
-            if steps_saved >= 100 && cheat.is_some() {
-                found_cheats.insert(cheat.unwrap());
-            }
-            return;
-            // return if steps_saved >= 100 { 1 } else { 0 };
-        }
-
-        // if let Some(cnt) = memo.get(&(at, cheat_left)) {
-        //     return *cnt;
-        // }
-
-        let mut sum = 0;
-
-        for n in grid.neighbors4(at) {
-            if visited.contains(&n) {
-                continue;
-            }
-
-            visited.insert(n);
-            if !grid[n] {
-                solve(grid, n, cheat, goal, steps_saved - 1, visited, found_cheats);
-            } else if cheat.is_none() {
-                let cheat = Some((at, n));
-                solve(grid, n, cheat, goal, steps_saved - 1, visited, found_cheats);
-            }
-            visited.remove(&n);
-        }
-
-        // memo.insert((at, cheat_left), sum);
-    }
-
-    dbg!(time);
-
-    let mut found = HashSet::default();
-    solve(
-        &grid,
-        start,
-        None,
-        end,
-        time,
-        &mut HashSet::default(),
-        &mut found, // &mut HashMap::default(),
-    );
-
-    found.len() as i64
+    (grid, start, end)
 }
 
-fn part2(input: &str) -> i64 {
-    let grid = Grid::new_by_char(input, |c| c == '#');
-    let cs = Grid::new_by_char(input, |c| c);
-    let start = cs.points().find(|p| cs[*p] == 'S').unwrap();
-    let end = cs.points().find(|p| cs[*p] == 'E').unwrap();
-
-    let time = bfs()
-        .start(start)
-        .goal(end)
-        .next(|p| grid.neighbors4(*p).filter(|p| !grid[*p]))
-        .shortest()
-        .steps;
-
-    let dist_from_start = bfs()
+fn do_bfs(grid: &Grid<bool>, start: Vec2) -> HashMap<Vec2, i64> {
+    bfs()
         .start(start)
         .no_goal()
         .next(|p| grid.neighbors4(*p).filter(|p| !grid[*p]))
         .find_all()
-        .visited;
+        .visited
+}
 
-    let dist_from_end = bfs()
-        .start(end)
-        .no_goal()
-        .next(|p| grid.neighbors4(*p).filter(|p| !grid[*p]))
-        .find_all()
-        .visited;
+fn solve(input: &str, cheat_time: i64) -> i64 {
+    let (grid, start, end) = parse(input);
+
+    let dist_from_start = do_bfs(&grid, start);
+    let dist_from_end = do_bfs(&grid, end);
+
+    let normal_time = dist_from_start[&end];
+    let target_time = normal_time - 100;
+
+    let search_area = cheat_time + 1;
 
     let mut cnt = 0;
-    let points = grid.points().collect_vec();
-    for (p1, p2) in points.into_iter().tuple_combinations() {
-        if grid[p1] { continue; }
-        if grid[p2] { continue; }
 
-        let between = p1.manhattan_dist(p2);
-        {
-            let from_start = dist_from_start[&p1];
-            let to_end = dist_from_end[&p2];
-            if between <= 20 && from_start + between + to_end + 100 <= time {
-                cnt += 1;
-                continue;
-            }
+    for p1 in grid.points() {
+        if grid[p1] {
+            continue;
         }
 
+        for p2 in Range::new_tl(
+            p1 - v2(search_area, search_area),
+            search_area * 2,
+            search_area * 2,
+        )
+        .points()
         {
-            let from_start = dist_from_start[&p2];
-            let to_end = dist_from_end[&p1];
-            if between <= 20 && from_start + between + to_end + 100 <= time {
-                cnt += 1;
+            if grid.get(p2) != Some(&false) {
                 continue;
+            }
+
+            let between = p1.manhattan_dist(p2);
+            if between > cheat_time {
+                continue;
+            }
+
+            if dist_from_start[&p1] + between + dist_from_end[&p2] <= target_time {
+                cnt += 1;
             }
         }
     }
 
     cnt
+}
+
+fn part1(input: &str) -> i64 {
+    solve(input, 2)
+}
+
+fn part2(input: &str) -> i64 {
+    solve(input, 20)
 }
 
 fn main() {
@@ -141,29 +82,8 @@ fn main() {
 }
 
 #[test]
-fn example() {
-    let input = "###############
-#...#...#.....#
-#.#.#.#.#.###.#
-#S#...#.#.#...#
-#######.#.#.###
-#######.#.#...#
-#######.#.###.#
-###..E#...#...#
-###.#######.###
-#...###...#...#
-#.#####.#.###.#
-#.#...#.#.#...#
-#.#.#.#.#.#.###
-#...#...#...###
-###############";
-    assert_eq!(part1(input), 1);
-    // assert_eq!(part2(input), 0);
-}
-
-#[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
-    // assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 1438);
+    assert_eq!(part2(input), 1026446);
 }
