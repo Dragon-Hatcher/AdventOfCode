@@ -13,7 +13,7 @@ pub struct BFSNoResult<Node> {
     pub visited: FxHashMap<Node, i64>,
 }
 
-pub struct Empty;
+pub struct BfsEmpty;
 
 pub struct BfsBuilder<Node, NextNodesFn, IsGoalFn> {
     start: Node,
@@ -22,16 +22,16 @@ pub struct BfsBuilder<Node, NextNodesFn, IsGoalFn> {
     max_iters: i64,
 }
 
-pub fn bfs() -> BfsBuilder<Empty, Empty, Empty> {
+pub fn bfs() -> BfsBuilder<BfsEmpty, BfsEmpty, BfsEmpty> {
     BfsBuilder {
-        start: Empty,
-        next: Empty,
-        is_goal: Empty,
+        start: BfsEmpty,
+        next: BfsEmpty,
+        is_goal: BfsEmpty,
         max_iters: i64::MAX,
     }
 }
 
-impl<NextNodesFn, IsGoalFn> BfsBuilder<Empty, NextNodesFn, IsGoalFn> {
+impl<NextNodesFn, IsGoalFn> BfsBuilder<BfsEmpty, NextNodesFn, IsGoalFn> {
     pub fn start<Node>(self, start: Node) -> BfsBuilder<Node, NextNodesFn, IsGoalFn> {
         BfsBuilder {
             start,
@@ -42,7 +42,7 @@ impl<NextNodesFn, IsGoalFn> BfsBuilder<Empty, NextNodesFn, IsGoalFn> {
     }
 }
 
-impl<Node, IsGoalFn> BfsBuilder<Node, Empty, IsGoalFn> {
+impl<Node, IsGoalFn> BfsBuilder<Node, BfsEmpty, IsGoalFn> {
     pub fn next<NextNodesFn, NextNodesIter>(
         self,
         next: NextNodesFn,
@@ -60,7 +60,7 @@ impl<Node, IsGoalFn> BfsBuilder<Node, Empty, IsGoalFn> {
     }
 }
 
-impl<Node, NextNodesFn> BfsBuilder<Node, NextNodesFn, Empty> {
+impl<Node, NextNodesFn> BfsBuilder<Node, NextNodesFn, BfsEmpty> {
     pub fn is_goal<IsGoalFn>(self, is_goal: IsGoalFn) -> BfsBuilder<Node, NextNodesFn, IsGoalFn>
     where
         IsGoalFn: Fn(&Node) -> bool,
