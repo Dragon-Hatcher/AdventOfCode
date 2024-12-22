@@ -5,7 +5,7 @@ fn default_input() -> &'static str {
 }
 
 fn parse(l: &str) -> (i64, Vec<i64>) {
-    let (target, nums) = l.split_once(":").unwrap();
+    let (target, nums) = l.split_once(':').unwrap();
     (target.nums().nu(), nums.nums().collect())
 }
 

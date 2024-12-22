@@ -24,8 +24,8 @@ fn part1(input: &str) -> String {
         };
 
         match instr {
-            0 => a = a / 2i64.pow(combo.min(64) as u32),
-            1 => b = b ^ literal,
+            0 => a /= 2i64.pow(combo.min(64) as u32),
+            1 => b ^= literal,
             2 => b = combo % 8,
             3 => {
                 if a != 0 {
@@ -33,7 +33,7 @@ fn part1(input: &str) -> String {
                     continue;
                 }
             }
-            4 => b = b ^ c,
+            4 => b ^= c,
             5 => out.push(combo % 8),
             6 => b = a / 2i64.pow(combo.min(64) as u32),
             _ => c = a / 2i64.pow(combo.min(64) as u32),

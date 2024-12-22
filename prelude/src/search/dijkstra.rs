@@ -137,9 +137,9 @@ where
             }
         }
 
-        return DijResult {
+        DijResult {
             stop_node: None,
             dists,
-        };
+        }
     }
 }

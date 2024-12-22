@@ -7,8 +7,7 @@ fn default_input() -> &'static str {
 fn evolve(s: i64) -> i64 {
     let s = (s ^ (s * 64)) % 16777216;
     let s = (s ^ (s / 32)) % 16777216;
-    let s = (s ^ (s * 2048)) % 16777216;
-    s
+    (s ^ (s * 2048)) % 16777216
 }
 
 fn part1(input: &str) -> i64 {

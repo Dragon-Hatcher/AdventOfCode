@@ -18,29 +18,27 @@ fn part1(input: &str) -> i64 {
         if design.is_empty() {
             return true;
         }
-    
+
         for towel in with {
-            let Some(rest) = design.strip_prefix(towel) else { continue; };
+            let Some(rest) = design.strip_prefix(towel) else {
+                continue;
+            };
 
             if can_do(rest, with) {
                 return true;
             }
         }
-    
+
         false
     }
 
-    designs
-        .into_iter()
-        .filter(|d| can_do(d, &towels))
-        .count()
-        as i64
+    designs.into_iter().filter(|d| can_do(d, &towels)).count() as i64
 }
 
 fn part2(input: &str) -> i64 {
     let (towels, designs) = parse(input);
 
-    fn count_ways<'a>(design: &'a str, with: &[&str], memo: &mut HashMap<&'a str, i64>) -> i64 {        
+    fn count_ways<'a>(design: &'a str, with: &[&str], memo: &mut HashMap<&'a str, i64>) -> i64 {
         if design.is_empty() {
             return 1;
         }
@@ -48,13 +46,15 @@ fn part2(input: &str) -> i64 {
         if let Some(cnt) = memo.get(design) {
             return *cnt;
         }
-    
+
         let mut sum = 0;
         for towel in with {
-            let Some(rest) = design.strip_prefix(towel) else { continue; };
+            let Some(rest) = design.strip_prefix(towel) else {
+                continue;
+            };
             sum += count_ways(rest, with, memo);
         }
-    
+
         memo.insert(design, sum);
         sum
     }
