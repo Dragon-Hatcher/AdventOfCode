@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use advent::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -28,13 +26,7 @@ fn part1(input: &str) -> i64 {
 
 fn eval(seq: u32, input: &[i64]) -> i64 {
     let mask = 0xffffffff;
-    // let seq = seqp[3].to_le_bytes()[0] as u32
-    //     | ((seqp[2].to_le_bytes()[0] as u32) << 8)
-    //     | ((seqp[1].to_le_bytes()[0] as u32) << 16)
-    //     | ((seqp[0].to_le_bytes()[0] as u32) << 24);
     let mut sum = 0;
-
-    // println!("seq: {seq:0x} = {}",seqp[1].to_le_bytes()[0]);
 
     for &n in input {
         let mut s = n;
@@ -48,10 +40,8 @@ fn eval(seq: u32, input: &[i64]) -> i64 {
 
             if last == seq {
                 sum += new % 10;
-                // dbg!(new % 10);
                 break;
             }
-
 
             s = new;
         }
@@ -60,7 +50,7 @@ fn eval(seq: u32, input: &[i64]) -> i64 {
     sum
 }
 
-fn all(input: &[i64]) -> HashSet<u32> {
+fn find_all_seq(input: &[i64]) -> HashSet<u32> {
     let mask = 0xffffffff;
     let mut all = HashSet::default();
 
@@ -84,39 +74,13 @@ fn all(input: &[i64]) -> HashSet<u32> {
 }
 
 fn part2(input: &str) -> i64 {
-    let mut best = 0;
-    // eval([-1,-1,0,2], "123");
     let input = input.nums().collect_vec();
-    let a = all(&input);
-    let len = a.len();
+    let a = find_all_seq(&input);
 
-    a        
-        .into_par_iter()
+    a.into_par_iter()
         .map(|seq| eval(seq, &input))
         .max()
         .unwrap()
-
-    // for (i, seq) in a.into_iter().enumerate() {
-    //     if i % 100 == 0 {
-    //         println!("{i} / {len}");
-    //     }
-
-    //     best = best.max(eval(seq, &input))
-    // }
-
-    // dbg!(a.len());
-    // for a in -9..=9 {
-    //     dbg!(a);
-    //     for b in -9..=9 {
-    //         dbg!(b);
-    //         for c in -9..=9 {
-    //             for d in -9..=9 {
-    //                 best = best.max(eval([a, b, c, d], input));
-    //             }
-    //         }
-    //     }
-    // }
-    // best
 }
 
 fn main() {
@@ -128,21 +92,13 @@ fn main() {
 
 #[test]
 fn example() {
-    //     let input = "1
-    // 10
-    // 100
-    // 2024";
-    let input = "1
-2
-3
-2024";
-    // assert_eq!(part1(input), 0);
-    assert_eq!(part2(input), 1);
+    assert_eq!(part1("1 10 100 2024"), 37327623);
+    assert_eq!(part2("1 2 3 2024"), 23);
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
-    // assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 14119253575);
+    assert_eq!(part2(input), 1600);
 }
