@@ -1,5 +1,4 @@
 use advent::prelude::*;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 fn default_input() -> &'static str {
     include_input!(2024 / 22)
@@ -24,13 +23,16 @@ fn part1(input: &str) -> i64 {
     a
 }
 
-fn eval(seq: u32, input: &[i64]) -> i64 {
+fn find_price_map(input: &[i64]) -> Vec<HashMap<u32, i64>> {
     let mask = 0xffffffff;
-    let mut sum = 0;
+
+    let mut maps = vec![];
 
     for &n in input {
         let mut s = n;
         let mut last = 0xeeeeeeee;
+
+        let mut map = HashMap::default();
 
         for _ in 0..2000 {
             let new = evolve(s);
@@ -38,47 +40,28 @@ fn eval(seq: u32, input: &[i64]) -> i64 {
             let diff = ((new % 10) - (s % 10)) as i8;
             last = ((last << 8) | (diff.to_le_bytes()[0] as u32)) & mask;
 
-            if last == seq {
-                sum += new % 10;
-                break;
+            if !map.contains_key(&last) {
+                map.insert(last, new % 10);
             }
 
             s = new;
         }
+
+        maps.push(map);
     }
 
-    sum
-}
-
-fn find_all_seq(input: &[i64]) -> HashSet<u32> {
-    let mask = 0xffffffff;
-    let mut all = HashSet::default();
-
-    for &n in input {
-        let mut s = n;
-        let mut last = 0xeeeeeeee;
-
-        for _ in 0..2000 {
-            let new = evolve(s);
-
-            let diff = ((new % 10) - (s % 10)) as i8;
-            last = ((last << 8) | (diff.to_le_bytes()[0] as u32)) & mask;
-
-            all.insert(last);
-
-            s = new;
-        }
-    }
-
-    all
+    maps
 }
 
 fn part2(input: &str) -> i64 {
     let input = input.nums().collect_vec();
-    let a = find_all_seq(&input);
 
-    a.into_par_iter()
-        .map(|seq| eval(seq, &input))
+    let maps = find_price_map(&input);
+    let all_sequences: HashSet<_> = maps.iter().flat_map(|m| m.keys()).collect();
+
+    all_sequences
+        .into_iter()
+        .map(|seq| maps.iter().map(|m| m.get(&seq).unwrap_or(&0)).sum())
         .max()
         .unwrap()
 }
