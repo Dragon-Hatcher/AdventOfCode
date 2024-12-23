@@ -372,3 +372,7 @@ path = "solutions/2024/21.rs"
 [[bin]]
 name = "2024-22"
 path = "solutions/2024/22.rs"
+
+[[bin]]
+name = "2024-23"
+path = "solutions/2024/23.rs"
