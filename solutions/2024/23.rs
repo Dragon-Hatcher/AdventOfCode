@@ -1,69 +1,91 @@
 use advent::prelude::*;
+use std::cmp::max_by_key;
 
 fn default_input() -> &'static str {
     include_input!(2024 / 23)
 }
 
+fn parse(
+    input: &str,
+) -> (
+    Vec<&str>,
+    HashSet<(&str, &str)>,
+    impl Fn(&str, &str) -> bool + '_,
+) {
+    let connections: HashSet<(&str, &str)> =
+        input.lines().map(|l| l.split_once('-').unwrap()).collect();
+    let all = connections
+        .iter()
+        .flat_map(|pair| [pair.0, pair.1])
+        .sorted()
+        .dedup()
+        .collect_vec();
+
+    let connections_copy = connections.clone();
+
+    let are_connected =
+        move |a: &str, b: &str| connections.contains(&(a, b)) || connections.contains(&(b, a));
+
+    (all, connections_copy, are_connected)
+}
+
 fn part1(input: &str) -> i64 {
-    let conn: HashSet<_> = input.lines().map(|l| l.split_once('-').unwrap()).collect();
-
-    let all: HashSet<_> = conn.iter().flat_map(|x| [x.0, x.1]).collect();
-
-    let conn = |a: &str, b: &str| conn.contains(&(a, b)) || conn.contains(&(b, a));
+    let (all, connections, are_connected) = parse(input);
 
     let mut sum = 0;
-    for x in &all {
-        for y in &all {
-            if x >= y {
+
+    for (a, b) in connections {
+        for &c in &all {
+            if c == a || c == b {
                 continue;
             }
 
-            for z in &all {
-                if y >= z || x >= z {
-                    continue;
-                }
-
-                if conn(x, y) && conn(x, z) && conn(y, z) {
-                    if x.starts_with('t') || y.starts_with('t') || z.starts_with('t') {
-                        sum += 1;
-                    }
-                }
+            if are_connected(a, c)
+                && are_connected(b, c)
+                && (a.starts_with('t') || b.starts_with('t') || c.starts_with('t'))
+            {
+                sum += 1;
             }
         }
     }
 
-    sum
+    // We count each connection three times, once for each leg of the triangle.
+    sum / 3
 }
 
 fn part2(input: &str) -> String {
-    let conns: HashSet<_> = input.lines().map(|l| l.split_once('-').unwrap()).collect();
-    let all: HashSet<_> = conns.iter().flat_map(|x| [x.0, x.1]).collect();
-    let all = all.into_iter().collect_vec();
-    let conn = |a: &str, b: &str| conns.contains(&(a, b)) || conns.contains(&(b, a));
+    let (all, _, are_connected) = parse(input);
 
-    fn find<'a, F>(all: &[&'a str], include: Vec<&'a str>, conn: &'a F) -> Vec<&'a str>
-    where F: Fn(&str, &str) -> bool {
+    fn find<'a, F>(all: &[&'a str], current: Vec<&'a str>, are_connected: &'a F) -> Vec<&'a str>
+    where
+        F: Fn(&str, &str) -> bool,
+    {
         if all.is_empty() {
-            return include;
+            return current;
         }
 
-        let curr = all[0];
+        let next = all[0];
         let rest = &all[1..];
 
-        let opt_a = if include.iter().all(|i| conn(i, curr)) {
-            let mut new = include.clone();
-            new.push(curr);
-            find(rest, new, conn)
+        let can_include = current.iter().all(|i| are_connected(i, next));
+
+        let include = if can_include {
+            let mut new = current.clone();
+            new.push(next);
+            find(rest, new, are_connected)
         } else {
             Vec::new()
         };
 
-        let opt_b = find(rest, include, conn);
+        let exclude = find(rest, current, are_connected);
 
-        if opt_a.len() > opt_b.len() { opt_a } else { opt_b }
+        max_by_key(include, exclude, |l| l.len())
     }
 
-    find(&all, Vec::new(), &conn).into_iter().sorted().join(",")
+    find(&all, Vec::new(), &are_connected)
+        .into_iter()
+        .sorted()
+        .join(",")
 }
 
 fn main() {
@@ -107,13 +129,13 @@ co-tc
 wh-qp
 tb-vc
 td-yn";
-    // assert_eq!(part1(input), 0);
-    assert_eq!(part2(input), "xx");
+    assert_eq!(part1(input), 7);
+    assert_eq!(part2(input), "co,de,ka,ta");
 }
 
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
-    // assert_eq!(part2(input), 0);
+    assert_eq!(part1(input), 1485);
+    assert_eq!(part2(input), "cc,dz,ea,hj,if,it,kf,qo,sk,ug,ut,uv,wh");
 }
