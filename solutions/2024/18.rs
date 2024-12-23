@@ -7,10 +7,13 @@ fn default_input() -> &'static str {
 fn parse(input: &str) -> (Vec<Vec2>, i64, i64) {
     let (config, bytes) = input.sections().tup();
     let (width, take) = config.nums().tup();
-    let bytes = bytes.lines().map(|l| {
-        let (x, y) = l.nums().tup();
-        v2(x, y)
-    }).collect_vec();
+    let bytes = bytes
+        .lines()
+        .map(|l| {
+            let (x, y) = l.nums().tup();
+            v2(x, y)
+        })
+        .collect_vec();
 
     (bytes, width, take)
 }
@@ -44,7 +47,7 @@ fn part2(input: &str) -> Vec2 {
         let mut grid = Grid::new_homogenous(width, width, false);
         for (_, p) in bytes.iter().take(*i + 1) {
             grid[*p] = true;
-        } 
+        }
 
         path_len(&grid).is_some()
     });

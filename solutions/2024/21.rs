@@ -63,7 +63,7 @@ fn find_cost_from_to(
         .start((from, Action::Press))
         .goal((to, Action::Press))
         .next(|&(at, last_act)| {
-            Action::ALL.into_iter().filter_map(move |&act| {
+            Action::ALL.iter().filter_map(move |&act| {
                 let cost = costs[&(last_act, act)];
                 match act {
                     Action::Press => Some(((at, act), cost)),

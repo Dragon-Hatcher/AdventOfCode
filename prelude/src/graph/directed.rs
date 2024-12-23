@@ -3,7 +3,7 @@ use std::{fmt::Debug, hash::Hash};
 
 #[derive(Debug, Clone)]
 struct NodeData<Node, NodeWeight> {
-    weight: NodeWeight,
+    _weight: NodeWeight,
     outgoing: FxHashSet<Node>,
     incoming: FxHashSet<Node>,
 }
@@ -56,7 +56,7 @@ where
 
     fn ensure_node(&mut self, n: Node) -> &mut NodeData<Node, NodeWeight> {
         self.nodes.entry(n).or_insert_with(|| NodeData {
-            weight: self.default_node_weight.clone(),
+            _weight: self.default_node_weight.clone(),
             outgoing: Default::default(),
             incoming: Default::default(),
         })

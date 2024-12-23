@@ -28,16 +28,16 @@ fn parse_value(val: &str) -> Value {
 
 fn parse_instruction(ins: &str) -> Instruction {
     if let Some(rest) = ins.strip_prefix("set ") {
-        let (x, y) = rest.split_once(" ").unwrap();
+        let (x, y) = rest.split_once(' ').unwrap();
         Instruction::Set(x.chars().nu(), parse_value(y))
     } else if let Some(rest) = ins.strip_prefix("sub ") {
-        let (x, y) = rest.split_once(" ").unwrap();
+        let (x, y) = rest.split_once(' ').unwrap();
         Instruction::Sub(x.chars().nu(), parse_value(y))
     } else if let Some(rest) = ins.strip_prefix("mul ") {
-        let (x, y) = rest.split_once(" ").unwrap();
+        let (x, y) = rest.split_once(' ').unwrap();
         Instruction::Mul(x.chars().nu(), parse_value(y))
     } else if let Some(rest) = ins.strip_prefix("jnz ") {
-        let (x, y) = rest.split_once(" ").unwrap();
+        let (x, y) = rest.split_once(' ').unwrap();
         Instruction::Jnz(parse_value(x), parse_value(y))
     } else {
         panic!()

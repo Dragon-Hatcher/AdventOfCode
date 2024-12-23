@@ -30,7 +30,7 @@ fn parse_state(lines: &str) -> (char, State) {
 
     let char = on_state.chars().nbu();
 
-    let (_0, w0, m0, s0, _1, w1, m1, s1) = actions.trim().lines().tup();
+    let (_, w0, m0, s0, _, w1, m1, s1) = actions.trim().lines().tup();
     let zero_action = parse_action(w0, m0, s0);
     let one_action = parse_action(w1, m1, s1);
 

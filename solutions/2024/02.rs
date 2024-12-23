@@ -19,7 +19,7 @@ fn is_valid(vals: &[i64]) -> bool {
     fn are_close(vals: &[i64]) -> bool {
         vals.iter().tuple_windows().all(|(a, b)| {
             let diff = (a - b).abs();
-            1 <= diff && diff <= 3
+            (1..=3).contains(&diff)
         })
     }
 
@@ -27,13 +27,13 @@ fn is_valid(vals: &[i64]) -> bool {
 }
 
 fn part1(input: &str) -> i64 {
-    parse(input).filter(|nums| is_valid(&nums)).count() as i64
+    parse(input).filter(|nums| is_valid(nums)).count() as i64
 }
 
 fn part2(input: &str) -> i64 {
     parse(input)
         .filter(|nums| {
-            if is_valid(&nums) {
+            if is_valid(nums) {
                 return true;
             }
 

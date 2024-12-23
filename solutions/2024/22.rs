@@ -7,8 +7,7 @@ fn default_input() -> &'static str {
 fn evolve(s: i64) -> i64 {
     let s = (s ^ (s * 64)) % 16777216;
     let s = (s ^ (s / 32)) % 16777216;
-    let s = (s ^ (s * 2048)) % 16777216;
-    s
+    (s ^ (s * 2048)) % 16777216
 }
 
 fn part1(input: &str) -> i64 {
@@ -23,16 +22,15 @@ fn part1(input: &str) -> i64 {
     a
 }
 
-fn find_price_map(input: &[i64]) -> Vec<HashMap<u32, i64>> {
+fn find_price_map(input: &[i64]) -> HashMap<u32, i64> {
     let mask = 0xffffffff;
-
-    let mut maps = vec![];
+    let mut total = HashMap::default();
 
     for &n in input {
         let mut s = n;
         let mut last = 0xeeeeeeee;
 
-        let mut map = HashMap::default();
+        let mut seen = HashSet::default();
 
         for _ in 0..2000 {
             let new = evolve(s);
@@ -40,30 +38,22 @@ fn find_price_map(input: &[i64]) -> Vec<HashMap<u32, i64>> {
             let diff = ((new % 10) - (s % 10)) as i8;
             last = ((last << 8) | (diff.to_le_bytes()[0] as u32)) & mask;
 
-            if !map.contains_key(&last) {
-                map.insert(last, new % 10);
+            if !seen.contains(&last) {
+                *total.entry(last).or_default() += new % 10;
+                seen.insert(last);
             }
 
             s = new;
         }
-
-        maps.push(map);
     }
 
-    maps
+    total
 }
 
 fn part2(input: &str) -> i64 {
     let input = input.nums().collect_vec();
 
-    let maps = find_price_map(&input);
-    let all_sequences: HashSet<_> = maps.iter().flat_map(|m| m.keys()).collect();
-
-    all_sequences
-        .into_iter()
-        .map(|seq| maps.iter().map(|m| m.get(&seq).unwrap_or(&0)).sum())
-        .max()
-        .unwrap()
+    *find_price_map(&input).values().max().unwrap()
 }
 
 fn main() {
