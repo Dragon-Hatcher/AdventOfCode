@@ -13,47 +13,36 @@ fn part1(input: &str) -> i64 {
         let grid = Grid::new_by_char(thing, |c| c == '#');
         height = grid.height();
 
+        let heights = grid
+            .cols()
+            .map(|col| col.points().filter(|&p| grid[p]).count() as i64 - 1)
+            .collect_vec();
+
         if grid.row_range(0).points().all(|p| grid[p]) {
-            let mut heights = vec![];
-            for x in 0..grid.width() {
-                let height = grid.col_range(x).points().find(|p| !grid[*p]).unwrap();
-                heights.push(height.y - 1);
-            }
-            println!("a {heights:?}");
             locks.push(heights);
         } else {
-            let mut heights = vec![];
-            for x in 0..grid.width() {
-                let height = grid.height() - 1 - grid.col_range(x).points().find(|p| grid[*p]).unwrap().y;
-                heights.push(height);
-            }
-            println!("b {heights:?}");
             keys.push(heights);
         }
-
     }
 
-    dbg!(height);
     let mut sum = 0;
     for (lock, key) in locks.into_iter().cartesian_product(keys.into_iter()) {
-        let tot = lock.into_iter().zip(key.into_iter()).map(|(a, b)| a + b).all(|h| h < height - 1);
+        let tot = lock
+            .into_iter()
+            .zip(key.into_iter())
+            .map(|(a, b)| a + b)
+            .all(|h| h < height - 1);
 
         if tot {
             sum += 1;
         }
-
-
     }
-
-    // dbg!(locks, keys);
 
     sum
 }
 
 fn main() {
-    advent::new(2024, 25, default_input)
-        .part1(part1)
-        .cli();
+    advent::new(2024, 25, default_input).part1(part1).cli();
 }
 
 #[test]
@@ -103,5 +92,5 @@ fn example() {
 #[test]
 fn default() {
     let input = default_input();
-    // assert_eq!(part1(input), 0);
+    assert_eq!(part1(input), 3344);
 }
