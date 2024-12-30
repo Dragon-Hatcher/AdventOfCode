@@ -262,7 +262,7 @@ impl Grid<bool> {
         for y in self.range().ys() {
             for x in self.range().xs() {
                 let p = Vec2 { x, y };
-                let c = if self[p] { "⬤ " } else { "＊" };
+                let c = if self[p] { "🌕" } else { "🌑" };
                 out.push_str(c);
             }
             out.push('\n');
