@@ -79,7 +79,7 @@ impl Metadata {
         }
 
         let puzzle_name_re = regex!("--- Day \\d+: (.*?) ---");
-        let answers_re = regex!("Your puzzle answer was <code>(\\w+)</code>");
+        let answers_re = regex!("Your puzzle answer was <code>([\\w\\,]+)</code>");
 
         let name = puzzle_name_re
             .captures(&puzzle_text)

@@ -10,14 +10,14 @@ fn part1(input: &str) -> i64 {
     let mut count = 0;
     for p in grid.points() {
         for delta in Vec2::ZERO.neighbors8() {
-            let xmas = grid.get(p + delta) == Some(&'X')
+            let xmas = grid.get(p) == Some(&'X')
                 && grid.get(p + delta * 1) == Some(&'M')
                 && grid.get(p + delta * 2) == Some(&'A')
                 && grid.get(p + delta * 3) == Some(&'S');
-            count += xmas as i64
+            count += xmas as i64;
         }
     }
-
+    
     count
 }
 
