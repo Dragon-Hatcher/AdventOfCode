@@ -17,7 +17,7 @@ fn part1(input: &str) -> i64 {
             count += xmas as i64;
         }
     }
-    
+
     count
 }
 
