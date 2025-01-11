@@ -250,6 +250,10 @@ name = "2017-09"
 path = "solutions/2017/09.rs"
 
 [[bin]]
+name = "2017-10"
+path = "solutions/2017/10.rs"
+
+[[bin]]
 name = "2017-11"
 path = "solutions/2017/11.rs"
 
