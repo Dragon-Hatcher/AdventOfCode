@@ -1,4 +1,5 @@
 use advent::prelude::*;
+use std::iter::repeat_n;
 
 fn default_input() -> &'static str {
     include_input!(2025 / 01)
@@ -9,12 +10,10 @@ fn parse_line(line: &str) -> i64 {
     n * if line.starts_with('L') { -1 } else { 1 }
 }
 
-fn part1(input: &str) -> i64 {
-    let input = input.lines().map(parse_line);
-
+fn solve(turns: impl Iterator<Item = i64>) -> i64 {
     let mut dial = 50;
     let mut zero_count = 0;
-    for turn in input {
+    for turn in turns {
         dial += turn;
         dial = dial.rem_euclid(100);
         zero_count += (dial == 0) as i64;
@@ -23,20 +22,17 @@ fn part1(input: &str) -> i64 {
     zero_count
 }
 
+fn part1(input: &str) -> i64 {
+    let turns = input.lines().map(parse_line);
+    solve(turns)
+}
+
 fn part2(input: &str) -> i64 {
-    let input = input.lines().map(parse_line);
-
-    let mut dial = 50;
-    let mut zero_count = 0;
-    for turn in input {
-        for _ in 0..turn.abs() {
-            dial += turn.signum();
-            dial = dial.rem_euclid(100);
-            zero_count += (dial == 0) as i64;
-        }
-    }
-
-    zero_count
+    let turns = input
+        .lines()
+        .map(parse_line)
+        .flat_map(|i| repeat_n(i.signum(), i.unsigned_abs() as usize));
+    solve(turns)
 }
 
 fn main() {
