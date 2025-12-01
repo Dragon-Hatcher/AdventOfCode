@@ -11,15 +11,13 @@ fn parse_line(line: &str) -> i64 {
 }
 
 fn solve(turns: impl Iterator<Item = i64>) -> i64 {
-    let mut dial = 50;
-    let mut zero_count = 0;
-    for turn in turns {
-        dial += turn;
-        dial = dial.rem_euclid(100);
-        zero_count += (dial == 0) as i64;
-    }
-
-    zero_count
+    turns
+        .scan(50, |dial, turn| {
+            *dial += turn;
+            Some(*dial)
+        })
+        .filter(|dial| dial.rem_euclid(100) == 0)
+        .count() as i64
 }
 
 fn part1(input: &str) -> i64 {
