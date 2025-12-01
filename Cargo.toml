@@ -230,6 +230,58 @@ name = "2017-04"
 path = "solutions/2017/04.rs"
 
 [[bin]]
+name = "2017-05"
+path = "solutions/2017/05.rs"
+
+[[bin]]
+name = "2017-06"
+path = "solutions/2017/06.rs"
+
+[[bin]]
+name = "2017-07"
+path = "solutions/2017/07.rs"
+
+[[bin]]
+name = "2017-08"
+path = "solutions/2017/08.rs"
+
+[[bin]]
+name = "2017-09"
+path = "solutions/2017/09.rs"
+
+[[bin]]
+name = "2017-10"
+path = "solutions/2017/10.rs"
+
+[[bin]]
+name = "2017-11"
+path = "solutions/2017/11.rs"
+
+[[bin]]
+name = "2017-12"
+path = "solutions/2017/12.rs"
+
+[[bin]]
+name = "2017-13"
+path = "solutions/2017/13.rs"
+
+[[bin]]
+name = "2017-14"
+path = "solutions/2017/14.rs"
+
+[[bin]]
+name = "2017-15"
+path = "solutions/2017/15.rs"
+
+[[bin]]
+name = "2017-16"
+path = "solutions/2017/16.rs"
+
+[[bin]]
+name = "2017-17"
+path = "solutions/2017/17.rs"
+
+[[bin]]
 name = "2017-18"
 path = "solutions/2017/18.rs"
 
