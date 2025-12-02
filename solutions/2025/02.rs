@@ -17,20 +17,32 @@ where
 }
 
 fn part1(input: &str) -> i64 {
-    fn is_invalid(i: i64) -> bool {
-        let digits = i.ilog10() + 1;
-        let mask = 10i64.pow(digits / 2);
-        i / mask == i % mask
-    }
+    let mut sum = 0;
+    for (a, b) in input.nums().tuples() {
+        let a_digits = a.ilog10() + 1;
+        let b_digits = b.ilog10() + 1;
+        for digits in a_digits..=b_digits {
+            if digits % 2 != 0 {
+                continue;
+            }
 
-    solve(is_invalid, input)
+            let mask = 10i64.pow(digits / 2);
+            for i in (mask/10)..mask {
+                let id = i * mask + i;
+                if a <= id && id <= b {
+                    sum += id;
+                }
+            }
+        }
+    }
+    sum
 }
 
 fn part2(input: &str) -> i64 {
     fn is_invalid(i: i64) -> bool {
         let digits = i.ilog10() + 1;
 
-        'outer: for split in 1..=digits/2 {
+        'outer: for split in 1..=digits / 2 {
             if !digits.is_multiple_of(split) {
                 continue;
             }
@@ -39,7 +51,9 @@ fn part2(input: &str) -> i64 {
             let target = i % mask;
             let mut i = i / mask;
             while i > 0 {
-                if i % mask != target { continue 'outer; }
+                if i % mask != target {
+                    continue 'outer;
+                }
                 i /= mask;
             }
 
