@@ -4,35 +4,43 @@ fn default_input() -> &'static str {
     include_input!(2025 / 02)
 }
 
+fn solve<F>(f: F, input: &str) -> i64
+where
+    F: Fn(i64) -> bool,
+{
+    input
+        .nums()
+        .tuples()
+        .flat_map(|(a, b)| a..=b)
+        .filter(|&n| f(n))
+        .sum()
+}
+
 fn part1(input: &str) -> i64 {
     fn is_invalid(i: i64) -> bool {
-        let str = i.to_string();
-        str[0..str.len()/2] == str[str.len()/2..]
+        let digits = i.ilog10() + 1;
+        let mask = 10i64.pow(digits / 2);
+        i / mask == i % mask
     }
 
-    let mut sum = 0;
-    for (a, b) in input.nums().tuples() {
-        for i in a..=b {
-            if is_invalid(i) {
-                sum += i;
-            }
-        }
-    }
-    sum
+    solve(is_invalid, input)
 }
 
 fn part2(input: &str) -> i64 {
     fn is_invalid(i: i64) -> bool {
-        let str = i.to_string();
-        'outer: for l in 1..=str.len() / 2 {
-            if !str.len().is_multiple_of(l) {
+        let digits = i.ilog10() + 1;
+
+        'outer: for split in 1..=digits/2 {
+            if !digits.is_multiple_of(split) {
                 continue;
             }
 
-            for i in 0..str.len() / l {
-                if str[0..l] != str[i*l..(i+1)*l] {
-                    continue 'outer;
-                }
+            let mask = 10i64.pow(split);
+            let target = i % mask;
+            let mut i = i / mask;
+            while i > 0 {
+                if i % mask != target { continue 'outer; }
+                i /= mask;
             }
 
             return true;
@@ -40,15 +48,7 @@ fn part2(input: &str) -> i64 {
         false
     }
 
-    let mut sum = 0;
-    for (a, b) in input.nums().tuples() {
-        for i in a..=b {
-            if is_invalid(i) {
-                sum += i;
-            }
-        }
-    }
-    sum
+    solve(is_invalid, input)
 }
 
 fn main() {
