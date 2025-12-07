@@ -480,3 +480,7 @@ path = "solutions/2025/05.rs"
 [[bin]]
 name = "2025-06"
 path = "solutions/2025/06.rs"
+
+[[bin]]
+name = "2025-07"
+path = "solutions/2025/07.rs"
