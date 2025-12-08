@@ -250,6 +250,10 @@ impl Vec3 {
     pub fn manhattan_mag(&self) -> i64 {
         self.manhattan_dist(Vec3::ZERO)
     }
+
+    pub fn mag(&self) -> f64 {
+        ((self.x * self.x + self.y * self.y + self.z * self.z) as f64).sqrt()
+    }
 }
 
 impl Add<Vec3> for Vec3 {
